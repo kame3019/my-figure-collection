@@ -1,12 +1,12 @@
 <!DOCTYPE html>
-<html class="dark" lang="zh-Hant">
+<html lang="ja">
 <head>
     <meta charset="utf-8" />
     <meta content="width=device-width, initial-scale=1.0" name="viewport" />
-    <title>Figure Vault Merge V1</title>
+    <title>Kyoto Vault V8.8 Pure Final</title>
 
-    <script src="https://cdn.tailwindcss.com?plugins=forms"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@200..800&display=swap" rel="stylesheet" />
     <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet" />
 
     <script>
@@ -15,11 +15,14 @@
             theme: {
                 extend: {
                     colors: {
-                        primary: "#f9d406",
-                        "background-dark": "#23200f"
+                        primary: "#e6392d",
+                        "background-light": "#f8f6f6",
+                        "background-dark": "#211211",
+                        gold: "#d4af37",
+                        washi: "#f2eee5"
                     },
                     fontFamily: {
-                        display: ["Inter", "sans-serif"]
+                        display: ["Manrope", "sans-serif"]
                     }
                 }
             }
@@ -27,69 +30,116 @@
     </script>
 
     <style>
-        .material-symbols-outlined {
-            font-variation-settings: "FILL" 0, "wght" 500, "GRAD" 0, "opsz" 24;
+        .vertical-text {
+            writing-mode: vertical-rl;
+            text-orientation: mixed;
         }
-        .no-scrollbar::-webkit-scrollbar { display: none; }
-        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
-        body { min-height: 100dvh; }
-        .page { display: none; }
-        .page.show { display: block; }
-        .mode-active { background: #f9d406 !important; color: #23200f !important; border-color: #f9d406 !important; }
-        .nav-active { color: #f9d406 !important; }
-        .nav-active .material-symbols-outlined { font-variation-settings: "FILL" 1, "wght" 600, "GRAD" 0, "opsz" 24; }
+
+        .washi-texture {
+            background-color: #f8f6f6;
+            background-image: linear-gradient(135deg, #f8f6f6 0%, #f2eee5 100%);
+        }
+
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+
+        .no-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+
+        .font-variation-fill {
+            font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+
+        .page {
+            display: none;
+        }
+
+        .page.show {
+            display: block;
+        }
+
+        .nav-active {
+            color: #e6392d !important;
+        }
+
+        .nav-active .material-symbols-outlined {
+            font-variation-settings: 'FILL' 1, 'wght' 500, 'GRAD' 0, 'opsz' 24;
+        }
+
+        .mode-active {
+            background: #e6392d !important;
+            color: white !important;
+            border-color: rgba(230,57,45,.3) !important;
+        }
+
+        .chip-active {
+            background: #e6392d !important;
+            color: white !important;
+            border-color: rgba(230,57,45,.3) !important;
+        }
+
+        .soft-card {
+            background: rgba(255,255,255,.56);
+            backdrop-filter: blur(8px);
+        }
+
+        body {
+            min-height: max(884px, 100dvh);
+        }
     </style>
 </head>
-<body class="bg-background-dark font-display text-slate-100 antialiased">
-    <div class="relative flex h-[100dvh] w-full flex-col overflow-hidden">
-        <header class="flex items-center justify-between px-4 py-4 bg-background-dark border-b border-primary/10">
-            <div class="flex items-center gap-3">
-                <div class="bg-primary rounded-lg p-1.5 flex items-center justify-center">
-                    <span class="material-symbols-outlined text-background-dark font-bold">token</span>
-                </div>
+<body class="bg-background-light font-display text-slate-900 washi-texture">
+    <div class="relative flex min-h-screen flex-col overflow-x-hidden pb-24">
+        <header class="sticky top-0 z-30 flex items-center justify-between px-6 py-4 bg-background-light/80 backdrop-blur-md border-b border-primary/10">
+            <div class="flex items-center gap-2">
+                <span class="material-symbols-outlined text-primary text-2xl">account_balance</span>
                 <div>
-                    <h1 class="text-lg font-bold tracking-tight">Figure Vault</h1>
-                    <p class="text-[11px] text-primary/70">Stitch Merge UI</p>
+                    <h1 class="text-xl font-bold tracking-tight uppercase">Kyoto Vault</h1>
+                    <p class="text-[10px] text-slate-500 uppercase tracking-[0.18em]">Pure Final • V8.8</p>
                 </div>
             </div>
-
-            <div class="flex items-center gap-3">
-                <button id="headerSearchBtn" class="flex items-center justify-center p-2 rounded-full hover:bg-primary/10">
-                    <span class="material-symbols-outlined">search</span>
-                </button>
-                <div class="h-9 w-9 rounded-full border-2 border-primary overflow-hidden bg-primary/10 flex items-center justify-center">
-                    <span class="material-symbols-outlined text-primary">person</span>
-                </div>
-            </div>
+            <button id="headerSearchBtn" class="size-10 flex items-center justify-center rounded-full bg-primary/10 text-primary">
+                <span class="material-symbols-outlined">search</span>
+            </button>
         </header>
 
-        <main class="flex-1 overflow-y-auto pb-28 no-scrollbar">
+        <main class="flex-1 overflow-y-auto no-scrollbar">
+            <!-- Gallery -->
             <section id="pageCollection" class="page show">
-                <section class="p-4 flex gap-3 overflow-x-auto no-scrollbar" id="summaryStats"></section>
+                <section class="px-6 py-6">
+                    <div class="mb-4">
+                        <h2 id="overviewTitle" class="text-sm font-medium text-slate-500 uppercase tracking-widest">Portfolio Overview</h2>
+                    </div>
+                    <div id="overviewCards" class="grid grid-cols-2 gap-3"></div>
+                </section>
 
-                <section class="px-4 pb-2">
+                <section class="py-4">
+                    <div class="flex items-center justify-between px-6 mb-4">
+                        <h3 id="exhibitionTitle" class="text-lg font-bold">The Great Exhibition</h3>
+                        <button id="viewAllBtn" class="text-primary text-sm font-bold flex items-center gap-1">
+                            View All <span class="material-symbols-outlined text-sm">arrow_forward</span>
+                        </button>
+                    </div>
+                    <div id="exhibitionRail" class="flex overflow-x-auto snap-x snap-mandatory px-6 gap-6 no-scrollbar"></div>
+                </section>
+
+                <section class="px-6 py-2">
                     <div class="relative">
-                        <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">search</span>
-                        <input id="searchInput" class="w-full rounded-xl border border-primary/15 bg-white/5 py-3 pl-10 pr-4 text-sm text-slate-100 placeholder:text-slate-500 focus:border-primary focus:ring-primary" placeholder="搜尋模型、品牌、系列、分類…" />
+                        <span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-slate-400">search</span>
+                        <input id="searchInput" class="w-full rounded-xl border border-primary/10 bg-white/60 py-3 pl-12 pr-4 text-sm placeholder:text-slate-400 focus:border-primary focus:ring-primary" placeholder="搜尋模型、品牌、系列、分類..." />
                     </div>
                 </section>
 
-                <section class="px-4 py-2">
-                    <div class="flex gap-2 overflow-x-auto no-scrollbar" id="categoryChips"></div>
+                <section class="px-6 py-2">
+                    <div id="categoryChips" class="flex gap-2 overflow-x-auto no-scrollbar"></div>
                 </section>
 
-                <section class="px-4 py-2">
-                    <div class="grid grid-cols-4 gap-2">
-                        <button class="modeBtn rounded-full border border-primary/15 bg-white/5 px-2 py-2 text-[12px] font-semibold text-slate-200 mode-active" data-mode="list">列表</button>
-                        <button class="modeBtn rounded-full border border-primary/15 bg-white/5 px-2 py-2 text-[12px] font-semibold text-slate-200" data-mode="grid">網格</button>
-                        <button class="modeBtn rounded-full border border-primary/15 bg-white/5 px-2 py-2 text-[12px] font-semibold text-slate-200" data-mode="compact">卡片</button>
-                        <button class="modeBtn rounded-full border border-primary/15 bg-white/5 px-2 py-2 text-[12px] font-semibold text-slate-200" data-mode="wall">收藏牆</button>
-                    </div>
-                </section>
-
-                <section class="px-4 py-2">
+                <section class="px-6 py-2">
                     <div class="grid grid-cols-2 gap-2">
-                        <select id="sortSelect" class="w-full rounded-xl border border-primary/15 bg-white/5 px-3 py-3 text-sm text-slate-100 focus:border-primary focus:ring-primary">
+                        <select id="sortSelect" class="w-full rounded-xl border border-primary/10 bg-white/60 px-3 py-3 text-sm focus:border-primary focus:ring-primary">
                             <option value="date_desc">最新加入</option>
                             <option value="date_asc">最舊加入</option>
                             <option value="price_desc">價錢高到低</option>
@@ -98,7 +148,7 @@
                             <option value="name_desc">名稱 Z-A</option>
                         </select>
 
-                        <select id="statusFilter" class="w-full rounded-xl border border-primary/15 bg-white/5 px-3 py-3 text-sm text-slate-100 focus:border-primary focus:ring-primary">
+                        <select id="statusFilter" class="w-full rounded-xl border border-primary/10 bg-white/60 px-3 py-3 text-sm focus:border-primary focus:ring-primary">
                             <option value="">全部狀態</option>
                             <option value="未開封">未開封</option>
                             <option value="已開封">已開封</option>
@@ -109,66 +159,81 @@
                     </div>
                 </section>
 
-                <section class="px-4 py-4">
-                    <div class="flex items-center justify-between mb-4">
-                        <h2 id="collectionTitle" class="text-xl font-bold">My Collection</h2>
-                        <div id="resultNote" class="text-primary text-sm font-semibold">0 件</div>
+                <section class="px-6 py-2">
+                    <div class="grid grid-cols-4 gap-2">
+                        <button class="modeBtn mode-active rounded-full border border-primary/10 bg-white/50 px-2 py-2 text-[12px] font-semibold" data-mode="list">列表</button>
+                        <button class="modeBtn rounded-full border border-primary/10 bg-white/50 px-2 py-2 text-[12px] font-semibold" data-mode="grid">網格</button>
+                        <button class="modeBtn rounded-full border border-primary/10 bg-white/50 px-2 py-2 text-[12px] font-semibold" data-mode="compact">卡片</button>
+                        <button class="modeBtn rounded-full border border-primary/10 bg-white/50 px-2 py-2 text-[12px] font-semibold" data-mode="wall">收藏牆</button>
                     </div>
+                </section>
 
+                <section class="px-6 py-6">
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 id="archiveTitle" class="text-lg font-bold">Collection Archive</h3>
+                        <div id="resultNote" class="text-primary text-sm font-bold">0 件</div>
+                    </div>
                     <div id="collectionList"></div>
                 </section>
             </section>
 
-            <section id="pageAdd" class="page px-4 py-4 space-y-4">
-                <div class="rounded-2xl border border-primary/15 bg-white/5 p-4">
-                    <h2 class="text-xl font-bold mb-3">新增 / 修改收藏</h2>
+            <!-- Add / Manage -->
+            <section id="pageAdd" class="page px-6 py-6 space-y-5">
+                <div class="rounded-xl p-5 border border-primary/10 bg-white/55 shadow-sm">
+                    <div class="flex items-center justify-between mb-4">
+                        <div>
+                            <h2 class="text-lg font-bold">Archive Entry</h2>
+                            <p class="text-xs text-slate-500 uppercase tracking-widest mt-1">新增 / 修改收藏</p>
+                        </div>
+                        <span class="material-symbols-outlined text-primary text-3xl">edit_square</span>
+                    </div>
 
                     <div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
-                        <input id="name" class="rounded-xl border border-primary/15 bg-background-dark px-4 py-3 text-sm text-slate-100 placeholder:text-slate-500 focus:border-primary focus:ring-primary" placeholder="模型名稱" />
-                        <input id="brand" class="rounded-xl border border-primary/15 bg-background-dark px-4 py-3 text-sm text-slate-100 placeholder:text-slate-500 focus:border-primary focus:ring-primary" placeholder="品牌 / 廠商" />
+                        <input id="name" class="rounded-xl border border-primary/10 bg-background-light/80 px-4 py-3 text-sm placeholder:text-slate-400 focus:border-primary focus:ring-primary" placeholder="模型名稱" />
+                        <input id="brand" class="rounded-xl border border-primary/10 bg-background-light/80 px-4 py-3 text-sm placeholder:text-slate-400 focus:border-primary focus:ring-primary" placeholder="品牌 / 廠商" />
                     </div>
 
                     <div class="mt-4">
-                        <div class="mb-2 text-sm font-semibold text-primary">品牌 Logo 快選</div>
+                        <div class="text-xs font-bold tracking-widest uppercase text-slate-500 mb-2">品牌 Logo 快選</div>
                         <div id="brandPresetPicker" class="flex flex-wrap gap-2"></div>
                     </div>
 
                     <div class="grid grid-cols-1 gap-3 sm:grid-cols-2 mt-3">
-                        <input id="brandLogoUrl" class="rounded-xl border border-primary/15 bg-background-dark px-4 py-3 text-sm text-slate-100 placeholder:text-slate-500 focus:border-primary focus:ring-primary" placeholder="品牌 logo 網址" />
-                        <input id="brandLogoFile" class="rounded-xl border border-primary/15 bg-background-dark px-4 py-3 text-sm text-slate-100 file:mr-3 file:rounded-lg file:border-0 file:bg-primary file:px-3 file:py-2 file:text-sm file:font-semibold file:text-background-dark" type="file" accept="image/*" />
+                        <input id="brandLogoUrl" class="rounded-xl border border-primary/10 bg-background-light/80 px-4 py-3 text-sm placeholder:text-slate-400 focus:border-primary focus:ring-primary" placeholder="品牌 logo 網址" />
+                        <input id="brandLogoFile" class="rounded-xl border border-primary/10 bg-background-light/80 px-4 py-3 text-sm file:mr-3 file:rounded-lg file:border-0 file:bg-primary file:px-3 file:py-2 file:text-sm file:font-semibold file:text-white" type="file" accept="image/*" />
                     </div>
 
-                    <button id="saveBrandLibBtn" class="mt-3 w-full rounded-xl bg-primary px-4 py-3 text-sm font-bold text-background-dark">加入品牌 Logo 庫</button>
+                    <button id="saveBrandLibBtn" class="mt-3 w-full rounded-xl bg-primary px-4 py-3 text-sm font-bold text-white">加入品牌 Logo 庫</button>
 
-                    <div class="grid grid-cols-1 gap-3 sm:grid-cols-2 mt-4">
-                        <input id="series" class="rounded-xl border border-primary/15 bg-background-dark px-4 py-3 text-sm text-slate-100 placeholder:text-slate-500 focus:border-primary focus:ring-primary" placeholder="系列 / 作品" />
-                        <input id="itemCode" class="rounded-xl border border-primary/15 bg-background-dark px-4 py-3 text-sm text-slate-100 placeholder:text-slate-500 focus:border-primary focus:ring-primary" placeholder="商品編號 / 條碼" />
+                    <div class="grid grid-cols-1 gap-3 sm:grid-cols-2 mt-5">
+                        <input id="series" class="rounded-xl border border-primary/10 bg-background-light/80 px-4 py-3 text-sm placeholder:text-slate-400 focus:border-primary focus:ring-primary" placeholder="系列 / 作品" />
+                        <input id="itemCode" class="rounded-xl border border-primary/10 bg-background-light/80 px-4 py-3 text-sm placeholder:text-slate-400 focus:border-primary focus:ring-primary" placeholder="商品編號 / 條碼" />
                     </div>
 
                     <div class="mt-4">
-                        <div class="mb-2 text-sm font-semibold text-primary">系列 Logo 快選</div>
+                        <div class="text-xs font-bold tracking-widest uppercase text-slate-500 mb-2">系列 Logo 快選</div>
                         <div id="seriesPresetPicker" class="flex flex-wrap gap-2"></div>
                     </div>
 
                     <div class="grid grid-cols-1 gap-3 sm:grid-cols-2 mt-3">
-                        <input id="seriesLogoUrl" class="rounded-xl border border-primary/15 bg-background-dark px-4 py-3 text-sm text-slate-100 placeholder:text-slate-500 focus:border-primary focus:ring-primary" placeholder="系列 logo 網址" />
-                        <input id="seriesLogoFile" class="rounded-xl border border-primary/15 bg-background-dark px-4 py-3 text-sm text-slate-100 file:mr-3 file:rounded-lg file:border-0 file:bg-primary file:px-3 file:py-2 file:text-sm file:font-semibold file:text-background-dark" type="file" accept="image/*" />
+                        <input id="seriesLogoUrl" class="rounded-xl border border-primary/10 bg-background-light/80 px-4 py-3 text-sm placeholder:text-slate-400 focus:border-primary focus:ring-primary" placeholder="系列 logo 網址" />
+                        <input id="seriesLogoFile" class="rounded-xl border border-primary/10 bg-background-light/80 px-4 py-3 text-sm file:mr-3 file:rounded-lg file:border-0 file:bg-primary file:px-3 file:py-2 file:text-sm file:font-semibold file:text-white" type="file" accept="image/*" />
                     </div>
 
-                    <button id="saveSeriesLibBtn" class="mt-3 w-full rounded-xl bg-primary px-4 py-3 text-sm font-bold text-background-dark">加入系列 Logo 庫</button>
+                    <button id="saveSeriesLibBtn" class="mt-3 w-full rounded-xl bg-primary px-4 py-3 text-sm font-bold text-white">加入系列 Logo 庫</button>
 
-                    <div class="grid grid-cols-1 gap-3 sm:grid-cols-2 mt-4">
-                        <input id="price" class="rounded-xl border border-primary/15 bg-background-dark px-4 py-3 text-sm text-slate-100 placeholder:text-slate-500 focus:border-primary focus:ring-primary" placeholder="購入價 HKD" type="number" />
-                        <input id="date" class="rounded-xl border border-primary/15 bg-background-dark px-4 py-3 text-sm text-slate-100 focus:border-primary focus:ring-primary" type="date" />
-                    </div>
-
-                    <div class="grid grid-cols-1 gap-3 sm:grid-cols-2 mt-3">
-                        <input id="category" class="rounded-xl border border-primary/15 bg-background-dark px-4 py-3 text-sm text-slate-100 placeholder:text-slate-500 focus:border-primary focus:ring-primary" placeholder="分類" />
-                        <input id="location" class="rounded-xl border border-primary/15 bg-background-dark px-4 py-3 text-sm text-slate-100 placeholder:text-slate-500 focus:border-primary focus:ring-primary" placeholder="擺放位置 / 展示櫃" />
+                    <div class="grid grid-cols-1 gap-3 sm:grid-cols-2 mt-5">
+                        <input id="price" class="rounded-xl border border-primary/10 bg-background-light/80 px-4 py-3 text-sm placeholder:text-slate-400 focus:border-primary focus:ring-primary" type="number" placeholder="購入價 HKD" />
+                        <input id="date" class="rounded-xl border border-primary/10 bg-background-light/80 px-4 py-3 text-sm focus:border-primary focus:ring-primary" type="date" />
                     </div>
 
                     <div class="grid grid-cols-1 gap-3 sm:grid-cols-2 mt-3">
-                        <select id="status" class="rounded-xl border border-primary/15 bg-background-dark px-4 py-3 text-sm text-slate-100 focus:border-primary focus:ring-primary">
+                        <input id="category" class="rounded-xl border border-primary/10 bg-background-light/80 px-4 py-3 text-sm placeholder:text-slate-400 focus:border-primary focus:ring-primary" placeholder="分類" />
+                        <input id="location" class="rounded-xl border border-primary/10 bg-background-light/80 px-4 py-3 text-sm placeholder:text-slate-400 focus:border-primary focus:ring-primary" placeholder="擺放位置 / 展示櫃" />
+                    </div>
+
+                    <div class="grid grid-cols-1 gap-3 sm:grid-cols-2 mt-3">
+                        <select id="status" class="rounded-xl border border-primary/10 bg-background-light/80 px-4 py-3 text-sm focus:border-primary focus:ring-primary">
                             <option>未開封</option>
                             <option>已開封</option>
                             <option>展示中</option>
@@ -176,124 +241,221 @@
                             <option>願望清單</option>
                         </select>
 
-                        <input id="sourceLink" class="rounded-xl border border-primary/15 bg-background-dark px-4 py-3 text-sm text-slate-100 placeholder:text-slate-500 focus:border-primary focus:ring-primary" placeholder="產品來源連結" />
+                        <input id="sourceLink" class="rounded-xl border border-primary/10 bg-background-light/80 px-4 py-3 text-sm placeholder:text-slate-400 focus:border-primary focus:ring-primary" placeholder="產品來源連結" />
                     </div>
 
                     <div class="grid grid-cols-1 gap-3 sm:grid-cols-2 mt-3">
-                        <input id="photo" class="rounded-xl border border-primary/15 bg-background-dark px-4 py-3 text-sm text-slate-100 file:mr-3 file:rounded-lg file:border-0 file:bg-primary file:px-3 file:py-2 file:text-sm file:font-semibold file:text-background-dark" type="file" accept="image/*" capture="environment" />
-                        <input id="photoLibrary" class="rounded-xl border border-primary/15 bg-background-dark px-4 py-3 text-sm text-slate-100 file:mr-3 file:rounded-lg file:border-0 file:bg-primary file:px-3 file:py-2 file:text-sm file:font-semibold file:text-background-dark" type="file" accept="image/*" />
+                        <input id="photo" class="rounded-xl border border-primary/10 bg-background-light/80 px-4 py-3 text-sm file:mr-3 file:rounded-lg file:border-0 file:bg-primary file:px-3 file:py-2 file:text-sm file:font-semibold file:text-white" type="file" accept="image/*" capture="environment" />
+                        <input id="photoLibrary" class="rounded-xl border border-primary/10 bg-background-light/80 px-4 py-3 text-sm file:mr-3 file:rounded-lg file:border-0 file:bg-primary file:px-3 file:py-2 file:text-sm file:font-semibold file:text-white" type="file" accept="image/*" />
                     </div>
 
-                    <textarea id="note" class="mt-3 rounded-xl border border-primary/15 bg-background-dark px-4 py-3 text-sm text-slate-100 placeholder:text-slate-500 focus:border-primary focus:ring-primary" placeholder="備註"></textarea>
+                    <div class="grid grid-cols-1 gap-3 sm:grid-cols-2 mt-3">
+                        <input id="cornerLabel" class="rounded-xl border border-primary/10 bg-background-light/80 px-4 py-3 text-sm placeholder:text-slate-400 focus:border-primary focus:ring-primary" placeholder="圖片左上角標籤，例如 LIMITED EDITION" />
+                        <select id="cornerLabelColor" class="rounded-xl border border-primary/10 bg-background-light/80 px-4 py-3 text-sm focus:border-primary focus:ring-primary">
+                            <option value="auto">標籤顏色：自動</option>
+                            <option value="red">紅</option>
+                            <option value="black">黑</option>
+                            <option value="gold">金</option>
+                        </select>
+                    </div>
 
-                    <button id="saveBtn" class="mt-4 w-full rounded-xl bg-primary px-4 py-3 text-sm font-bold text-background-dark">儲存收藏</button>
+                    <textarea id="note" class="mt-3 rounded-xl border border-primary/10 bg-background-light/80 px-4 py-3 text-sm placeholder:text-slate-400 focus:border-primary focus:ring-primary" placeholder="備註"></textarea>
+
+                    <button id="saveBtn" class="mt-5 w-full rounded-xl bg-primary px-4 py-3 text-sm font-bold text-white">儲存收藏</button>
                 </div>
 
-                <div class="rounded-2xl border border-primary/15 bg-white/5 p-4">
+                <div class="rounded-xl p-5 border border-primary/10 bg-white/55 shadow-sm">
                     <div class="flex items-center justify-between">
-                        <h3 class="text-lg font-bold">Logo Library 管理</h3>
-                        <div class="text-xs text-primary/70">預設 + 自訂都可刪</div>
+                        <div>
+                            <h3 class="text-lg font-bold">Curator Library</h3>
+                            <p class="text-xs text-slate-500 uppercase tracking-widest mt-1">Logo Library 管理</p>
+                        </div>
+                        <span class="material-symbols-outlined text-gold text-3xl">diamond</span>
                     </div>
 
-                    <div class="mt-4 flex items-center justify-between">
+                    <div class="mt-5 flex items-center justify-between">
                         <div class="font-semibold">品牌 Logos</div>
-                        <div id="brandLibCount" class="text-xs text-primary/70">0 個</div>
+                        <div id="brandLibCount" class="text-xs text-slate-500">0 個</div>
                     </div>
                     <div id="brandLibraryManager" class="mt-3 space-y-2"></div>
 
-                    <div class="mt-5 flex items-center justify-between">
+                    <div class="mt-6 flex items-center justify-between">
                         <div class="font-semibold">系列 Logos</div>
-                        <div id="seriesLibCount" class="text-xs text-primary/70">0 個</div>
+                        <div id="seriesLibCount" class="text-xs text-slate-500">0 個</div>
                     </div>
                     <div id="seriesLibraryManager" class="mt-3 space-y-2"></div>
                 </div>
 
-                <div class="rounded-2xl border border-primary/15 bg-white/5 p-4">
-                    <h3 class="text-lg font-bold">備份 / 還原</h3>
-                    <p class="mt-2 text-xs leading-6 text-slate-400">收藏資料、品牌 Logo 庫、系列 Logo 庫會一齊備份。</p>
+                <div class="rounded-xl p-5 border border-primary/10 bg-white/55 shadow-sm">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <h3 class="text-lg font-bold">Archive Tools</h3>
+                            <p class="text-xs text-slate-500 uppercase tracking-widest mt-1">備份 / 還原</p>
+                        </div>
+                        <span class="material-symbols-outlined text-primary text-3xl">cloud_sync</span>
+                    </div>
+
+                    <p class="mt-3 text-sm text-slate-500 leading-6">收藏資料、品牌 Logo 庫、系列 Logo 庫、角標設定會一齊備份。</p>
 
                     <div class="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-3">
-                        <button id="exportBtn" class="rounded-xl bg-primary px-4 py-3 text-sm font-bold text-background-dark">⬇️ 匯出 JSON</button>
-                        <button id="importBtn" class="rounded-xl bg-white/10 px-4 py-3 text-sm font-bold text-slate-100">⬆️ 匯入 JSON</button>
-                        <button id="clearBtn" class="rounded-xl bg-white/10 px-4 py-3 text-sm font-bold text-slate-100">🗑️ 清空資料</button>
+                        <button id="exportBtn" class="rounded-xl bg-primary px-4 py-3 text-sm font-bold text-white">⬇️ 匯出 JSON</button>
+                        <button id="importBtn" class="rounded-xl bg-black/5 px-4 py-3 text-sm font-bold">⬆️ 匯入 JSON</button>
+                        <button id="clearBtn" class="rounded-xl bg-black/5 px-4 py-3 text-sm font-bold">🗑️ 清空資料</button>
                     </div>
 
                     <input id="importFile" type="file" accept=".json,application/json" class="hidden" />
-                    <div id="backupStatus" class="mt-3 text-xs text-primary/70">未匯出 / 未匯入</div>
+                    <div id="backupStatus" class="mt-3 text-xs text-primary font-semibold">未匯出 / 未匯入</div>
                 </div>
             </section>
 
-            <section id="pageStats" class="page px-4 py-4 space-y-4">
-                <div class="rounded-2xl border border-primary/15 bg-white/5 p-4">
-                    <div class="flex items-center justify-between gap-3">
-                        <h2 class="text-xl font-bold">統計總覽</h2>
-                        <select id="statsYearFilter" class="rounded-xl border border-primary/15 bg-background-dark px-3 py-2 text-sm text-slate-100 focus:border-primary focus:ring-primary"></select>
+            <!-- Insights -->
+            <section id="pageStats" class="page px-6 py-8">
+                <h3 class="text-lg font-bold mb-4">Market Insights</h3>
+
+                <div class="mb-4">
+                    <select id="statsYearFilter" class="w-full rounded-xl border border-primary/10 bg-white px-4 py-3 text-sm focus:border-primary focus:ring-primary"></select>
+                </div>
+
+                <div id="statsOverview" class="grid grid-cols-2 gap-3 mb-6"></div>
+
+                <div class="space-y-4">
+                    <div class="rounded-xl bg-white border border-slate-100 shadow-sm p-4">
+                        <div class="flex items-center justify-between mb-3">
+                            <h4 class="font-bold">Top Archive Ranking</h4>
+                            <span class="material-symbols-outlined text-gold">workspace_premium</span>
+                        </div>
+                        <div id="topRanking"></div>
                     </div>
 
-                    <div id="statsOverview" class="mt-4"></div>
+                    <div class="rounded-xl bg-white border border-slate-100 shadow-sm p-4">
+                        <div class="flex items-center justify-between mb-3">
+                            <h4 class="font-bold">Brand Distribution</h4>
+                            <span class="material-symbols-outlined text-primary">donut_large</span>
+                        </div>
+                        <div id="brandBreakdown"></div>
+                    </div>
+
+                    <div class="rounded-xl bg-white border border-slate-100 shadow-sm p-4">
+                        <div class="flex items-center justify-between mb-3">
+                            <h4 class="font-bold">Series Distribution</h4>
+                            <span class="material-symbols-outlined text-gold">stacked_bar_chart</span>
+                        </div>
+                        <div id="seriesBreakdown"></div>
+                    </div>
+
+                    <div class="rounded-xl bg-white border border-slate-100 shadow-sm p-4">
+                        <div class="flex items-center justify-between mb-3">
+                            <h4 class="font-bold">Monthly Chronicle</h4>
+                            <span class="material-symbols-outlined text-gold">calendar_month</span>
+                        </div>
+                        <div id="monthlyBreakdown"></div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Profile -->
+            <section id="pageProfile" class="page px-6 py-8 space-y-4">
+                <div class="rounded-xl bg-white border border-slate-100 shadow-sm p-5">
+                    <div class="flex items-center gap-4">
+                        <div class="size-16 rounded-full bg-primary/10 border border-primary/20 flex items-center justify-center">
+                            <span class="material-symbols-outlined text-primary text-3xl">person</span>
+                        </div>
+                        <div class="min-w-0">
+                            <h3 id="profileDisplayName" class="text-lg font-bold">Guest Collector</h3>
+                            <p id="profileDisplayEmail" class="text-sm text-slate-500 truncate">Not signed in</p>
+                            <p class="text-xs text-slate-400 uppercase tracking-widest mt-1">Member Prep UI</p>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-3 mt-5">
+                        <div class="rounded-xl border border-primary/10 bg-primary/5 p-4">
+                            <div class="text-xs uppercase tracking-widest text-slate-500 font-semibold">Owned</div>
+                            <div id="profileOwnedCount" class="mt-2 text-2xl font-bold">0</div>
+                        </div>
+                        <div class="rounded-xl border border-gold/20 bg-gold/10 p-4">
+                            <div class="text-xs uppercase tracking-widest text-slate-500 font-semibold">Wishlist</div>
+                            <div id="profileWishCount" class="mt-2 text-2xl font-bold">0</div>
+                        </div>
+                    </div>
                 </div>
 
-                <div class="rounded-2xl border border-primary/15 bg-white/5 p-4">
-                    <h3 class="text-lg font-bold">最貴收藏排行榜</h3>
-                    <div id="topRanking" class="mt-3"></div>
+                <div class="rounded-xl bg-white border border-slate-100 shadow-sm p-5">
+                    <div class="flex items-center justify-between mb-4">
+                        <div>
+                            <h3 class="text-lg font-bold">Sign In</h3>
+                            <p class="text-xs text-slate-500 uppercase tracking-widest mt-1">UI Preview</p>
+                        </div>
+                        <span class="material-symbols-outlined text-primary text-3xl">login</span>
+                    </div>
+
+                    <div class="space-y-3">
+                        <input id="loginEmail" class="rounded-xl border border-primary/10 bg-background-light/80 px-4 py-3 text-sm placeholder:text-slate-400 focus:border-primary focus:ring-primary" placeholder="Email address" type="email" />
+                        <input id="loginPassword" class="rounded-xl border border-primary/10 bg-background-light/80 px-4 py-3 text-sm placeholder:text-slate-400 focus:border-primary focus:ring-primary" placeholder="Password" type="password" />
+                        <button id="fakeLoginBtn" class="w-full rounded-xl bg-primary px-4 py-3 text-sm font-bold text-white">登入（示範 UI）</button>
+                    </div>
                 </div>
 
-                <div class="rounded-2xl border border-primary/15 bg-white/5 p-4">
-                    <h3 class="text-lg font-bold">品牌分佈</h3>
-                    <div id="brandBreakdown" class="mt-3"></div>
-                </div>
+                <div class="rounded-xl bg-white border border-slate-100 shadow-sm p-5">
+                    <div class="flex items-center justify-between mb-4">
+                        <div>
+                            <h3 class="text-lg font-bold">Create Account</h3>
+                            <p class="text-xs text-slate-500 uppercase tracking-widest mt-1">UI Preview</p>
+                        </div>
+                        <span class="material-symbols-outlined text-gold text-3xl">person_add</span>
+                    </div>
 
-                <div class="rounded-2xl border border-primary/15 bg-white/5 p-4">
-                    <h3 class="text-lg font-bold">系列分佈</h3>
-                    <div id="seriesBreakdown" class="mt-3"></div>
-                </div>
-
-                <div class="rounded-2xl border border-primary/15 bg-white/5 p-4">
-                    <h3 class="text-lg font-bold">月度統計</h3>
-                    <div id="monthlyBreakdown" class="mt-3"></div>
+                    <div class="space-y-3">
+                        <input id="registerName" class="rounded-xl border border-primary/10 bg-background-light/80 px-4 py-3 text-sm placeholder:text-slate-400 focus:border-primary focus:ring-primary" placeholder="Display name" />
+                        <input id="registerEmail" class="rounded-xl border border-primary/10 bg-background-light/80 px-4 py-3 text-sm placeholder:text-slate-400 focus:border-primary focus:ring-primary" placeholder="Email address" type="email" />
+                        <input id="registerPassword" class="rounded-xl border border-primary/10 bg-background-light/80 px-4 py-3 text-sm placeholder:text-slate-400 focus:border-primary focus:ring-primary" placeholder="Password" type="password" />
+                        <button id="fakeRegisterBtn" class="w-full rounded-xl bg-primary px-4 py-3 text-sm font-bold text-white">註冊（示範 UI）</button>
+                    </div>
                 </div>
             </section>
         </main>
 
-        <nav class="absolute bottom-0 left-0 right-0 z-20 pb-6 pt-2 px-6 bg-background-dark border-t border-primary/10">
-            <div class="flex items-center justify-between">
-                <button id="navCollection" class="flex flex-col items-center gap-1 nav-active">
-                    <span class="material-symbols-outlined">grid_view</span>
-                    <span class="text-[10px] font-bold uppercase">Collection</span>
+        <nav class="fixed bottom-0 left-0 right-0 z-50 bg-background-light/90 backdrop-blur-xl border-t border-primary/10 px-6 pt-3 pb-8">
+            <div class="flex items-center justify-between max-w-md mx-auto">
+                <button id="navCollection" class="flex flex-col items-center gap-1 text-primary nav-active">
+                    <span class="material-symbols-outlined font-variation-fill">home</span>
+                    <span class="text-[10px] font-bold uppercase tracking-widest">Gallery</span>
                 </button>
 
-                <button id="navWishlist" class="flex flex-col items-center gap-1 text-slate-500 hover:text-primary transition-colors">
-                    <span class="material-symbols-outlined">favorite</span>
-                    <span class="text-[10px] font-bold uppercase">Wishlist</span>
+                <button id="navWishlist" class="flex flex-col items-center gap-1 text-slate-400">
+                    <span class="material-symbols-outlined">explore</span>
+                    <span class="text-[10px] font-bold uppercase tracking-widest">Market</span>
                 </button>
 
-                <div class="-mt-12">
-                    <button id="navAddCenter" class="bg-primary text-background-dark h-14 w-14 rounded-full flex items-center justify-center shadow-lg shadow-primary/20 border-4 border-background-dark">
-                        <span class="material-symbols-outlined text-3xl">add</span>
+                <div class="relative -top-6">
+                    <button id="navAddCenter" class="size-14 bg-primary text-white rounded-full shadow-lg shadow-primary/40 flex items-center justify-center">
+                        <span class="material-symbols-outlined text-2xl">add</span>
                     </button>
                 </div>
 
-                <button id="navStats" class="flex flex-col items-center gap-1 text-slate-500 hover:text-primary transition-colors">
-                    <span class="material-symbols-outlined">bar_chart</span>
-                    <span class="text-[10px] font-bold uppercase">Stats</span>
+                <button id="navStats" class="flex flex-col items-center gap-1 text-slate-400">
+                    <span class="material-symbols-outlined">insights</span>
+                    <span class="text-[10px] font-bold uppercase tracking-widest">Insights</span>
                 </button>
 
-                <button id="navManage" class="flex flex-col items-center gap-1 text-slate-500 hover:text-primary transition-colors">
-                    <span class="material-symbols-outlined">inventory_2</span>
-                    <span class="text-[10px] font-bold uppercase">Manage</span>
+                <button id="navProfile" class="flex flex-col items-center gap-1 text-slate-400">
+                    <span class="material-symbols-outlined">person</span>
+                    <span class="text-[10px] font-bold uppercase tracking-widest">Profile</span>
                 </button>
             </div>
         </nav>
     </div>
 
     <script>
-        const STABLE_KEY = "figure_vault_stitch_merge_v1_items";
-        const BRAND_LIB_KEY = "figure_vault_stitch_merge_v1_brand_lib";
-        const SERIES_LIB_KEY = "figure_vault_stitch_merge_v1_series_lib";
+        const STABLE_KEY = "kyoto_vault_v88_pure_final_items";
+        const BRAND_LIB_KEY = "kyoto_vault_v88_pure_final_brand_lib";
+        const SERIES_LIB_KEY = "kyoto_vault_v88_pure_final_series_lib";
+        const FAKE_USER_KEY = "kyoto_vault_fake_user_pure_final";
 
         const LEGACY_KEYS = [
-            "figure_collector_v89_readable_master",
+            "kyoto_vault_v88_member_prep_items",
+            "kyoto_vault_v88_merge_items",
             "figure_collector_v88_master",
+            "figure_collector_v89_readable_master",
             "figure_collector_v82_master",
             "figure_collector_v81_master",
             "figure_collector_v8_master",
@@ -320,6 +482,8 @@
         let seriesLibrary = [];
         let view = "owned";
         let mode = "list";
+        let currentCategory = "";
+        let fakeUser = null;
 
         function money(v) {
             return "$" + Number(v || 0).toLocaleString("en-HK", { maximumFractionDigits: 2 });
@@ -336,10 +500,7 @@
         }
 
         function normalizeRecord(raw) {
-            if (!raw || typeof raw !== "object") {
-                return null;
-            }
-
+            if (!raw || typeof raw !== "object") return null;
             return {
                 id: raw.id || uid(),
                 name: raw.name || "",
@@ -355,17 +516,15 @@
                 location: raw.location || "",
                 sourceLink: raw.sourceLink || "",
                 note: raw.note || "",
-                image: raw.image || ""
+                image: raw.image || "",
+                cornerLabel: raw.cornerLabel || "",
+                cornerLabelColor: raw.cornerLabelColor || "auto"
             };
         }
 
         function seedDefaultsIfNeeded() {
-            if (!brandLibrary.length) {
-                brandLibrary = [...BRAND_DEFAULTS];
-            }
-            if (!seriesLibrary.length) {
-                seriesLibrary = [...SERIES_DEFAULTS];
-            }
+            if (!brandLibrary.length) brandLibrary = [...BRAND_DEFAULTS];
+            if (!seriesLibrary.length) seriesLibrary = [...SERIES_DEFAULTS];
         }
 
         function loadData() {
@@ -384,7 +543,6 @@
             seedDefaultsIfNeeded();
 
             const stable = localStorage.getItem(STABLE_KEY);
-
             if (stable) {
                 try {
                     items = JSON.parse(stable).map(normalizeRecord).filter(Boolean);
@@ -407,38 +565,59 @@
                 } catch (e) {}
             }
 
-            items = [
-                {
-                    id: uid(),
-                    name: "RX-78-2 Gundam",
-                    category: "高達",
-                    series: "Gundam",
-                    seriesLogo: SERIES_DEFAULTS[0].logo,
-                    brand: "Bandai",
-                    brandLogo: BRAND_DEFAULTS[0].logo,
-                    price: 189,
-                    date: "2026-03-02",
-                    itemCode: "HG-RX78",
-                    status: "未開封",
-                    location: "展示櫃 A",
-                    sourceLink: "",
-                    note: "HG 系列，未開盒。",
-                    image: ""
-                }
-            ];
+            items = [{
+                id: uid(),
+                name: "RX-78-2 Gundam",
+                category: "高達",
+                series: "Gundam",
+                seriesLogo: SERIES_DEFAULTS[0].logo,
+                brand: "Bandai",
+                brandLogo: BRAND_DEFAULTS[0].logo,
+                price: 189,
+                date: "2026-03-02",
+                itemCode: "HG-RX78",
+                status: "未開封",
+                location: "展示櫃 A",
+                sourceLink: "",
+                note: "HG 系列，未開盒。",
+                image: "",
+                cornerLabel: "LIMITED EDITION",
+                cornerLabelColor: "red"
+            }];
 
             save();
+        }
+
+        function loadFakeUser() {
+            try {
+                fakeUser = JSON.parse(localStorage.getItem(FAKE_USER_KEY) || "null");
+            } catch (e) {
+                fakeUser = null;
+            }
+        }
+
+        function saveFakeUser() {
+            if (fakeUser) {
+                localStorage.setItem(FAKE_USER_KEY, JSON.stringify(fakeUser));
+            } else {
+                localStorage.removeItem(FAKE_USER_KEY);
+            }
         }
 
         function makeDefaultImage(label) {
             const safe = (label || "Figure").replace(/[<>&]/g, "");
             const svg = `
-                <svg xmlns="http://www.w3.org/2000/svg" width="400" height="400">
-                    <rect width="100%" height="100%" fill="#2a2616"/>
-                    <text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" fill="#f9d406" font-size="28" font-family="Arial">${safe}</text>
+                <svg xmlns="http://www.w3.org/2000/svg" width="600" height="800">
+                    <rect width="100%" height="100%" fill="#f8f6f6"/>
+                    <rect x="24" y="24" width="552" height="752" rx="20" fill="#f2eee5" stroke="#e6392d" stroke-width="3"/>
+                    <text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" fill="#b1483c" font-size="30" font-family="Arial">${safe}</text>
                 </svg>
             `;
             return "data:image/svg+xml;charset=UTF-8," + encodeURIComponent(svg);
+        }
+
+        function escapeText(text) {
+            return String(text).replace(/'/g, "&#39;");
         }
 
         function showPage(id) {
@@ -447,45 +626,328 @@
         }
 
         function setActiveNav(key) {
-            const mapping = {
+            const ids = {
                 collection: "navCollection",
                 wishlist: "navWishlist",
                 stats: "navStats",
-                manage: "navManage"
+                profile: "navProfile"
             };
 
-            Object.values(mapping).forEach(id => {
+            Object.values(ids).forEach(id => {
                 const el = document.getElementById(id);
                 el.classList.remove("nav-active");
-                el.classList.add("text-slate-500");
+                el.classList.add("text-slate-400");
             });
 
-            if (mapping[key]) {
-                const activeEl = document.getElementById(mapping[key]);
+            if (ids[key]) {
+                const activeEl = document.getElementById(ids[key]);
                 activeEl.classList.add("nav-active");
-                activeEl.classList.remove("text-slate-500");
+                activeEl.classList.remove("text-slate-400");
             }
         }
 
-        function renderPresetPickers() {
-            const brandWrap = document.getElementById("brandPresetPicker");
-            const seriesWrap = document.getElementById("seriesPresetPicker");
+        function labelConfig(item, index) {
+            const text = item.cornerLabel && item.cornerLabel.trim()
+                ? item.cornerLabel.trim()
+                : (view === "wishlist"
+                    ? (index === 0 ? "WANTED" : "DREAM PICK")
+                    : (item.status === "展示中" ? "GREAT EXHIBITION" : "ARCHIVE"));
 
-            brandWrap.innerHTML = brandLibrary.map(item => `
-                <button class="rounded-full border border-primary/15 bg-white/5 px-3 py-2 text-xs text-slate-100" type="button" onclick="applyBrandPreset('${escapeText(item.name)}','${escapeText(item.logo)}')">
-                    ${item.name}
-                </button>
-            `).join("");
+            let color = item.cornerLabelColor || "auto";
+            if (color === "auto") {
+                color = index % 2 === 0 ? "red" : "black";
+            }
 
-            seriesWrap.innerHTML = seriesLibrary.map(item => `
-                <button class="rounded-full border border-primary/15 bg-white/5 px-3 py-2 text-xs text-slate-100" type="button" onclick="applySeriesPreset('${escapeText(item.name)}','${escapeText(item.logo)}')">
-                    ${item.name}
-                </button>
-            `).join("");
+            let classes = "bg-primary text-white";
+            if (color === "black") classes = "bg-black text-white";
+            if (color === "gold") classes = "bg-gold text-white";
+
+            return { text, classes };
         }
 
-        function escapeText(text) {
-            return String(text).replace(/'/g, "&#39;");
+        function ownedItems() {
+            return items.filter(item => item.status !== "願望清單");
+        }
+
+        function filteredItems() {
+            const query = document.getElementById("searchInput").value.trim().toLowerCase();
+            const sort = document.getElementById("sortSelect").value;
+            const statusFilter = document.getElementById("statusFilter").value;
+
+            let arr = items.filter(item => {
+                const matchesView = view === "owned" ? item.status !== "願望清單" : item.status === "願望清單";
+                const text = [item.name, item.brand, item.series, item.category, item.note, item.itemCode, item.location, item.cornerLabel].join(" ").toLowerCase();
+
+                return matchesView &&
+                    (!query || text.includes(query)) &&
+                    (!currentCategory || item.category === currentCategory) &&
+                    (!statusFilter || item.status === statusFilter);
+            });
+
+            arr.sort((a, b) => {
+                switch (sort) {
+                    case "date_asc": return new Date(a.date || 0) - new Date(b.date || 0);
+                    case "price_desc": return Number(b.price || 0) - Number(a.price || 0);
+                    case "price_asc": return Number(a.price || 0) - Number(b.price || 0);
+                    case "name_asc": return (a.name || "").localeCompare(b.name || "");
+                    case "name_desc": return (b.name || "").localeCompare(a.name || "");
+                    default: return new Date(b.date || 0) - new Date(a.date || 0);
+                }
+            });
+
+            return arr;
+        }
+
+        function renderOverviewCards() {
+            const owned = ownedItems();
+            const total = owned.reduce((sum, item) => sum + Number(item.price || 0), 0);
+            const wishCount = items.filter(item => item.status === "願望清單").length;
+            const avg = owned.length ? total / owned.length : 0;
+
+            document.getElementById("overviewTitle").textContent = view === "wishlist" ? "Wishlist Overview" : "Portfolio Overview";
+
+            if (view === "wishlist") {
+                document.getElementById("overviewCards").innerHTML = `
+                    <div class="flex flex-col gap-1 rounded-xl p-5 border border-primary/10 bg-white/50 shadow-sm relative overflow-hidden">
+                        <div class="absolute top-0 right-0 w-1 h-full bg-primary"></div>
+                        <p class="text-slate-500 text-xs font-semibold uppercase">Wishlist Items</p>
+                        <p class="text-2xl font-bold">${wishCount}</p>
+                        <p class="text-slate-400 text-xs">Dream archive</p>
+                    </div>
+                    <div class="flex flex-col gap-1 rounded-xl p-5 border border-primary/10 bg-white/50 shadow-sm">
+                        <p class="text-slate-500 text-xs font-semibold uppercase">Curated Items</p>
+                        <p class="text-2xl font-bold">${owned.length}</p>
+                        <p class="text-slate-400 text-xs">Owned archive</p>
+                    </div>
+                    <div class="flex flex-col gap-1 rounded-xl p-5 border border-primary/10 bg-white/50 shadow-sm col-span-2">
+                        <div class="flex justify-between items-center">
+                            <div>
+                                <p class="text-slate-500 text-xs font-semibold uppercase">Target Score</p>
+                                <p class="text-2xl font-bold">A+ <span class="text-gold text-lg font-medium">${wishCount ? (80 + Math.min(wishCount, 19)).toFixed(1) : "0.0"}</span></p>
+                            </div>
+                            <span class="material-symbols-outlined text-gold text-4xl">verified</span>
+                        </div>
+                    </div>
+                `;
+                return;
+            }
+
+            document.getElementById("overviewCards").innerHTML = `
+                <div class="flex flex-col gap-1 rounded-xl p-5 border border-primary/10 bg-white/50 shadow-sm relative overflow-hidden">
+                    <div class="absolute top-0 right-0 w-1 h-full bg-primary"></div>
+                    <p class="text-slate-500 text-xs font-semibold uppercase">Total Value</p>
+                    <p class="text-2xl font-bold">${money(total)}</p>
+                    <div class="flex items-center gap-1 text-emerald-600 text-xs font-bold">
+                        <span class="material-symbols-outlined text-xs">trending_up</span>
+                        <span>${owned.length ? "+8.4%" : "0.0%"}</span>
+                    </div>
+                </div>
+                <div class="flex flex-col gap-1 rounded-xl p-5 border border-primary/10 bg-white/50 shadow-sm">
+                    <p class="text-slate-500 text-xs font-semibold uppercase">Curated Items</p>
+                    <p class="text-2xl font-bold">${owned.length}</p>
+                    <p class="text-slate-400 text-xs">${items.filter(i => i.status === "展示中").length} Displayed Items</p>
+                </div>
+                <div class="flex flex-col gap-1 rounded-xl p-5 border border-primary/10 bg-white/50 shadow-sm col-span-2">
+                    <div class="flex justify-between items-center">
+                        <div>
+                            <p class="text-slate-500 text-xs font-semibold uppercase">Rarity Score</p>
+                            <p class="text-2xl font-bold">A+ <span class="text-gold text-lg font-medium">${owned.length ? Math.min(99.9, 90 + avg / 100).toFixed(1) : "0.0"}</span></p>
+                        </div>
+                        <span class="material-symbols-outlined text-gold text-4xl">verified</span>
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderExhibitionRail() {
+            const base = filteredItems().slice(0, 6);
+            document.getElementById("exhibitionTitle").textContent = view === "wishlist" ? "Dream Exhibition" : "The Great Exhibition";
+
+            if (!base.length) {
+                document.getElementById("exhibitionRail").innerHTML = `
+                    <div class="snap-start flex-none w-[280px] rounded-xl border border-primary/10 bg-white/50 p-6 text-center text-slate-400">
+                        暫時未有展品
+                    </div>
+                `;
+                return;
+            }
+
+            document.getElementById("exhibitionRail").innerHTML = base.map((item, index) => {
+                const label = labelConfig(item, index);
+                return `
+                    <div class="snap-start flex-none w-[280px] group relative">
+                        <div class="absolute top-4 left-4 z-20 ${label.classes} text-[10px] font-bold py-3 px-1 vertical-text tracking-widest uppercase">
+                            ${label.text}
+                        </div>
+                        <div class="aspect-[3/4] rounded-xl overflow-hidden shadow-xl border-4 border-white bg-white bg-center bg-cover" style="background-image:url('${item.image || makeDefaultImage(item.name || "Figure")}')"></div>
+                        <div class="mt-4 flex justify-between items-start gap-3">
+                            <div class="min-w-0">
+                                <h4 class="font-bold text-lg leading-tight">${item.name || "Untitled"}</h4>
+                                <p class="text-sm text-slate-500 truncate">${item.brand || "未填品牌"} • ${item.series || "未填系列"}</p>
+                            </div>
+                            <div class="bg-gold/10 px-2 py-1 rounded shrink-0">
+                                <span class="text-gold font-bold text-sm">${money(item.price)}</span>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join("");
+        }
+
+        function renderCategoryChips() {
+            const categories = [...new Set(items.map(item => item.category || "其他"))].sort();
+
+            let html = `
+                <button data-cat="" class="categoryChip px-4 py-2 rounded-full text-sm whitespace-nowrap border border-primary/10 ${currentCategory === "" ? "chip-active" : "bg-white/50"}">
+                    All Items
+                </button>
+            `;
+
+            html += categories.map(cat => `
+                <button data-cat="${cat}" class="categoryChip px-4 py-2 rounded-full text-sm whitespace-nowrap border border-primary/10 ${currentCategory === cat ? "chip-active" : "bg-white/50"}">
+                    ${cat}
+                </button>
+            `).join("");
+
+            document.getElementById("categoryChips").innerHTML = html;
+
+            document.querySelectorAll(".categoryChip").forEach(btn => {
+                btn.onclick = function() {
+                    currentCategory = this.dataset.cat;
+                    renderCategoryChips();
+                    renderList();
+                    renderExhibitionRail();
+                };
+            });
+        }
+
+        function listItemCard(item, index) {
+            const statusClass =
+                item.status === "展示中" ? "bg-emerald-500/20 text-emerald-600 border border-emerald-500/30" :
+                item.status === "未開封" ? "bg-blue-500/20 text-blue-500 border border-blue-500/30" :
+                item.status === "願望清單" ? "bg-pink-500/20 text-pink-500 border border-pink-500/30" :
+                item.status === "已售出" ? "bg-slate-500/20 text-slate-400 border border-slate-500/30" :
+                "bg-orange-500/20 text-orange-500 border border-orange-500/30";
+
+            const label = labelConfig(item, index);
+
+            return `
+                <div class="flex gap-4 p-3 rounded-xl bg-white border border-slate-100 shadow-sm">
+                    <div class="relative w-24 h-24 rounded-lg overflow-hidden shrink-0 bg-white bg-center bg-cover" style="background-image:url('${item.image || makeDefaultImage(item.name || "Figure")}')">
+                        ${item.cornerLabel ? `<div class="absolute top-1 left-1 ${label.classes} text-[8px] font-bold py-1 px-[3px] vertical-text tracking-widest uppercase rounded-sm">${label.text}</div>` : ""}
+                    </div>
+
+                    <div class="flex flex-col justify-between flex-1 py-0.5 min-w-0">
+                        <div>
+                            <h3 class="font-bold text-base leading-tight">${item.name || "未命名收藏"}</h3>
+                            <p class="text-slate-500 text-xs mt-1 truncate">${item.brand || "未填品牌"} • ${item.series || "未填系列"}</p>
+                            <p class="text-slate-400 text-[11px] mt-1 truncate">${item.category || "其他"} ${item.date ? "• " + item.date : ""}</p>
+                        </div>
+
+                        <div class="flex items-center justify-between mt-2 gap-2">
+                            <span class="text-lg font-bold text-primary">${money(item.price)}</span>
+                            <span class="px-2 py-0.5 rounded text-[10px] font-bold uppercase ${statusClass}">${item.status}</span>
+                        </div>
+
+                        <div class="mt-2 flex gap-2">
+                            <button class="flex-1 rounded-lg bg-black/5 px-3 py-2 text-xs font-semibold" onclick="editItem('${item.id}')">修改</button>
+                            <button class="flex-1 rounded-lg bg-black/5 px-3 py-2 text-xs font-semibold" onclick="deleteItem('${item.id}')">刪除</button>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderList() {
+            const arr = filteredItems();
+            const list = document.getElementById("collectionList");
+
+            document.getElementById("resultNote").textContent = arr.length + " 件";
+            document.getElementById("archiveTitle").textContent = view === "wishlist" ? "Wishlist Archive" : "Collection Archive";
+
+            if (!arr.length) {
+                list.innerHTML = `
+                    <div class="rounded-xl border border-primary/10 bg-white/50 p-6 text-center text-slate-400">
+                        ${view === "wishlist" ? "暫時未有願望清單" : "暫時未有收藏"}
+                    </div>
+                `;
+                return;
+            }
+
+            if (mode === "grid") {
+                list.className = "grid grid-cols-1 sm:grid-cols-2 gap-4";
+                list.innerHTML = arr.map((item, index) => {
+                    const label = labelConfig(item, index);
+                    return `
+                        <div class="rounded-xl bg-white border border-slate-100 shadow-sm overflow-hidden">
+                            <div class="aspect-square w-full bg-white bg-center bg-cover relative" style="background-image:url('${item.image || makeDefaultImage(item.name || "Figure")}')">
+                                <div class="absolute top-3 left-3 ${label.classes} text-[10px] font-bold py-2 px-1 vertical-text uppercase tracking-widest rounded-sm">${label.text}</div>
+                            </div>
+                            <div class="p-4">
+                                <h3 class="font-bold text-base leading-tight">${item.name || "未命名收藏"}</h3>
+                                <p class="text-slate-500 text-xs mt-1">${item.brand || "未填品牌"} • ${item.series || "未填系列"}</p>
+                                <div class="mt-3 flex items-center justify-between">
+                                    <span class="text-lg font-bold text-primary">${money(item.price)}</span>
+                                    <span class="text-xs text-slate-400">${item.date || ""}</span>
+                                </div>
+                                <div class="mt-3 flex gap-2">
+                                    <button class="flex-1 rounded-lg bg-black/5 px-3 py-2 text-xs font-semibold" onclick="editItem('${item.id}')">修改</button>
+                                    <button class="flex-1 rounded-lg bg-black/5 px-3 py-2 text-xs font-semibold" onclick="deleteItem('${item.id}')">刪除</button>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                }).join("");
+                return;
+            }
+
+            if (mode === "compact") {
+                list.className = "space-y-3";
+                list.innerHTML = arr.map(item => `
+                    <div class="flex items-center gap-3 p-3 rounded-xl bg-white border border-slate-100 shadow-sm">
+                        <div class="h-20 w-20 rounded-lg bg-white bg-center bg-cover shrink-0" style="background-image:url('${item.image || makeDefaultImage(item.name || "Figure")}')"></div>
+                        <div class="flex-1 min-w-0">
+                            <div class="font-bold truncate">${item.name || "未命名收藏"}</div>
+                            <div class="text-xs text-slate-500 mt-1 truncate">${item.brand || "未填品牌"} • ${item.series || "未填系列"}</div>
+                            <div class="text-primary font-bold mt-2">${money(item.price)}</div>
+                        </div>
+                        <button class="rounded-lg bg-black/5 px-3 py-2 text-xs font-semibold" onclick="editItem('${item.id}')">修改</button>
+                    </div>
+                `).join("");
+                return;
+            }
+
+            if (mode === "wall") {
+                list.className = "grid grid-cols-2 gap-3";
+                list.innerHTML = arr.map((item, index) => {
+                    const label = labelConfig(item, index);
+                    return `
+                        <div class="rounded-xl overflow-hidden bg-white border border-slate-100 shadow-sm">
+                            <div class="h-32 bg-white bg-center bg-cover relative" style="background-image:url('${item.image || makeDefaultImage(item.name || "Figure")}')">
+                                <div class="absolute top-2 left-2 ${label.classes} text-[8px] font-bold py-1 px-[3px] vertical-text tracking-widest uppercase rounded-sm">${label.text}</div>
+                            </div>
+                            <div class="p-3">
+                                <div class="text-sm font-bold leading-tight">${item.name || "未命名收藏"}</div>
+                                <div class="text-primary text-xs font-bold mt-1">${money(item.price)}</div>
+                            </div>
+                        </div>
+                    `;
+                }).join("");
+                return;
+            }
+
+            list.className = "grid grid-cols-1 gap-4";
+            list.innerHTML = arr.map((item, index) => listItemCard(item, index)).join("");
+        }
+
+        function renderPresetPickers() {
+            document.getElementById("brandPresetPicker").innerHTML = brandLibrary.map(item => `
+                <button class="rounded-full border border-primary/10 bg-white/60 px-3 py-2 text-xs font-semibold" type="button" onclick="applyBrandPreset('${escapeText(item.name)}','${escapeText(item.logo)}')">${item.name}</button>
+            `).join("");
+
+            document.getElementById("seriesPresetPicker").innerHTML = seriesLibrary.map(item => `
+                <button class="rounded-full border border-primary/10 bg-white/60 px-3 py-2 text-xs font-semibold" type="button" onclick="applySeriesPreset('${escapeText(item.name)}','${escapeText(item.logo)}')">${item.name}</button>
+            `).join("");
         }
 
         window.applyBrandPreset = function(name, logo) {
@@ -497,377 +959,6 @@
             document.getElementById("series").value = name;
             document.getElementById("seriesLogoUrl").value = logo;
         };
-
-        function refreshCategories() {
-            const categoryFilter = document.getElementById("categoryFilter");
-            const set = new Set(["全部分類"]);
-
-            items.forEach(item => set.add(item.category || "其他"));
-
-            const current = categoryFilter.value;
-            categoryFilter.innerHTML = "";
-
-            [...set].forEach(value => {
-                const option = document.createElement("option");
-                option.value = value === "全部分類" ? "" : value;
-                option.textContent = value;
-
-                if (option.value === current) {
-                    option.selected = true;
-                }
-
-                categoryFilter.appendChild(option);
-            });
-        }
-
-        function ownedItems() {
-            return items.filter(item => item.status !== "願望清單");
-        }
-
-        function filteredItems() {
-            const query = document.getElementById("searchInput").value.trim().toLowerCase();
-            const category = document.getElementById("categoryFilter").value;
-            const sort = document.getElementById("sortSelect").value;
-            const statusFilter = document.getElementById("statusFilter").value;
-
-            let arr = items.filter(item => {
-                const matchesView = view === "owned" ? item.status !== "願望清單" : item.status === "願望清單";
-                const text = [item.name, item.brand, item.series, item.category, item.note, item.itemCode, item.location].join(" ").toLowerCase();
-
-                return matchesView &&
-                    (!query || text.includes(query)) &&
-                    (!category || item.category === category) &&
-                    (!statusFilter || item.status === statusFilter);
-            });
-
-            arr.sort((a, b) => {
-                switch (sort) {
-                    case "date_asc":
-                        return new Date(a.date || 0) - new Date(b.date || 0);
-                    case "price_desc":
-                        return Number(b.price || 0) - Number(a.price || 0);
-                    case "price_asc":
-                        return Number(a.price || 0) - Number(b.price || 0);
-                    case "name_asc":
-                        return (a.name || "").localeCompare(b.name || "");
-                    case "name_desc":
-                        return (b.name || "").localeCompare(a.name || "");
-                    default:
-                        return new Date(b.date || 0) - new Date(a.date || 0);
-                }
-            });
-
-            return arr;
-        }
-
-        function renderTop() {
-            const owned = ownedItems();
-            const total = owned.reduce((sum, item) => sum + Number(item.price || 0), 0);
-            const wish = items.filter(item => item.status === "願望清單").length;
-
-            const now = new Date();
-            const key = now.getFullYear() + "-" + String(now.getMonth() + 1).padStart(2, "0");
-            const monthSpend = owned
-                .filter(item => (item.date || "").startsWith(key))
-                .reduce((sum, item) => sum + Number(item.price || 0), 0);
-
-            document.getElementById("countAll").textContent = owned.length;
-            document.getElementById("sumPrice").textContent = money(total);
-            document.getElementById("wishTop").textContent = wish;
-            document.getElementById("monthSpend").textContent = money(monthSpend);
-        }
-
-        function renderSummaryStats() {
-            const owned = ownedItems();
-            const totalSpent = owned.reduce((sum, item) => sum + Number(item.price || 0), 0);
-            const wishlistCount = items.filter(item => item.status === "願望清單").length;
-
-            const stats = [
-                { label: "Total Figures", value: String(owned.length) },
-                { label: "Total Spent", value: money(totalSpent) },
-                { label: "Wishlist", value: String(wishlistCount) }
-            ];
-
-            document.getElementById("summaryStats").innerHTML = stats.map(stat => `
-                <div class="min-w-[140px] flex-1 flex flex-col gap-1 rounded-xl p-4 bg-white/95 dark:bg-primary/5 border border-slate-200 dark:border-primary/20 shadow-sm">
-                    <p class="text-slate-500 dark:text-primary/70 text-xs font-semibold uppercase tracking-wider">${stat.label}</p>
-                    <p class="text-2xl font-bold">${stat.value}</p>
-                </div>
-            `).join("");
-        }
-
-        function renderCategoryChips() {
-            const chipWrap = document.getElementById("categoryChips");
-            const categories = [...new Set(items.map(item => item.category || "其他"))].sort();
-            const current = document.getElementById("categoryFilter").value || "";
-
-            let html = `
-                <button data-cat="" class="categoryChip px-4 py-2 rounded-full text-sm whitespace-nowrap ${current === "" ? "bg-primary text-background-dark font-semibold" : "bg-slate-200 dark:bg-primary/10 text-slate-700 dark:text-slate-300 font-medium"}">
-                    All Items
-                </button>
-            `;
-
-            html += categories.map(cat => `
-                <button data-cat="${cat}" class="categoryChip px-4 py-2 rounded-full text-sm whitespace-nowrap ${current === cat ? "bg-primary text-background-dark font-semibold" : "bg-slate-200 dark:bg-primary/10 text-slate-700 dark:text-slate-300 font-medium"}">
-                    ${cat}
-                </button>
-            `).join("");
-
-            chipWrap.innerHTML = html;
-
-            chipWrap.querySelectorAll(".categoryChip").forEach(btn => {
-                btn.onclick = function() {
-                    document.getElementById("categoryFilter").value = this.dataset.cat;
-                    renderCategoryChips();
-                    renderList();
-                };
-            });
-        }
-
-        function renderList() {
-            const list = document.getElementById("collectionList");
-            const arr = filteredItems();
-
-            document.getElementById("resultNote").textContent = arr.length + " 件";
-            document.getElementById("collectionTitle").textContent = view === "wishlist" ? "My Wishlist" : "My Collection";
-
-            if (!arr.length) {
-                list.innerHTML = `
-                    <div class="rounded-xl border border-primary/15 bg-white/5 p-6 text-center text-slate-400">
-                        ${view === "wishlist" ? "暫時未有願望清單" : "暫時未有收藏"}
-                    </div>
-                `;
-                return;
-            }
-
-            if (mode === "grid") {
-                list.className = "grid grid-cols-2 gap-4";
-                list.innerHTML = arr.map(item => `
-                    <div class="rounded-xl bg-white dark:bg-primary/5 border border-slate-200 dark:border-primary/10 shadow-sm overflow-hidden">
-                        <div class="aspect-square w-full bg-[#2a2616] bg-center bg-contain bg-no-repeat relative" style="background-image:url('${item.image || makeDefaultImage(item.name || "Figure")}')">
-                            <span class="absolute right-2 bottom-2 px-2 py-0.5 rounded text-[10px] font-bold uppercase bg-black/70 text-white border border-primary/30">${item.status}</span>
-                        </div>
-                        <div class="p-3">
-                            <h3 class="font-bold text-sm leading-tight">${item.name || "未命名收藏"}</h3>
-                            <p class="text-slate-500 dark:text-slate-400 text-xs mt-1">${item.brand || "未填品牌"} · ${item.series || "未填系列"}</p>
-                            <div class="mt-2 text-lg font-bold text-primary">${money(item.price)}</div>
-                            <div class="mt-3 flex gap-2">
-                                <button class="flex-1 rounded-lg bg-white/10 px-3 py-2 text-xs font-semibold" onclick="editItem('${item.id}')">修改</button>
-                                <button class="flex-1 rounded-lg bg-white/10 px-3 py-2 text-xs font-semibold" onclick="deleteItem('${item.id}')">刪除</button>
-                            </div>
-                        </div>
-                    </div>
-                `).join("");
-                return;
-            }
-
-            if (mode === "compact") {
-                list.className = "space-y-3";
-                list.innerHTML = arr.map(item => `
-                    <div class="flex items-center gap-3 p-3 rounded-xl bg-white dark:bg-primary/5 border border-slate-200 dark:border-primary/10 shadow-sm">
-                        <div class="h-20 w-20 rounded-lg bg-[#2a2616] bg-center bg-contain bg-no-repeat shrink-0" style="background-image:url('${item.image || makeDefaultImage(item.name || "Figure")}')"></div>
-                        <div class="flex-1 min-w-0">
-                            <div class="font-bold truncate">${item.name || "未命名收藏"}</div>
-                            <div class="text-xs text-slate-500 dark:text-slate-400 mt-1 truncate">${item.brand || "未填品牌"} · ${item.series || "未填系列"}</div>
-                            <div class="text-primary font-bold mt-2">${money(item.price)}</div>
-                        </div>
-                        <button class="rounded-lg bg-white/10 px-3 py-2 text-xs font-semibold" onclick="editItem('${item.id}')">修改</button>
-                    </div>
-                `).join("");
-                return;
-            }
-
-            if (mode === "wall") {
-                list.className = "grid grid-cols-2 gap-3";
-                list.innerHTML = arr.map(item => `
-                    <div class="rounded-xl overflow-hidden bg-white dark:bg-primary/5 border border-slate-200 dark:border-primary/10 shadow-sm">
-                        <div class="h-28 bg-[#2a2616] bg-center bg-contain bg-no-repeat" style="background-image:url('${item.image || makeDefaultImage(item.name || "Figure")}')"></div>
-                        <div class="p-2">
-                            <div class="text-sm font-bold leading-tight">${item.name || "未命名收藏"}</div>
-                            <div class="text-primary text-xs font-bold mt-1">${money(item.price)}</div>
-                        </div>
-                    </div>
-                `).join("");
-                return;
-            }
-
-            list.className = "grid grid-cols-1 gap-4";
-            list.innerHTML = arr.map(item => {
-                const statusClass =
-                    item.status === "展示中" ? "bg-green-500/20 text-green-500 border border-green-500/30" :
-                    item.status === "未開封" ? "bg-blue-500/20 text-blue-400 border border-blue-500/30" :
-                    item.status === "願望清單" ? "bg-pink-500/20 text-pink-400 border border-pink-500/30" :
-                    item.status === "已售出" ? "bg-slate-500/20 text-slate-300 border border-slate-500/30" :
-                    "bg-orange-500/20 text-orange-400 border border-orange-500/30";
-
-                return `
-                    <div class="flex gap-4 p-3 rounded-xl bg-white dark:bg-primary/5 border border-slate-200 dark:border-primary/10 shadow-sm">
-                        <div class="w-24 h-24 rounded-lg overflow-hidden shrink-0 bg-[#2a2616] bg-center bg-contain bg-no-repeat" style="background-image:url('${item.image || makeDefaultImage(item.name || "Figure")}')"></div>
-
-                        <div class="flex flex-col justify-between flex-1 py-0.5 min-w-0">
-                            <div>
-                                <h3 class="font-bold text-base leading-tight">${item.name || "未命名收藏"}</h3>
-                                <p class="text-slate-500 dark:text-slate-400 text-xs mt-1 truncate">${item.brand || "未填品牌"} • ${item.series || "未填系列"}</p>
-                                <p class="text-slate-500 dark:text-slate-500 text-[11px] mt-1 truncate">${item.category || "其他"} ${item.date ? "• " + item.date : ""}</p>
-                            </div>
-
-                            <div class="flex items-center justify-between mt-2 gap-2">
-                                <span class="text-lg font-bold text-primary">${money(item.price)}</span>
-                                <span class="px-2 py-0.5 rounded text-[10px] font-bold uppercase ${statusClass}">${item.status}</span>
-                            </div>
-
-                            <div class="mt-2 flex gap-2">
-                                <button class="flex-1 rounded-lg bg-white/10 px-3 py-2 text-xs font-semibold" onclick="editItem('${item.id}')">修改</button>
-                                <button class="flex-1 rounded-lg bg-white/10 px-3 py-2 text-xs font-semibold" onclick="deleteItem('${item.id}')">刪除</button>
-                            </div>
-                        </div>
-                    </div>
-                `;
-            }).join("");
-        }
-
-        function getYearOptions() {
-            const years = new Set();
-
-            items.forEach(item => {
-                if (item.date && /^\d{4}/.test(item.date)) {
-                    years.add(item.date.slice(0, 4));
-                }
-            });
-
-            return [...years].sort((a, b) => b.localeCompare(a));
-        }
-
-        function renderYearFilter() {
-            const el = document.getElementById("statsYearFilter");
-            const current = el.value;
-            const years = getYearOptions();
-
-            el.innerHTML = '<option value="">全部年份</option>' + years.map(y => `<option value="${y}">${y} 年</option>`).join("");
-
-            if (years.includes(current)) {
-                el.value = current;
-            }
-        }
-
-        function getFilteredStatsItems() {
-            const selectedYear = document.getElementById("statsYearFilter").value;
-            const owned = ownedItems();
-
-            if (!selectedYear) {
-                return owned;
-            }
-
-            return owned.filter(item => (item.date || "").startsWith(selectedYear + "-"));
-        }
-
-        function renderStats() {
-            renderYearFilter();
-
-            const filtered = getFilteredStatsItems();
-            const selectedYear = document.getElementById("statsYearFilter").value;
-
-            const total = filtered.reduce((sum, item) => sum + Number(item.price || 0), 0);
-            const count = filtered.length;
-            const avg = count ? total / count : 0;
-
-            const monthMap = {};
-            filtered.forEach(item => {
-                const monthKey = item.date ? item.date.slice(0, 7) : "未填日期";
-
-                if (!monthMap[monthKey]) {
-                    monthMap[monthKey] = { total: 0, count: 0 };
-                }
-
-                monthMap[monthKey].total += Number(item.price || 0);
-                monthMap[monthKey].count += 1;
-            });
-
-            const brandMap = {};
-            filtered.forEach(item => {
-                const key = item.brand || "未填品牌";
-                brandMap[key] = (brandMap[key] || 0) + Number(item.price || 0);
-            });
-
-            const seriesMap = {};
-            filtered.forEach(item => {
-                const key = item.series || "未填系列";
-                seriesMap[key] = (seriesMap[key] || 0) + Number(item.price || 0);
-            });
-
-            const activeYear = selectedYear || new Date().getFullYear().toString();
-            const yearCount = filtered.filter(item => (item.date || "").startsWith(activeYear + "-")).length;
-
-            document.getElementById("statsOverview").innerHTML = `
-                <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                    <div class="rounded-xl border border-primary/15 bg-white/5 p-4">
-                        <div class="text-[11px] uppercase tracking-wider text-primary/70">收藏件數</div>
-                        <div class="mt-2 text-2xl font-extrabold">${count}</div>
-                    </div>
-                    <div class="rounded-xl border border-primary/15 bg-white/5 p-4">
-                        <div class="text-[11px] uppercase tracking-wider text-primary/70">總花費</div>
-                        <div class="mt-2 text-2xl font-extrabold">${money(total)}</div>
-                    </div>
-                    <div class="rounded-xl border border-primary/15 bg-white/5 p-4">
-                        <div class="text-[11px] uppercase tracking-wider text-primary/70">${activeYear} 年新增</div>
-                        <div class="mt-2 text-2xl font-extrabold">${yearCount}</div>
-                    </div>
-                    <div class="rounded-xl border border-primary/15 bg-white/5 p-4">
-                        <div class="text-[11px] uppercase tracking-wider text-primary/70">平均入手價</div>
-                        <div class="mt-2 text-2xl font-extrabold">${money(avg)}</div>
-                    </div>
-                </div>
-            `;
-
-            const top3 = [...filtered].sort((a, b) => Number(b.price || 0) - Number(a.price || 0)).slice(0, 3);
-
-            document.getElementById("topRanking").innerHTML = top3.length ? top3.map((item, index) => `
-                <div class="flex items-center justify-between gap-3 border-b border-primary/10 py-3 last:border-b-0">
-                    <div class="flex items-center gap-3">
-                        <div class="flex h-7 w-7 items-center justify-center rounded-full bg-primary font-extrabold text-background-dark text-xs">${index + 1}</div>
-                        <div>
-                            <div class="font-bold">${item.name || "未命名收藏"}</div>
-                            <div class="text-xs text-slate-400">${item.brand || "未填品牌"} · ${item.series || "未填系列"}</div>
-                        </div>
-                    </div>
-                    <div class="font-extrabold text-primary">${money(item.price)}</div>
-                </div>
-            `).join("") : '<div class="rounded-xl border border-primary/10 bg-white/5 p-4 text-center text-slate-400">未有排行榜資料。</div>';
-
-            function renderBarSection(mapObj, targetId) {
-                const rows = Object.entries(mapObj).sort((a, b) => b[1] - a[1]).slice(0, 6);
-                const max = rows.length ? rows[0][1] : 1;
-
-                document.getElementById(targetId).innerHTML = rows.length ? rows.map(([name, value]) => `
-                    <div class="rounded-xl border border-primary/10 bg-white/5 p-3 mb-3">
-                        <div class="flex items-center justify-between gap-3">
-                            <div class="font-semibold">${name}</div>
-                            <div class="font-extrabold text-primary">${money(value)}</div>
-                        </div>
-                        <div class="mt-2 h-2 rounded-full bg-white/10 overflow-hidden">
-                            <div class="h-full rounded-full bg-gradient-to-r from-yellow-700 to-primary" style="width:${(value / max) * 100}%"></div>
-                        </div>
-                    </div>
-                `).join("") : '<div class="rounded-xl border border-primary/10 bg-white/5 p-4 text-center text-slate-400">暫時未有資料。</div>';
-            }
-
-            renderBarSection(brandMap, "brandBreakdown");
-            renderBarSection(seriesMap, "seriesBreakdown");
-
-            const monthRows = Object.entries(monthMap).sort((a, b) => b[0].localeCompare(a[0]));
-
-            document.getElementById("monthlyBreakdown").innerHTML = monthRows.length ? `
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    ${monthRows.map(([month, data]) => `
-                        <div class="rounded-xl border border-primary/10 bg-white/5 p-4">
-                            <div class="font-extrabold">${month}</div>
-                            <div class="mt-2 text-xl font-extrabold text-primary">${money(data.total)}</div>
-                            <div class="mt-1 text-xs text-slate-400">${data.count} 件收藏</div>
-                        </div>
-                    `).join("")}
-                </div>
-            ` : '<div class="rounded-xl border border-primary/10 bg-white/5 p-4 text-center text-slate-400">未有月度資料。</div>';
-        }
 
         async function fileToDataURL(file) {
             return new Promise((resolve, reject) => {
@@ -888,9 +979,7 @@
             let seriesLogo = old?.seriesLogo || "";
 
             const photo = document.getElementById("photo").files[0] || document.getElementById("photoLibrary").files[0];
-            if (photo) {
-                image = await fileToDataURL(photo);
-            }
+            if (photo) image = await fileToDataURL(photo);
 
             const brandLogoFile = document.getElementById("brandLogoFile").files[0];
             const seriesLogoFile = document.getElementById("seriesLogoFile").files[0];
@@ -924,7 +1013,9 @@
                 location: document.getElementById("location").value.trim(),
                 sourceLink: document.getElementById("sourceLink").value.trim(),
                 note: document.getElementById("note").value.trim(),
-                image: image
+                image: image,
+                cornerLabel: document.getElementById("cornerLabel").value.trim(),
+                cornerLabelColor: document.getElementById("cornerLabelColor").value
             };
 
             if (old) {
@@ -938,22 +1029,21 @@
             document.getElementById("backupStatus").textContent = "已儲存收藏";
             render();
             showPage("pageCollection");
-            setActiveNav("collection");
+            setActiveNav(view === "wishlist" ? "wishlist" : "collection");
         }
 
         function clearForm() {
             [
-                "name", "brand", "series", "itemCode", "price", "date", "category", "location",
-                "sourceLink", "note", "brandLogoUrl", "seriesLogoUrl", "photo", "photoLibrary",
-                "brandLogoFile", "seriesLogoFile"
+                "name","brand","series","itemCode","price","date","category","location",
+                "sourceLink","note","brandLogoUrl","seriesLogoUrl","photo","photoLibrary",
+                "brandLogoFile","seriesLogoFile","cornerLabel"
             ].forEach(id => {
                 const el = document.getElementById(id);
-                if (el) {
-                    el.value = "";
-                }
+                if (el) el.value = "";
             });
 
             document.getElementById("status").value = "未開封";
+            document.getElementById("cornerLabelColor").value = "auto";
             delete document.getElementById("saveBtn").dataset.editing;
         }
 
@@ -974,10 +1064,12 @@
             document.getElementById("location").value = item.location || "";
             document.getElementById("sourceLink").value = item.sourceLink || "";
             document.getElementById("note").value = item.note || "";
+            document.getElementById("cornerLabel").value = item.cornerLabel || "";
+            document.getElementById("cornerLabelColor").value = item.cornerLabelColor || "auto";
             document.getElementById("saveBtn").dataset.editing = id;
 
             showPage("pageAdd");
-            setActiveNav("manage");
+            setActiveNav("profile");
         };
 
         window.deleteItem = function(id) {
@@ -1028,41 +1120,34 @@
         }
 
         function renderLogoManagers() {
-            const brandWrap = document.getElementById("brandLibraryManager");
-            const seriesWrap = document.getElementById("seriesLibraryManager");
-
             document.getElementById("brandLibCount").textContent = brandLibrary.length + " 個";
             document.getElementById("seriesLibCount").textContent = seriesLibrary.length + " 個";
 
-            brandWrap.innerHTML = brandLibrary.length ? brandLibrary.map((item, index) => `
-                <div class="flex items-center justify-between gap-3 rounded-xl border border-primary/10 bg-white/5 p-3">
-                    <div class="flex items-center gap-3">
-                        <span class="h-8 w-8 rounded-lg overflow-hidden bg-white/10 border border-primary/10"><img class="h-full w-full object-contain" src="${item.logo}" alt=""></span>
-                        <span class="font-medium">${item.name}</span>
+            document.getElementById("brandLibraryManager").innerHTML = brandLibrary.length ? brandLibrary.map((item, index) => `
+                <div class="flex items-center justify-between gap-3 rounded-xl border border-primary/10 bg-background-light/80 p-3">
+                    <div class="flex items-center gap-3 min-w-0">
+                        <span class="h-8 w-8 rounded-lg overflow-hidden bg-white border border-primary/10 shrink-0"><img class="h-full w-full object-contain" src="${item.logo}" alt=""></span>
+                        <span class="font-medium truncate">${item.name}</span>
                     </div>
-                    <button class="rounded-lg bg-white/10 px-3 py-2 text-xs font-semibold" onclick="deleteBrandLogo(${index})">刪除</button>
+                    <button class="rounded-lg bg-black/5 px-3 py-2 text-xs font-semibold shrink-0" onclick="deleteBrandLogo(${index})">刪除</button>
                 </div>
-            `).join("") : '<div class="rounded-xl border border-primary/10 bg-white/5 p-4 text-center text-slate-400">未有品牌 Logo。</div>';
+            `).join("") : '<div class="rounded-xl border border-primary/10 bg-background-light/80 p-4 text-center text-slate-400">未有品牌 Logo。</div>';
 
-            seriesWrap.innerHTML = seriesLibrary.length ? seriesLibrary.map((item, index) => `
-                <div class="flex items-center justify-between gap-3 rounded-xl border border-primary/10 bg-white/5 p-3">
-                    <div class="flex items-center gap-3">
-                        <span class="h-8 w-8 rounded-lg overflow-hidden bg-white/10 border border-primary/10"><img class="h-full w-full object-contain" src="${item.logo}" alt=""></span>
-                        <span class="font-medium">${item.name}</span>
+            document.getElementById("seriesLibraryManager").innerHTML = seriesLibrary.length ? seriesLibrary.map((item, index) => `
+                <div class="flex items-center justify-between gap-3 rounded-xl border border-primary/10 bg-background-light/80 p-3">
+                    <div class="flex items-center gap-3 min-w-0">
+                        <span class="h-8 w-8 rounded-lg overflow-hidden bg-white border border-primary/10 shrink-0"><img class="h-full w-full object-contain" src="${item.logo}" alt=""></span>
+                        <span class="font-medium truncate">${item.name}</span>
                     </div>
-                    <button class="rounded-lg bg-white/10 px-3 py-2 text-xs font-semibold" onclick="deleteSeriesLogo(${index})">刪除</button>
+                    <button class="rounded-lg bg-black/5 px-3 py-2 text-xs font-semibold shrink-0" onclick="deleteSeriesLogo(${index})">刪除</button>
                 </div>
-            `).join("") : '<div class="rounded-xl border border-primary/10 bg-white/5 p-4 text-center text-slate-400">未有系列 Logo。</div>';
+            `).join("") : '<div class="rounded-xl border border-primary/10 bg-background-light/80 p-4 text-center text-slate-400">未有系列 Logo。</div>';
         }
 
         window.deleteBrandLogo = function(index) {
             const item = brandLibrary[index];
             if (!item) return;
-
-            if (!confirm("確定刪除品牌 Logo：" + item.name + "？")) {
-                return;
-            }
-
+            if (!confirm("確定刪除品牌 Logo：" + item.name + "？")) return;
             brandLibrary.splice(index, 1);
             save();
             renderPresetPickers();
@@ -1073,11 +1158,7 @@
         window.deleteSeriesLogo = function(index) {
             const item = seriesLibrary[index];
             if (!item) return;
-
-            if (!confirm("確定刪除系列 Logo：" + item.name + "？")) {
-                return;
-            }
-
+            if (!confirm("確定刪除系列 Logo：" + item.name + "？")) return;
             seriesLibrary.splice(index, 1);
             save();
             renderPresetPickers();
@@ -1085,9 +1166,139 @@
             document.getElementById("backupStatus").textContent = "已刪除系列 Logo";
         };
 
+        function getYearOptions() {
+            const years = new Set();
+            items.forEach(item => {
+                if (item.date && /^\d{4}/.test(item.date)) {
+                    years.add(item.date.slice(0, 4));
+                }
+            });
+            return [...years].sort((a, b) => b.localeCompare(a));
+        }
+
+        function renderYearFilter() {
+            const el = document.getElementById("statsYearFilter");
+            const current = el.value;
+            const years = getYearOptions();
+            el.innerHTML = '<option value="">全部年份</option>' + years.map(y => `<option value="${y}">${y} 年</option>`).join("");
+            if (years.includes(current)) el.value = current;
+        }
+
+        function getFilteredStatsItems() {
+            const selectedYear = document.getElementById("statsYearFilter").value;
+            const owned = ownedItems();
+            return selectedYear ? owned.filter(item => (item.date || "").startsWith(selectedYear + "-")) : owned;
+        }
+
+        function renderStats() {
+            renderYearFilter();
+
+            const filtered = getFilteredStatsItems();
+            const total = filtered.reduce((sum, item) => sum + Number(item.price || 0), 0);
+            const avg = filtered.length ? total / filtered.length : 0;
+            const rarity = filtered.length ? Math.min(99.9, 90 + avg / 100).toFixed(1) : "0.0";
+
+            document.getElementById("statsOverview").innerHTML = `
+                <div class="flex flex-col gap-1 rounded-xl p-5 border border-primary/10 bg-white/50 shadow-sm relative overflow-hidden">
+                    <div class="absolute top-0 right-0 w-1 h-full bg-primary"></div>
+                    <p class="text-slate-500 text-xs font-semibold uppercase">Total Value</p>
+                    <p class="text-2xl font-bold">${money(total)}</p>
+                    <div class="flex items-center gap-1 text-emerald-600 text-xs font-bold">
+                        <span class="material-symbols-outlined text-xs">trending_up</span>
+                        <span>${filtered.length ? "+8.4%" : "0.0%"}</span>
+                    </div>
+                </div>
+                <div class="flex flex-col gap-1 rounded-xl p-5 border border-primary/10 bg-white/50 shadow-sm">
+                    <p class="text-slate-500 text-xs font-semibold uppercase">Curated Items</p>
+                    <p class="text-2xl font-bold">${filtered.length}</p>
+                    <p class="text-slate-400 text-xs">${filtered.filter(i => i.status === "展示中").length} Active Displays</p>
+                </div>
+                <div class="flex flex-col gap-1 rounded-xl p-5 border border-primary/10 bg-white/50 shadow-sm col-span-2">
+                    <div class="flex justify-between items-center">
+                        <div>
+                            <p class="text-slate-500 text-xs font-semibold uppercase">Rarity Score</p>
+                            <p class="text-2xl font-bold">A+ <span class="text-gold text-lg font-medium">${rarity}</span></p>
+                        </div>
+                        <span class="material-symbols-outlined text-gold text-4xl">verified</span>
+                    </div>
+                </div>
+            `;
+
+            const top3 = [...filtered].sort((a, b) => Number(b.price || 0) - Number(a.price || 0)).slice(0, 3);
+            document.getElementById("topRanking").innerHTML = top3.length ? top3.map((item, index) => `
+                <div class="flex items-center gap-4 p-4 rounded-xl border border-slate-100 bg-background-light/60 shadow-sm mb-3">
+                    <div class="size-12 rounded-lg bg-gold/10 flex items-center justify-center text-gold font-bold text-sm">${index + 1}</div>
+                    <div class="flex-1">
+                        <p class="text-xs text-slate-500 uppercase font-bold tracking-tighter">Top Archive</p>
+                        <h5 class="font-bold text-sm">${item.name || "未命名收藏"}</h5>
+                    </div>
+                    <div class="text-right">
+                        <p class="text-primary font-bold text-sm">${money(item.price)}</p>
+                        <p class="text-[10px] text-slate-400">${item.date || ""}</p>
+                    </div>
+                </div>
+            `).join("") : '<div class="text-sm text-slate-400">未有排行榜資料。</div>';
+
+            function renderBarSection(mapObj, targetId, iconName, tone) {
+                const rows = Object.entries(mapObj).sort((a, b) => b[1] - a[1]).slice(0, 6);
+                const max = rows.length ? rows[0][1] : 1;
+
+                document.getElementById(targetId).innerHTML = rows.length ? rows.map(([name, value]) => `
+                    <div class="flex items-center gap-4 p-4 rounded-xl bg-white border border-slate-100 shadow-sm mb-3">
+                        <div class="size-12 rounded-lg ${tone} flex items-center justify-center">
+                            <span class="material-symbols-outlined">${iconName}</span>
+                        </div>
+                        <div class="flex-1 min-w-0">
+                            <p class="text-xs text-slate-500 uppercase font-bold tracking-tighter truncate">${name}</p>
+                            <div class="mt-2 h-2 rounded-full bg-black/5 overflow-hidden">
+                                <div class="h-full rounded-full bg-gradient-to-r from-primary to-gold" style="width:${(value/max)*100}%"></div>
+                            </div>
+                        </div>
+                        <div class="text-right shrink-0">
+                            <p class="text-primary font-bold text-sm">${money(value)}</p>
+                        </div>
+                    </div>
+                `).join("") : '<div class="text-sm text-slate-400">暫時未有資料。</div>';
+            }
+
+            const brandMap = {};
+            const seriesMap = {};
+            const monthMap = {};
+
+            filtered.forEach(item => {
+                const brand = item.brand || "未填品牌";
+                const series = item.series || "未填系列";
+                const month = item.date ? item.date.slice(0, 7) : "未填日期";
+                brandMap[brand] = (brandMap[brand] || 0) + Number(item.price || 0);
+                seriesMap[series] = (seriesMap[series] || 0) + Number(item.price || 0);
+                if (!monthMap[month]) monthMap[month] = { total: 0, count: 0 };
+                monthMap[month].total += Number(item.price || 0);
+                monthMap[month].count += 1;
+            });
+
+            renderBarSection(brandMap, "brandBreakdown", "trending_up", "bg-primary/5 text-primary");
+            renderBarSection(seriesMap, "seriesBreakdown", "diamond", "bg-gold/10 text-gold");
+
+            const monthRows = Object.entries(monthMap).sort((a, b) => b[0].localeCompare(a[0]));
+            document.getElementById("monthlyBreakdown").innerHTML = monthRows.length ? monthRows.map(([month, data]) => `
+                <div class="rounded-xl border border-slate-100 bg-background-light/60 p-4 mb-3">
+                    <div class="font-bold">${month}</div>
+                    <div class="mt-2 text-lg font-bold text-primary">${money(data.total)}</div>
+                    <div class="mt-1 text-xs text-slate-400">${data.count} 件收藏</div>
+                </div>
+            `).join("") : '<div class="text-sm text-slate-400">未有月度資料。</div>';
+        }
+
+        function renderProfilePage() {
+            document.getElementById("profileDisplayName").textContent = fakeUser?.name || "Guest Collector";
+            document.getElementById("profileDisplayEmail").textContent = fakeUser?.email || "Not signed in";
+            document.getElementById("profileOwnedCount").textContent = ownedItems().length;
+            document.getElementById("profileWishCount").textContent = items.filter(item => item.status === "願望清單").length;
+        }
+
         function exportBackup() {
             const payload = {
-                app: "Figure Vault Merge V1",
+                app: "Kyoto Vault V8.8 Pure Final",
                 version: 1,
                 exported_at: new Date().toISOString(),
                 items: items,
@@ -1098,7 +1309,7 @@
             const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
             const a = document.createElement("a");
             a.href = URL.createObjectURL(blob);
-            a.download = "figure_vault_merge_v1_backup.json";
+            a.download = "kyoto_vault_v88_pure_final_backup.json";
             a.click();
             URL.revokeObjectURL(a.href);
 
@@ -1112,17 +1323,13 @@
                 try {
                     const parsed = JSON.parse(reader.result);
                     const imported = Array.isArray(parsed) ? parsed : (parsed.items || []);
-
-                    if (!Array.isArray(imported)) {
-                        throw new Error("invalid");
-                    }
+                    if (!Array.isArray(imported)) throw new Error("invalid");
 
                     items = imported.map(normalizeRecord).filter(Boolean);
                     brandLibrary = Array.isArray(parsed.brandLibrary) ? parsed.brandLibrary : [];
                     seriesLibrary = Array.isArray(parsed.seriesLibrary) ? parsed.seriesLibrary : [];
 
                     save();
-                    renderPresetPickers();
                     render();
                     document.getElementById("backupStatus").textContent = "已匯入 JSON（含 Logo 庫）";
                     showPage("pageCollection");
@@ -1135,6 +1342,83 @@
             reader.readAsText(file, "utf-8");
         }
 
+        function render() {
+            renderOverviewCards();
+            renderExhibitionRail();
+            renderCategoryChips();
+            renderList();
+            renderPresetPickers();
+            renderLogoManagers();
+            renderStats();
+            renderProfilePage();
+        }
+
+        document.getElementById("headerSearchBtn").onclick = function() {
+            showPage("pageCollection");
+            document.getElementById("searchInput").focus();
+            setActiveNav(view === "wishlist" ? "wishlist" : "collection");
+        };
+
+        document.getElementById("navCollection").onclick = function() {
+            view = "owned";
+            showPage("pageCollection");
+            setActiveNav("collection");
+            render();
+        };
+
+        document.getElementById("navWishlist").onclick = function() {
+            view = "wishlist";
+            showPage("pageCollection");
+            setActiveNav("wishlist");
+            render();
+        };
+
+        document.getElementById("navAddCenter").onclick = function() {
+            showPage("pageAdd");
+            setActiveNav("profile");
+        };
+
+        document.getElementById("navStats").onclick = function() {
+            showPage("pageStats");
+            setActiveNav("stats");
+            renderStats();
+        };
+
+        document.getElementById("navProfile").onclick = function() {
+            showPage("pageProfile");
+            setActiveNav("profile");
+            renderProfilePage();
+        };
+
+        document.getElementById("viewAllBtn").onclick = function() {
+            document.getElementById("collectionList").scrollIntoView({ behavior: "smooth", block: "start" });
+        };
+
+        document.getElementById("searchInput").oninput = function() {
+            renderList();
+            renderExhibitionRail();
+        };
+
+        document.getElementById("sortSelect").onchange = function() {
+            renderList();
+            renderExhibitionRail();
+        };
+
+        document.getElementById("statusFilter").onchange = function() {
+            renderList();
+            renderExhibitionRail();
+        };
+
+        document.querySelectorAll(".modeBtn").forEach(btn => {
+            btn.onclick = function() {
+                mode = this.dataset.mode;
+                document.querySelectorAll(".modeBtn").forEach(el => el.classList.remove("mode-active"));
+                this.classList.add("mode-active");
+                renderList();
+            };
+        });
+
+        document.getElementById("statsYearFilter").onchange = renderStats;
         document.getElementById("saveBtn").onclick = saveRecord;
         document.getElementById("saveBrandLibBtn").onclick = addBrandLibrary;
         document.getElementById("saveSeriesLibBtn").onclick = addSeriesLibrary;
@@ -1151,22 +1435,41 @@
             items = [];
             brandLibrary = [...BRAND_DEFAULTS];
             seriesLibrary = [...SERIES_DEFAULTS];
+            currentCategory = "";
             save();
-            renderPresetPickers();
             render();
             document.getElementById("backupStatus").textContent = "已清空資料";
         };
 
-        document.querySelectorAll(".modeBtn").forEach(btn => {
-            btn.onclick = function() {
-                mode = this.dataset.mode;
-                document.querySelectorAll(".modeBtn").forEach(el => el.classList.remove("mode-active"));
-                this.classList.add("mode-active");
-                renderList();
-            };
-        });
+        document.getElementById("fakeLoginBtn").onclick = function() {
+            const email = document.getElementById("loginEmail").value.trim();
+            const password = document.getElementById("loginPassword").value.trim();
+            if (!email || !password) {
+                alert("請先輸入 email 同 password");
+                return;
+            }
+            fakeUser = { name: email.split("@")[0] || "Collector", email: email };
+            saveFakeUser();
+            renderProfilePage();
+            alert("已進入示範登入狀態（UI only）");
+        };
 
-        renderPresetPickers();
+        document.getElementById("fakeRegisterBtn").onclick = function() {
+            const name = document.getElementById("registerName").value.trim();
+            const email = document.getElementById("registerEmail").value.trim();
+            const password = document.getElementById("registerPassword").value.trim();
+            if (!name || !email || !password) {
+                alert("請填好註冊資料");
+                return;
+            }
+            fakeUser = { name, email };
+            saveFakeUser();
+            renderProfilePage();
+            alert("已建立示範帳戶（UI only）");
+        };
+
+        loadData();
+        loadFakeUser();
         render();
         setActiveNav("collection");
     </script>
