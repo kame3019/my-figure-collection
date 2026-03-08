@@ -1796,7 +1796,10 @@
     getFirestore,
     doc,
     setDoc,
-    getDoc
+    getDoc,
+    collection,
+    getDocs,
+    deleteDoc
   } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-firestore.js";
 
   const firebaseConfig = {
@@ -1814,7 +1817,17 @@
   const db = getFirestore(app);
   const provider = new GoogleAuthProvider();
 
-  window.kuraFirebase = { auth, db, provider };
+  window.kuraFirebase = {
+    auth,
+    db,
+    provider,
+    doc,
+    setDoc,
+    getDoc,
+    collection,
+    getDocs,
+    deleteDoc
+  };
 
   function $(id) {
     return document.getElementById(id);
@@ -1994,6 +2007,192 @@
     count += 1;
     if (count > 12) clearInterval(timer);
   }, 1000);
+})();
+</script>
+
+<script>
+(function () {
+  function getFb() {
+    return window.kuraFirebase || null;
+  }
+
+  function currentUid() {
+    return getFb()?.auth?.currentUser?.uid || null;
+  }
+
+  function itemsCol(uid) {
+    const fb = getFb();
+    return fb.collection(fb.db, "users", uid, "items");
+  }
+
+  function itemDoc(uid, id) {
+    const fb = getFb();
+    return fb.doc(fb.db, "users", uid, "items", id);
+  }
+
+  async function loadItemsFromCloud(uid) {
+    const fb = getFb();
+    if (!fb || !uid) return;
+
+    const snap = await fb.getDocs(itemsCol(uid));
+    items = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+
+    if (typeof render === "function") render();
+    if (typeof renderProfilePage === "function") renderProfilePage();
+  }
+
+  async function uploadAllLocalItems(uid) {
+    const fb = getFb();
+    if (!fb || !uid || !Array.isArray(items)) return;
+
+    for (const item of items) {
+      const id = item.id || crypto.randomUUID();
+      item.id = id;
+      await fb.setDoc(itemDoc(uid, id), { ...item }, { merge: true });
+    }
+  }
+
+  async function maybeMigrateLocalItems(uid) {
+    const fb = getFb();
+    if (!fb || !uid) return;
+
+    const snap = await fb.getDocs(itemsCol(uid));
+    const cloudEmpty = snap.empty;
+    const localHasItems = Array.isArray(items) && items.length > 0;
+
+    if (cloudEmpty && localHasItems) {
+      const ok = confirm("呢個帳戶雲端收藏暫時係空。要唔要把你而家本機收藏搬上雲端？");
+      if (ok) {
+        await uploadAllLocalItems(uid);
+      }
+    }
+  }
+
+  async function syncSingleItemToCloud(item) {
+    const fb = getFb();
+    const uid = currentUid();
+    if (!fb || !uid || !item) return;
+
+    const id = item.id || crypto.randomUUID();
+    item.id = id;
+    await fb.setDoc(itemDoc(uid, id), { ...item }, { merge: true });
+  }
+
+  async function deleteSingleItemFromCloud(id) {
+    const fb = getFb();
+    const uid = currentUid();
+    if (!fb || !uid || !id) return;
+
+    await fb.deleteDoc(itemDoc(uid, id));
+  }
+
+  async function syncProfileCounts() {
+    if (typeof renderProfilePage === "function") renderProfilePage();
+  }
+
+  function newestItemGuess(beforeIds) {
+    if (!Array.isArray(items) || !items.length) return null;
+    for (const item of items) {
+      if (!beforeIds.has(item.id)) return item;
+    }
+    return items[0] || null;
+  }
+
+  const oldSaveRecord = typeof saveRecord === "function" ? saveRecord : null;
+  if (oldSaveRecord) {
+    window.saveRecord = async function () {
+      const beforeIds = new Set((items || []).map(i => i.id));
+
+      await oldSaveRecord.apply(this, arguments);
+
+      const uid = currentUid();
+      if (!uid) return;
+
+      const savedItem = newestItemGuess(beforeIds);
+      if (savedItem) {
+        await syncSingleItemToCloud(savedItem);
+      } else if (Array.isArray(items) && items.length) {
+        await syncSingleItemToCloud(items[0]);
+      }
+
+      await syncProfileCounts();
+    };
+
+    const saveBtn = document.getElementById("saveBtn");
+    if (saveBtn) {
+      saveBtn.onclick = window.saveRecord;
+    }
+  }
+
+  const oldDeleteItem = window.deleteItem;
+  if (typeof oldDeleteItem === "function") {
+    window.deleteItem = async function (id) {
+      await oldDeleteItem(id);
+
+      const uid = currentUid();
+      if (uid && id) {
+        try {
+          await deleteSingleItemFromCloud(id);
+        } catch (err) {
+          console.error("Cloud delete failed:", err);
+        }
+      }
+
+      await syncProfileCounts();
+    };
+  }
+
+  function waitForFirebaseThenBind() {
+    const timer = setInterval(async () => {
+      const fb = getFb();
+      if (!fb || !fb.auth) return;
+
+      clearInterval(timer);
+
+      let lastUid = null;
+
+      fb.auth.onAuthStateChanged?.(async () => {});
+      if (fb.auth && typeof fb.auth.onAuthStateChanged === "function") return;
+
+      fb.auth._dummy = true;
+    }, 300);
+  }
+
+  function attachAuthWatcher() {
+    const timer = setInterval(() => {
+      const fb = getFb();
+      if (!fb || !fb.auth) return;
+
+      clearInterval(timer);
+
+      let lastUid = null;
+
+      const unsubscribe = fb.auth.onAuthStateChanged
+        ? fb.auth.onAuthStateChanged(async () => {})
+        : null;
+
+      if (unsubscribe) unsubscribe();
+
+      import("https://www.gstatic.com/firebasejs/12.10.0/firebase-auth.js").then(({ onAuthStateChanged }) => {
+        onAuthStateChanged(fb.auth, async (user) => {
+          const uid = user?.uid || null;
+
+          if (!uid) {
+            lastUid = null;
+            return;
+          }
+
+          if (uid !== lastUid) {
+            lastUid = uid;
+            await maybeMigrateLocalItems(uid);
+            await loadItemsFromCloud(uid);
+          }
+        });
+      });
+    }, 300);
+  }
+
+  attachAuthWatcher();
 })();
 </script>
 </html>
