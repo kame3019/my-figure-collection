@@ -1807,6 +1807,7 @@
     </script>
 
     <script type="module">
+      import { getAI, getGenerativeModel, GoogleAIBackend, Schema } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-ai.js";
       import { initializeApp } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-app.js";
       import {
         getAuth,
@@ -1836,6 +1837,29 @@
       };
 
       const app = initializeApp(firebaseConfig);
+        const ai = getAI(app, { backend: new GoogleAIBackend() });
+
+const autoFillSchema = Schema.object({
+  properties: {
+    name: Schema.string(),
+    brand: Schema.string(),
+    series: Schema.string(),
+    category: Schema.string(),
+    status: Schema.string(),
+    note: Schema.string()
+  },
+  optionalProperties: ["brand", "series", "category", "status", "note"]
+});
+
+const autoFillModel = getGenerativeModel(ai, {
+  model: "gemini-2.5-flash",
+  generationConfig: {
+    responseMimeType: "application/json",
+    responseSchema: autoFillSchema
+  }
+});
+
+window.kuraAI = { ai, autoFillModel };
       const auth = getAuth(app);
       const db = getFirestore(app);
       const provider = new GoogleAuthProvider();
@@ -2961,4 +2985,119 @@
 </script>
 
 </body>
+
+    <script>
+(function () {
+  function insertAIFillButton() {
+    const saveBtn = document.getElementById("saveBtn");
+    if (!saveBtn) return;
+    if (document.getElementById("aiFillBtn")) return;
+
+    const aiBtn = document.createElement("button");
+    aiBtn.id = "aiFillBtn";
+    aiBtn.className = "mt-3 w-full rounded-xl bg-black px-4 py-3 text-sm font-bold text-white";
+    aiBtn.textContent = "AI 讀圖填寫";
+
+    const status = document.createElement("div");
+    status.id = "aiFillStatus";
+    status.className = "mt-2 text-xs text-slate-500";
+
+    saveBtn.parentNode.insertBefore(aiBtn, saveBtn);
+    saveBtn.parentNode.insertBefore(status, saveBtn);
+  }
+
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", insertAIFillButton);
+  } else {
+    insertAIFillButton();
+  }
+
+  document.addEventListener("click", function (e) {
+    if (e.target.closest("#navAddCenter")) {
+      setTimeout(insertAIFillButton, 300);
+      setTimeout(insertAIFillButton, 1000);
+    }
+  });
+})();
+</script>
+
+    <script>
+(function () {
+  function $(id) {
+    return document.getElementById(id);
+  }
+
+  async function fileToGenerativePart(file) {
+    const base64EncodedData = await new Promise((resolve) => {
+      const reader = new FileReader();
+      reader.onloadend = () => resolve(reader.result.split(",")[1]);
+      reader.readAsDataURL(file);
+    });
+
+    return {
+      inlineData: {
+        data: base64EncodedData,
+        mimeType: file.type
+      }
+    };
+  }
+
+  async function runAIAutoFill() {
+    const statusEl = $("aiFillStatus");
+    const photoFile = $("photo")?.files?.[0] || $("photoLibrary")?.files?.[0];
+
+    if (!photoFile) {
+      alert("請先上傳或拍一張圖片");
+      return;
+    }
+
+    if (!window.kuraAI?.autoFillModel) {
+      alert("AI 未初始化成功");
+      return;
+    }
+
+    statusEl.textContent = "AI 分析中...";
+
+    try {
+      const imagePart = await fileToGenerativePart(photoFile);
+
+      const prompt = `
+你是模型收藏資料整理助手。
+請根據圖片內容，盡量判斷並回傳 JSON。
+規則：
+- name: 模型名稱，盡量完整
+- brand: 品牌 / 廠商
+- series: 系列 / 作品
+- category: 例如 高達、PVC、景品、Figure、Nendoroid、SHF
+- status: 只可用以下其中一個：未開封、已開封、展示中、未取貨、已售出、願望清單
+- note: 用 1 至 2 句簡短描述你點判斷
+如果不確定，欄位可留空，但一定要輸出合法 JSON。
+`;
+
+      const result = await window.kuraAI.autoFillModel.generateContent([prompt, imagePart]);
+      const text = result.response.text();
+      const data = JSON.parse(text);
+
+      if ($("name") && data.name) $("name").value = data.name;
+      if ($("brand") && data.brand) $("brand").value = data.brand;
+      if ($("series") && data.series) $("series").value = data.series;
+      if ($("category") && data.category) $("category").value = data.category;
+      if ($("status") && data.status) $("status").value = data.status;
+      if ($("note") && data.note) $("note").value = data.note;
+
+      statusEl.textContent = "AI 已填入建議資料，請手動確認。";
+    } catch (err) {
+      console.error(err);
+      statusEl.textContent = "AI 讀圖失敗";
+      alert(err.message || "AI 讀圖失敗");
+    }
+  }
+
+  document.addEventListener("click", function (e) {
+    if (e.target.closest("#aiFillBtn")) {
+      runAIAutoFill();
+    }
+  });
+})();
+</script>
 </html>
