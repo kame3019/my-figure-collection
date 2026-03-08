@@ -1,6 +1,5 @@
 <!DOCTYPE html>
 <html lang="ja">
-    
 <head>
     <meta charset="utf-8" />
     <meta content="width=device-width, initial-scale=1.0" name="viewport" />
@@ -530,7 +529,7 @@
                     <div class="space-y-3">
                         <input id="loginEmail" class="kv-input rounded-xl border border-primary/10 bg-background-light/80 px-4 py-3 text-sm placeholder:text-slate-400 focus:border-primary focus:ring-primary" placeholder="Email address" type="email" />
                         <input id="loginPassword" class="kv-input rounded-xl border border-primary/10 bg-background-light/80 px-4 py-3 text-sm placeholder:text-slate-400 focus:border-primary focus:ring-primary" placeholder="Password" type="password" />
-                        <button id="fakeLoginBtn" class="w-full rounded-xl bg-primary px-4 py-3 text-sm font-bold text-white">登入</button>
+                        <button id="fakeLoginBtn" class="w-full rounded-xl bg-primary px-4 py-3 text-sm font-bold text-white">登入（示範 UI）</button>
                     </div>
                 </div>
 
@@ -547,7 +546,7 @@
                         <input id="registerName" class="kv-input rounded-xl border border-primary/10 bg-background-light/80 px-4 py-3 text-sm placeholder:text-slate-400 focus:border-primary focus:ring-primary" placeholder="Display name" />
                         <input id="registerEmail" class="kv-input rounded-xl border border-primary/10 bg-background-light/80 px-4 py-3 text-sm placeholder:text-slate-400 focus:border-primary focus:ring-primary" placeholder="Email address" type="email" />
                         <input id="registerPassword" class="kv-input rounded-xl border border-primary/10 bg-background-light/80 px-4 py-3 text-sm placeholder:text-slate-400 focus:border-primary focus:ring-primary" placeholder="Password" type="password" />
-                        <button id="fakeRegisterBtn" class="w-full rounded-xl bg-primary px-4 py-3 text-sm font-bold text-white">註冊</button>
+                        <button id="fakeRegisterBtn" class="w-full rounded-xl bg-primary px-4 py-3 text-sm font-bold text-white">註冊（示範 UI）</button>
                     </div>
                 </div>
             </section>
@@ -2260,10 +2259,9 @@
     })();
     </script>
 
-</body>
 
-    <script>
-(function () {
+<script>
+(async function () {
   function fb() {
     return window.kuraFirebase || null;
   }
@@ -2272,149 +2270,190 @@
     return document.getElementById(id);
   }
 
-  async function currentUserIsAdmin() {
+  function readBrandLibrary() {
+    try { return Array.isArray(brandLibrary) ? brandLibrary : []; } catch (e) { return Array.isArray(window.brandLibrary) ? window.brandLibrary : []; }
+  }
+
+  function readSeriesLibrary() {
+    try { return Array.isArray(seriesLibrary) ? seriesLibrary : []; } catch (e) { return Array.isArray(window.seriesLibrary) ? window.seriesLibrary : []; }
+  }
+
+  function setBrandLibrary(next) {
+    try { brandLibrary = next; } catch (e) { window.brandLibrary = next; }
+  }
+
+  function setSeriesLibrary(next) {
+    try { seriesLibrary = next; } catch (e) { window.seriesLibrary = next; }
+  }
+
+  function currentUid() {
+    return fb()?.auth?.currentUser?.uid || "";
+  }
+
+  async function fileToBase64(file) {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result);
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    });
+  }
+
+  async function isAdmin() {
     const api = fb();
-    const uid = api?.auth?.currentUser?.uid;
+    const uid = currentUid();
     if (!api || !uid) return false;
 
     try {
       const snap = await api.getDoc(api.doc(api.db, "admins", uid));
       return snap.exists();
     } catch (err) {
-      console.error("Admin check failed:", err);
+      console.error(err);
       return false;
     }
   }
 
-  function normalizeLogo(docSnap, scope, type) {
+  function scopeLabel(item, uid) {
+    if (item.scope === "global") return "Global";
+    if ((item.ownerUid || "") === (uid || "")) return "My";
+    return "User";
+  }
+
+  function normalizeLogo(docSnap, forcedScope, type) {
     const data = docSnap.data() || {};
+    const path = docSnap.ref?.path || "";
+    const parts = path.split("/");
+    const ownerFromPath = parts[0] === "users" ? parts[1] : "";
+    const scopeFromPath = parts[0] === "users" ? "personal" : "global";
+
     return {
       id: docSnap.id,
       name: data.name || "",
       logo: data.logo || "",
-      scope,   // global | personal
-      type,    // brand | series
-      ownerUid: data.ownerUid || "",
+      ownerUid: data.ownerUid || ownerFromPath || "",
+      scope: forcedScope || scopeFromPath,
+      type,
       createdAt: data.createdAt || 0,
-      updatedAt: data.updatedAt || 0
+      updatedAt: data.updatedAt || 0,
+      _path: path
     };
   }
 
-  async function loadMergedLogoLibraries() {
+  async function loadMergedLibraries() {
     const api = fb();
-    const uid = api?.auth?.currentUser?.uid || null;
+    const uid = currentUid();
     if (!api) return;
 
     try {
-      const tasks = [
+      const jobs = [
         api.getDocs(api.collection(api.db, "appConfig", "public", "brandLogos")),
         api.getDocs(api.collection(api.db, "appConfig", "public", "seriesLogos"))
       ];
 
       if (uid) {
-        tasks.push(api.getDocs(api.collection(api.db, "users", uid, "brandLogos")));
-        tasks.push(api.getDocs(api.collection(api.db, "users", uid, "seriesLogos")));
+        jobs.push(api.getDocs(api.collection(api.db, "users", uid, "brandLogos")));
+        jobs.push(api.getDocs(api.collection(api.db, "users", uid, "seriesLogos")));
       }
 
-      const results = await Promise.all(tasks);
+      const res = await Promise.all(jobs);
 
-      const globalBrand = results[0].docs.map(d => normalizeLogo(d, "global", "brand"));
-      const globalSeries = results[1].docs.map(d => normalizeLogo(d, "global", "series"));
-      const personalBrand = uid ? results[2].docs.map(d => normalizeLogo(d, "personal", "brand")) : [];
-      const personalSeries = uid ? results[3].docs.map(d => normalizeLogo(d, "personal", "series")) : [];
+      const globalBrand = res[0].docs.map(d => normalizeLogo(d, "global", "brand"));
+      const globalSeries = res[1].docs.map(d => normalizeLogo(d, "global", "series"));
+      const myBrand = uid ? res[2].docs.map(d => normalizeLogo(d, "personal", "brand")) : [];
+      const mySeries = uid ? res[3].docs.map(d => normalizeLogo(d, "personal", "series")) : [];
 
-      brandLibrary = [...globalBrand, ...personalBrand]
-        .sort((a, b) => (a.name || "").localeCompare(b.name || ""));
-      seriesLibrary = [...globalSeries, ...personalSeries]
-        .sort((a, b) => (a.name || "").localeCompare(b.name || ""));
+      setBrandLibrary([...globalBrand, ...myBrand].sort((a, b) => (a.name || "").localeCompare(b.name || "")));
+      setSeriesLibrary([...globalSeries, ...mySeries].sort((a, b) => (a.name || "").localeCompare(b.name || "")));
 
       if (typeof renderPresetPickers === "function") renderPresetPickers();
-      if (typeof renderLogoManagers === "function") renderLogoManagers();
-      if (typeof save === "function") save();
-
-      await updateLogoButtons();
+      renderLogoManagersPatched();
+      updateButtons();
     } catch (err) {
-      console.error("Load merged logos failed:", err);
+      console.error("loadMergedLibraries failed", err);
     }
   }
 
-  async function updateLogoButtons() {
-    const isAdmin = await currentUserIsAdmin();
+  function ensureScopeSelectors(admin) {
+    const brandBtn = $("saveBrandLibBtn");
+    const seriesBtn = $("saveSeriesLibBtn");
+    if (!brandBtn || !seriesBtn) return;
 
+    let brandWrap = $("brandLogoScopeWrap");
+    if (!brandWrap) {
+      brandWrap = document.createElement("div");
+      brandWrap.id = "brandLogoScopeWrap";
+      brandWrap.className = "mt-3";
+      brandWrap.innerHTML = `
+        <label class="text-xs font-bold tracking-widest uppercase text-slate-500 mb-2 block">Brand Logo Scope</label>
+        <select id="brandLogoScope" class="w-full rounded-xl border border-primary/10 bg-white/60 px-4 py-3 text-sm"></select>
+      `;
+      brandBtn.parentNode.insertBefore(brandWrap, brandBtn);
+    }
+
+    let seriesWrap = $("seriesLogoScopeWrap");
+    if (!seriesWrap) {
+      seriesWrap = document.createElement("div");
+      seriesWrap.id = "seriesLogoScopeWrap";
+      seriesWrap.className = "mt-3";
+      seriesWrap.innerHTML = `
+        <label class="text-xs font-bold tracking-widest uppercase text-slate-500 mb-2 block">Series Logo Scope</label>
+        <select id="seriesLogoScope" class="w-full rounded-xl border border-primary/10 bg-white/60 px-4 py-3 text-sm"></select>
+      `;
+      seriesBtn.parentNode.insertBefore(seriesWrap, seriesBtn);
+    }
+
+    const brandSelect = $("brandLogoScope");
+    const seriesSelect = $("seriesLogoScope");
+
+    if (brandSelect) {
+      brandSelect.innerHTML = `${admin ? '<option value="global">Global</option>' : ''}<option value="personal">My Logo</option>`;
+      brandWrap.style.display = "block";
+    }
+    if (seriesSelect) {
+      seriesSelect.innerHTML = `${admin ? '<option value="global">Global</option>' : ''}<option value="personal">My Logo</option>`;
+      seriesWrap.style.display = "block";
+    }
+  }
+
+  async function updateButtons() {
+    const admin = await isAdmin();
     const brandBtn = $("saveBrandLibBtn");
     const seriesBtn = $("saveSeriesLibBtn");
 
+    ensureScopeSelectors(admin);
+
     if (brandBtn) {
-      brandBtn.textContent = isAdmin ? "加入 Logo（可切換全站 / 個人）" : "加入我的 Brand Logo";
+      brandBtn.style.display = "";
       brandBtn.disabled = false;
-      brandBtn.classList.remove("opacity-60");
+      brandBtn.classList.remove("hidden", "opacity-60");
+      brandBtn.textContent = admin ? "加入 Logo（Global / My）" : "加入我的 Brand Logo";
     }
 
     if (seriesBtn) {
-      seriesBtn.textContent = isAdmin ? "加入 Logo（可切換全站 / 個人）" : "加入我的 Series Logo";
+      seriesBtn.style.display = "";
       seriesBtn.disabled = false;
-      seriesBtn.classList.remove("opacity-60");
-    }
-
-    ensureLogoScopeControls(isAdmin);
-  }
-
-  function ensureLogoScopeControls(isAdmin) {
-    if (!$("brandLogoScope")) {
-      const holder = document.createElement("div");
-      holder.className = "mt-3";
-      holder.innerHTML = `
-        <label class="text-xs font-bold tracking-widest uppercase text-slate-500 mb-2 block">Brand Logo Scope</label>
-        <select id="brandLogoScope" class="w-full rounded-xl border border-primary/10 bg-white/60 px-4 py-3 text-sm">
-          ${isAdmin ? '<option value="global">Global</option>' : ""}
-          <option value="personal">My Logo</option>
-        </select>
-      `;
-      $("saveBrandLibBtn")?.insertAdjacentElement("beforebegin", holder);
-    } else {
-      const select = $("brandLogoScope");
-      if (select) {
-        select.innerHTML = `${isAdmin ? '<option value="global">Global</option>' : ""}<option value="personal">My Logo</option>`;
-      }
-    }
-
-    if (!$("seriesLogoScope")) {
-      const holder = document.createElement("div");
-      holder.className = "mt-3";
-      holder.innerHTML = `
-        <label class="text-xs font-bold tracking-widest uppercase text-slate-500 mb-2 block">Series Logo Scope</label>
-        <select id="seriesLogoScope" class="w-full rounded-xl border border-primary/10 bg-white/60 px-4 py-3 text-sm">
-          ${isAdmin ? '<option value="global">Global</option>' : ""}
-          <option value="personal">My Logo</option>
-        </select>
-      `;
-      $("saveSeriesLibBtn")?.insertAdjacentElement("beforebegin", holder);
-    } else {
-      const select = $("seriesLogoScope");
-      if (select) {
-        select.innerHTML = `${isAdmin ? '<option value="global">Global</option>' : ""}<option value="personal">My Logo</option>`;
-      }
+      seriesBtn.classList.remove("hidden", "opacity-60");
+      seriesBtn.textContent = admin ? "加入 Logo（Global / My）" : "加入我的 Series Logo";
     }
   }
 
-  async function saveBrandLogoMerged() {
+  async function saveBrandLogoPatched() {
     const api = fb();
-    const uid = api?.auth?.currentUser?.uid || null;
+    const uid = currentUid();
     if (!api || !uid) {
       alert("請先登入");
       return;
     }
 
-    const isAdmin = await currentUserIsAdmin();
+    const admin = await isAdmin();
     const scope = $("brandLogoScope")?.value || "personal";
-
-    if (scope === "global" && !isAdmin) {
+    if (scope === "global" && !admin) {
       alert("只有 admin 可以新增 Global Brand Logo");
       return;
     }
 
-    const name = $("brand")?.value.trim() || "";
-    const url = $("brandLogoUrl")?.value.trim() || "";
+    const name = $("brand")?.value?.trim() || "";
+    const url = $("brandLogoUrl")?.value?.trim() || "";
     const file = $("brandLogoFile")?.files?.[0] || null;
 
     if (!name || (!url && !file)) {
@@ -2423,55 +2462,49 @@
     }
 
     try {
-      const logo = file ? await fileToDataURL(file) : url;
+      const logo = file ? await fileToBase64(file) : url;
       const id = crypto.randomUUID();
 
-      if (scope === "global") {
-        await api.setDoc(api.doc(api.db, "appConfig", "public", "brandLogos", id), {
-          name,
-          logo,
-          ownerUid: uid,
-          createdAt: Date.now(),
-          updatedAt: Date.now()
-        });
-      } else {
-        await api.setDoc(api.doc(api.db, "users", uid, "brandLogos", id), {
-          name,
-          logo,
-          ownerUid: uid,
-          createdAt: Date.now(),
-          updatedAt: Date.now()
-        });
-      }
+      const ref = scope === "global"
+        ? api.doc(api.db, "appConfig", "public", "brandLogos", id)
+        : api.doc(api.db, "users", uid, "brandLogos", id);
+
+      await api.setDoc(ref, {
+        name,
+        logo,
+        ownerUid: uid,
+        createdAt: Date.now(),
+        updatedAt: Date.now()
+      });
 
       if ($("brandLogoUrl")) $("brandLogoUrl").value = "";
       if ($("brandLogoFile")) $("brandLogoFile").value = "";
-      await loadMergedLogoLibraries();
+
+      await loadMergedLibraries();
       if ($("backupStatus")) $("backupStatus").textContent = "已加入 Brand Logo";
     } catch (err) {
-      console.error("Save brand logo failed:", err);
+      console.error(err);
       alert(err.message || "加入 Brand Logo 失敗");
     }
   }
 
-  async function saveSeriesLogoMerged() {
+  async function saveSeriesLogoPatched() {
     const api = fb();
-    const uid = api?.auth?.currentUser?.uid || null;
+    const uid = currentUid();
     if (!api || !uid) {
       alert("請先登入");
       return;
     }
 
-    const isAdmin = await currentUserIsAdmin();
+    const admin = await isAdmin();
     const scope = $("seriesLogoScope")?.value || "personal";
-
-    if (scope === "global" && !isAdmin) {
+    if (scope === "global" && !admin) {
       alert("只有 admin 可以新增 Global Series Logo");
       return;
     }
 
-    const name = $("series")?.value.trim() || "";
-    const url = $("seriesLogoUrl")?.value.trim() || "";
+    const name = $("series")?.value?.trim() || "";
+    const url = $("seriesLogoUrl")?.value?.trim() || "";
     const file = $("seriesLogoFile")?.files?.[0] || null;
 
     if (!name || (!url && !file)) {
@@ -2480,105 +2513,91 @@
     }
 
     try {
-      const logo = file ? await fileToDataURL(file) : url;
+      const logo = file ? await fileToBase64(file) : url;
       const id = crypto.randomUUID();
 
-      if (scope === "global") {
-        await api.setDoc(api.doc(api.db, "appConfig", "public", "seriesLogos", id), {
-          name,
-          logo,
-          ownerUid: uid,
-          createdAt: Date.now(),
-          updatedAt: Date.now()
-        });
-      } else {
-        await api.setDoc(api.doc(api.db, "users", uid, "seriesLogos", id), {
-          name,
-          logo,
-          ownerUid: uid,
-          createdAt: Date.now(),
-          updatedAt: Date.now()
-        });
-      }
+      const ref = scope === "global"
+        ? api.doc(api.db, "appConfig", "public", "seriesLogos", id)
+        : api.doc(api.db, "users", uid, "seriesLogos", id);
+
+      await api.setDoc(ref, {
+        name,
+        logo,
+        ownerUid: uid,
+        createdAt: Date.now(),
+        updatedAt: Date.now()
+      });
 
       if ($("seriesLogoUrl")) $("seriesLogoUrl").value = "";
       if ($("seriesLogoFile")) $("seriesLogoFile").value = "";
-      await loadMergedLogoLibraries();
+
+      await loadMergedLibraries();
       if ($("backupStatus")) $("backupStatus").textContent = "已加入 Series Logo";
     } catch (err) {
-      console.error("Save series logo failed:", err);
+      console.error(err);
       alert(err.message || "加入 Series Logo 失敗");
     }
   }
 
-  function scopedLabel(item) {
-    return item.scope === "global" ? "Global" : "My";
-  }
+  function renderLogoManagersPatched() {
+    const uid = currentUid();
+    const brands = readBrandLibrary();
+    const series = readSeriesLibrary();
 
-  const oldRenderLogoManagers = window.renderLogoManagers;
-  window.renderLogoManagers = function () {
-    if (typeof oldRenderLogoManagers === "function") {
-      oldRenderLogoManagers();
-    }
+    if ($("brandLibCount")) $("brandLibCount").textContent = brands.length + " 個";
+    if ($("seriesLibCount")) $("seriesLibCount").textContent = series.length + " 個";
 
     if ($("brandLibraryManager")) {
-      $("brandLibraryManager").innerHTML = brandLibrary.length
-        ? brandLibrary.map((item, index) => `
-            <div class="flex items-center justify-between gap-3 rounded-xl border border-primary/10 bg-background-light/80 p-3">
-              <div class="flex items-center gap-3 min-w-0">
-                <span class="h-8 w-8 rounded-lg overflow-hidden bg-white border border-primary/10 shrink-0">
-                  <img class="h-full w-full object-contain" src="${item.logo}" alt="">
-                </span>
-                <div class="min-w-0">
-                  <div class="font-medium truncate">${item.name}</div>
-                  <div class="text-[10px] uppercase tracking-widest text-slate-400 mt-1">${scopedLabel(item)}</div>
-                </div>
-              </div>
-              <button class="rounded-lg bg-black/5 px-3 py-2 text-xs font-semibold shrink-0" onclick="deleteBrandLogo(${index})">刪除</button>
+      $("brandLibraryManager").innerHTML = brands.length ? brands.map((item, index) => `
+        <div class="flex items-center justify-between gap-3 rounded-xl border border-primary/10 bg-background-light/80 p-3">
+          <div class="flex items-center gap-3 min-w-0">
+            <span class="h-8 w-8 rounded-lg overflow-hidden bg-white border border-primary/10 shrink-0">
+              <img class="h-full w-full object-contain" src="${item.logo}" alt="">
+            </span>
+            <div class="min-w-0">
+              <div class="font-medium truncate">${item.name}</div>
+              <div class="text-[10px] uppercase tracking-widest text-slate-400 mt-1">${scopeLabel(item, uid)}</div>
             </div>
-          `).join("")
-        : '<div class="rounded-xl border border-primary/10 bg-background-light/80 p-4 text-center text-slate-400">未有品牌 Logo。</div>';
+          </div>
+          <button class="rounded-lg bg-black/5 px-3 py-2 text-xs font-semibold shrink-0" onclick="deleteBrandLogo(${index})">刪除</button>
+        </div>
+      `).join("") : '<div class="rounded-xl border border-primary/10 bg-background-light/80 p-4 text-center text-slate-400">未有品牌 Logo。</div>';
     }
 
     if ($("seriesLibraryManager")) {
-      $("seriesLibraryManager").innerHTML = seriesLibrary.length
-        ? seriesLibrary.map((item, index) => `
-            <div class="flex items-center justify-between gap-3 rounded-xl border border-primary/10 bg-background-light/80 p-3">
-              <div class="flex items-center gap-3 min-w-0">
-                <span class="h-8 w-8 rounded-lg overflow-hidden bg-white border border-primary/10 shrink-0">
-                  <img class="h-full w-full object-contain" src="${item.logo}" alt="">
-                </span>
-                <div class="min-w-0">
-                  <div class="font-medium truncate">${item.name}</div>
-                  <div class="text-[10px] uppercase tracking-widest text-slate-400 mt-1">${scopedLabel(item)}</div>
-                </div>
-              </div>
-              <button class="rounded-lg bg-black/5 px-3 py-2 text-xs font-semibold shrink-0" onclick="deleteSeriesLogo(${index})">刪除</button>
+      $("seriesLibraryManager").innerHTML = series.length ? series.map((item, index) => `
+        <div class="flex items-center justify-between gap-3 rounded-xl border border-primary/10 bg-background-light/80 p-3">
+          <div class="flex items-center gap-3 min-w-0">
+            <span class="h-8 w-8 rounded-lg overflow-hidden bg-white border border-primary/10 shrink-0">
+              <img class="h-full w-full object-contain" src="${item.logo}" alt="">
+            </span>
+            <div class="min-w-0">
+              <div class="font-medium truncate">${item.name}</div>
+              <div class="text-[10px] uppercase tracking-widest text-slate-400 mt-1">${scopeLabel(item, uid)}</div>
             </div>
-          `).join("")
-        : '<div class="rounded-xl border border-primary/10 bg-background-light/80 p-4 text-center text-slate-400">未有系列 Logo。</div>';
+          </div>
+          <button class="rounded-lg bg-black/5 px-3 py-2 text-xs font-semibold shrink-0" onclick="deleteSeriesLogo(${index})">刪除</button>
+        </div>
+      `).join("") : '<div class="rounded-xl border border-primary/10 bg-background-light/80 p-4 text-center text-slate-400">未有系列 Logo。</div>';
     }
-
-    if ($("brandLibCount")) $("brandLibCount").textContent = brandLibrary.length + " 個";
-    if ($("seriesLibCount")) $("seriesLibCount").textContent = seriesLibrary.length + " 個";
-  };
+  }
 
   window.deleteBrandLogo = async function (index) {
     const api = fb();
-    const uid = api?.auth?.currentUser?.uid || null;
+    const uid = currentUid();
     if (!api || !uid) return;
 
-    const item = brandLibrary[index];
+    const item = readBrandLibrary()[index];
     if (!item) return;
 
-    const isAdmin = await currentUserIsAdmin();
+    const admin = await isAdmin();
 
-    if (item.scope === "global" && !isAdmin) {
+    if (item.scope === "global" && !admin) {
       alert("只有 admin 可以刪除 Global Brand Logo");
       return;
     }
 
-    if (item.scope === "personal" && !isAdmin && item.ownerUid !== uid) {
+    if (item.scope === "personal" && !admin && item.ownerUid !== uid) {
       alert("你不能刪除其他人的 Brand Logo");
       return;
     }
@@ -2591,30 +2610,30 @@
         : api.doc(api.db, "users", item.ownerUid || uid, "brandLogos", item.id);
 
       await api.deleteDoc(ref);
-      await loadMergedLogoLibraries();
-      if ($("backupStatus")) $("backupStatus").textContent = "已刪除 Brand Logo";
+      await loadMergedLibraries();
+      if (typeof loadAllUserLogosForAdmin === "function") await loadAllUserLogosForAdmin();
     } catch (err) {
-      console.error("Delete brand logo failed:", err);
+      console.error(err);
       alert(err.message || "刪除 Brand Logo 失敗");
     }
   };
 
   window.deleteSeriesLogo = async function (index) {
     const api = fb();
-    const uid = api?.auth?.currentUser?.uid || null;
+    const uid = currentUid();
     if (!api || !uid) return;
 
-    const item = seriesLibrary[index];
+    const item = readSeriesLibrary()[index];
     if (!item) return;
 
-    const isAdmin = await currentUserIsAdmin();
+    const admin = await isAdmin();
 
-    if (item.scope === "global" && !isAdmin) {
+    if (item.scope === "global" && !admin) {
       alert("只有 admin 可以刪除 Global Series Logo");
       return;
     }
 
-    if (item.scope === "personal" && !isAdmin && item.ownerUid !== uid) {
+    if (item.scope === "personal" && !admin && item.ownerUid !== uid) {
       alert("你不能刪除其他人的 Series Logo");
       return;
     }
@@ -2627,50 +2646,63 @@
         : api.doc(api.db, "users", item.ownerUid || uid, "seriesLogos", item.id);
 
       await api.deleteDoc(ref);
-      await loadMergedLogoLibraries();
-      if ($("backupStatus")) $("backupStatus").textContent = "已刪除 Series Logo";
+      await loadMergedLibraries();
+      if (typeof loadAllUserLogosForAdmin === "function") await loadAllUserLogosForAdmin();
     } catch (err) {
-      console.error("Delete series logo failed:", err);
+      console.error(err);
       alert(err.message || "刪除 Series Logo 失敗");
     }
   };
 
-  function bindMergedLogoButtons() {
+  function bindPatchedButtons() {
     const brandBtn = $("saveBrandLibBtn");
     const seriesBtn = $("saveSeriesLibBtn");
 
-    if (brandBtn && !brandBtn.dataset.myLogoBound) {
-      brandBtn.dataset.myLogoBound = "1";
-      brandBtn.onclick = saveBrandLogoMerged;
+    if (brandBtn) {
+      brandBtn.onclick = saveBrandLogoPatched;
+      brandBtn.style.display = "";
+      brandBtn.disabled = false;
     }
 
-    if (seriesBtn && !seriesBtn.dataset.myLogoBound) {
-      seriesBtn.dataset.myLogoBound = "1";
-      seriesBtn.onclick = saveSeriesLogoMerged;
+    if (seriesBtn) {
+      seriesBtn.onclick = saveSeriesLogoPatched;
+      seriesBtn.style.display = "";
+      seriesBtn.disabled = false;
     }
   }
 
-  async function bootMyLogos() {
-    bindMergedLogoButtons();
-    await loadMergedLogoLibraries();
+  async function bootLogoPatch() {
+    bindPatchedButtons();
+    await loadMergedLibraries();
+
+    let count = 0;
+    const timer = setInterval(async () => {
+      bindPatchedButtons();
+      await updateButtons();
+      count += 1;
+      if (count > 12) clearInterval(timer);
+    }, 1200);
 
     document.addEventListener("click", function (e) {
       if (e.target.closest("#navAddCenter") || e.target.closest("#navProfile")) {
         setTimeout(async () => {
-          bindMergedLogoButtons();
-          await loadMergedLogoLibraries();
+          bindPatchedButtons();
+          await loadMergedLibraries();
         }, 300);
       }
     });
   }
 
   if (document.readyState === "loading") {
-    document.addEventListener("DOMContentLoaded", bootMyLogos);
+    document.addEventListener("DOMContentLoaded", bootLogoPatch);
   } else {
-    bootMyLogos();
+    bootLogoPatch();
   }
+
+  window.loadMergedLogoLibraries = loadMergedLibraries;
 })();
 </script>
+
 
 <script>
 (async function () {
@@ -2684,20 +2716,20 @@
     return document.getElementById(id);
   }
 
-  function currentUid() {
+  function uid() {
     return fb()?.auth?.currentUser?.uid || "";
   }
 
   async function isAdmin() {
     const api = fb();
-    const uid = currentUid();
-    if (!api || !uid) return false;
+    const me = uid();
+    if (!api || !me) return false;
 
     try {
-      const snap = await api.getDoc(api.doc(api.db, "admins", uid));
+      const snap = await api.getDoc(api.doc(api.db, "admins", me));
       return snap.exists();
     } catch (err) {
-      console.error("Admin check failed:", err);
+      console.error(err);
       return false;
     }
   }
@@ -2810,7 +2842,7 @@
 
   async function loadAllUserLogosForAdmin() {
     const api = fb();
-    const me = currentUid();
+    const me = uid();
 
     ensurePanel();
 
@@ -2857,6 +2889,8 @@
     }
   }
 
+  window.loadAllUserLogosForAdmin = loadAllUserLogosForAdmin;
+
   window.adminDeleteUserLogo = async function (type, ownerUid, logoId, logoName) {
     const api = fb();
     if (!api) return;
@@ -2876,6 +2910,7 @@
 
       await api.deleteDoc(ref);
       await loadAllUserLogosForAdmin();
+      if (typeof window.loadMergedLogoLibraries === "function") await window.loadMergedLogoLibraries();
       alert("已刪除");
     } catch (err) {
       console.error(err);
@@ -2924,4 +2959,6 @@
   }
 })();
 </script>
+
+</body>
 </html>
