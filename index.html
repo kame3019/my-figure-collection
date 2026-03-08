@@ -2684,22 +2684,31 @@
     return document.getElementById(id);
   }
 
-  function uid() {
+  function currentUid() {
     return fb()?.auth?.currentUser?.uid || "";
   }
 
   async function isAdmin() {
     const api = fb();
-    const me = uid();
-    if (!api || !me) return false;
+    const uid = currentUid();
+    if (!api || !uid) return false;
 
     try {
-      const snap = await api.getDoc(api.doc(api.db, "admins", me));
+      const snap = await api.getDoc(api.doc(api.db, "admins", uid));
       return snap.exists();
     } catch (err) {
-      console.error(err);
+      console.error("Admin check failed:", err);
       return false;
     }
+  }
+
+  function escapeHtml(str) {
+    return String(str || "")
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;")
+      .replace(/'/g, "&#39;");
   }
 
   function normalizeLogo(docSnap, type) {
@@ -2718,10 +2727,10 @@
     };
   }
 
-  function ensureAdminUserLogoPanel() {
+  function ensurePanel() {
     if ($("adminUserLogoPanel")) return;
 
-    const profilePage = $("pageProfile") || $("pageAdd");
+    const profilePage = $("pageProfile");
     if (!profilePage) return;
 
     const panel = document.createElement("div");
@@ -2736,11 +2745,13 @@
         <span class="material-symbols-outlined text-primary text-3xl">shield_person</span>
       </div>
 
-      <div class="mb-4">
+      <div class="mb-3">
         <button id="reloadUserLogosBtn" class="w-full rounded-xl bg-primary px-4 py-3 text-sm font-bold text-white">
           重新載入 User Logos
         </button>
       </div>
+
+      <div id="userLogoStatus" class="mb-4 text-xs text-slate-500">未載入</div>
 
       <div class="grid grid-cols-1 gap-4">
         <div>
@@ -2758,23 +2769,67 @@
     profilePage.appendChild(panel);
   }
 
+  function setStatus(text) {
+    const el = $("userLogoStatus");
+    if (el) el.textContent = text;
+  }
+
+  function renderList(targetId, items, type) {
+    const target = $(targetId);
+    if (!target) return;
+
+    if (!items.length) {
+      target.innerHTML = `<div class="rounded-xl border border-primary/10 bg-background-light/80 p-4 text-center text-slate-400">未有 User ${type === "brand" ? "Brand" : "Series"} Logos。</div>`;
+      return;
+    }
+
+    target.innerHTML = items.map(item => `
+      <div class="flex items-center justify-between gap-3 rounded-xl border border-primary/10 bg-background-light/80 p-3">
+        <div class="flex items-center gap-3 min-w-0">
+          <span class="h-8 w-8 rounded-lg overflow-hidden bg-white border border-primary/10 shrink-0">
+            <img class="h-full w-full object-contain" src="${escapeHtml(item.logo)}" alt="">
+          </span>
+          <div class="min-w-0">
+            <div class="font-medium truncate">${escapeHtml(item.name)}</div>
+            <div class="text-[10px] uppercase tracking-widest text-slate-400 mt-1">User • ${escapeHtml(item.ownerUid)}</div>
+          </div>
+        </div>
+        <button
+          class="rounded-lg bg-black/5 px-3 py-2 text-xs font-semibold shrink-0"
+          data-admin-delete-user-logo="1"
+          data-logo-type="${type}"
+          data-owner-uid="${escapeHtml(item.ownerUid)}"
+          data-logo-id="${escapeHtml(item.id)}"
+          data-logo-name="${escapeHtml(item.name)}"
+        >
+          刪除
+        </button>
+      </div>
+    `).join("");
+  }
+
   async function loadAllUserLogosForAdmin() {
     const api = fb();
-    const me = uid();
-    if (!api || !me) return;
+    const me = currentUid();
 
-    const admin = await isAdmin();
-    ensureAdminUserLogoPanel();
+    ensurePanel();
 
     const panel = $("adminUserLogoPanel");
     if (!panel) return;
 
+    if (!api || !me) {
+      panel.classList.add("hidden");
+      return;
+    }
+
+    const admin = await isAdmin();
     if (!admin) {
       panel.classList.add("hidden");
       return;
     }
 
     panel.classList.remove("hidden");
+    setStatus("載入中...");
 
     try {
       const [brandSnap, seriesSnap] = await Promise.all([
@@ -2792,48 +2847,13 @@
         .filter(x => x.path.startsWith("users/") && x.ownerUid && x.ownerUid !== me)
         .sort((a, b) => (a.name || "").localeCompare(b.name || ""));
 
-      $("adminUserBrandLogos").innerHTML = brandItems.length
-        ? brandItems.map(item => `
-            <div class="flex items-center justify-between gap-3 rounded-xl border border-primary/10 bg-background-light/80 p-3">
-              <div class="flex items-center gap-3 min-w-0">
-                <span class="h-8 w-8 rounded-lg overflow-hidden bg-white border border-primary/10 shrink-0">
-                  <img class="h-full w-full object-contain" src="${item.logo}" alt="">
-                </span>
-                <div class="min-w-0">
-                  <div class="font-medium truncate">${item.name}</div>
-                  <div class="text-[10px] uppercase tracking-widest text-slate-400 mt-1">User • ${item.ownerUid}</div>
-                </div>
-              </div>
-              <button class="rounded-lg bg-black/5 px-3 py-2 text-xs font-semibold shrink-0"
-                onclick="adminDeleteUserLogo('brand','${item.ownerUid}','${item.id}','${item.name.replace(/'/g, "\\'")}')">
-                刪除
-              </button>
-            </div>
-          `).join("")
-        : '<div class="rounded-xl border border-primary/10 bg-background-light/80 p-4 text-center text-slate-400">未有 User Brand Logos。</div>';
+      renderList("adminUserBrandLogos", brandItems, "brand");
+      renderList("adminUserSeriesLogos", seriesItems, "series");
 
-      $("adminUserSeriesLogos").innerHTML = seriesItems.length
-        ? seriesItems.map(item => `
-            <div class="flex items-center justify-between gap-3 rounded-xl border border-primary/10 bg-background-light/80 p-3">
-              <div class="flex items-center gap-3 min-w-0">
-                <span class="h-8 w-8 rounded-lg overflow-hidden bg-white border border-primary/10 shrink-0">
-                  <img class="h-full w-full object-contain" src="${item.logo}" alt="">
-                </span>
-                <div class="min-w-0">
-                  <div class="font-medium truncate">${item.name}</div>
-                  <div class="text-[10px] uppercase tracking-widest text-slate-400 mt-1">User • ${item.ownerUid}</div>
-                </div>
-              </div>
-              <button class="rounded-lg bg-black/5 px-3 py-2 text-xs font-semibold shrink-0"
-                onclick="adminDeleteUserLogo('series','${item.ownerUid}','${item.id}','${item.name.replace(/'/g, "\\'")}')">
-                刪除
-              </button>
-            </div>
-          `).join("")
-        : '<div class="rounded-xl border border-primary/10 bg-background-light/80 p-4 text-center text-slate-400">未有 User Series Logos。</div>';
-
+      setStatus(`已載入 ${brandItems.length} 個 Brand Logos，${seriesItems.length} 個 Series Logos`);
     } catch (err) {
       console.error("loadAllUserLogosForAdmin failed:", err);
+      setStatus("讀取失敗：" + (err.message || "Unknown error"));
     }
   }
 
@@ -2863,28 +2883,38 @@
     }
   };
 
-  function bindAdminUserLogoPanel() {
-    const btn = $("reloadUserLogosBtn");
-    if (btn && !btn.dataset.bound) {
-      btn.dataset.bound = "1";
-      btn.onclick = loadAllUserLogosForAdmin;
+  document.addEventListener("click", async function (e) {
+    if (e.target.closest("#reloadUserLogosBtn")) {
+      await loadAllUserLogosForAdmin();
+      return;
     }
-  }
 
-  async function boot() {
-    ensureAdminUserLogoPanel();
-    bindAdminUserLogoPanel();
-    await loadAllUserLogosForAdmin();
+    const delBtn = e.target.closest("[data-admin-delete-user-logo='1']");
+    if (delBtn) {
+      const type = delBtn.getAttribute("data-logo-type");
+      const ownerUid = delBtn.getAttribute("data-owner-uid");
+      const logoId = delBtn.getAttribute("data-logo-id");
+      const logoName = delBtn.getAttribute("data-logo-name");
+      await window.adminDeleteUserLogo(type, ownerUid, logoId, logoName);
+      return;
+    }
 
-    document.addEventListener("click", function (e) {
-      if (e.target.closest("#navProfile")) {
-        setTimeout(async () => {
-          ensureAdminUserLogoPanel();
-          bindAdminUserLogoPanel();
-          await loadAllUserLogosForAdmin();
-        }, 300);
-      }
-    });
+    if (e.target.closest("#navProfile")) {
+      setTimeout(loadAllUserLogosForAdmin, 300);
+      setTimeout(loadAllUserLogosForAdmin, 1000);
+    }
+  });
+
+  function boot() {
+    ensurePanel();
+    loadAllUserLogosForAdmin();
+
+    let count = 0;
+    const timer = setInterval(() => {
+      loadAllUserLogosForAdmin();
+      count += 1;
+      if (count > 8) clearInterval(timer);
+    }, 1500);
   }
 
   if (document.readyState === "loading") {
