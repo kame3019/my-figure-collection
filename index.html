@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8" />
     <meta content="width=device-width, initial-scale=1.0" name="viewport" />
-    <title>Kyoto Vault V8.8 Final Clean Stable</title>
+    <title>Kyoto Vault V8.8 Dual Theme Fixed</title>
 
     <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
     <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@200..800&display=swap" rel="stylesheet" />
@@ -205,7 +205,7 @@
                 <span class="material-symbols-outlined text-primary text-2xl">account_balance</span>
                 <div>
                     <h1 class="text-xl font-bold tracking-tight uppercase">Kyoto Vault</h1>
-                    <p class="text-[10px] text-slate-500 uppercase tracking-[0.18em]">Final Clean Stable • V8.8</p>
+                    <p class="text-[10px] text-slate-500 uppercase tracking-[0.18em]">Dual Theme • V8.8</p>
                 </div>
             </div>
             <div class="flex items-center gap-2">
@@ -241,7 +241,7 @@
                 <section class="px-6 py-2">
                     <div class="relative">
                         <span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-slate-400">search</span>
-                        <input id="searchInput" class="w-full kv-input rounded-xl border border-primary/10 bg-white/60 py-3 pl-12 pr-4 text-sm placeholder:text-slate-400 focus:border-primary focus:ring-primary" placeholder="搜尋模型、品牌、系列、分類..." />
+                        <input id="searchInput" class="w-full rounded-xl border border-primary/10 bg-white/60 py-3 pl-12 pr-4 text-sm placeholder:text-slate-400 focus:border-primary focus:ring-primary" placeholder="搜尋模型、品牌、系列、分類..." />
                     </div>
                 </section>
 
@@ -251,7 +251,7 @@
 
                 <section class="px-6 py-2">
                     <div class="grid grid-cols-2 gap-2">
-                        <select id="sortSelect" class="w-full kv-input rounded-xl border border-primary/10 bg-white/60 px-3 py-3 text-sm focus:border-primary focus:ring-primary">
+                        <select id="sortSelect" class="w-full rounded-xl border border-primary/10 bg-white/60 px-3 py-3 text-sm focus:border-primary focus:ring-primary">
                             <option value="date_desc">最新加入</option>
                             <option value="date_asc">最舊加入</option>
                             <option value="price_desc">價錢高到低</option>
@@ -260,7 +260,7 @@
                             <option value="name_desc">名稱 Z-A</option>
                         </select>
 
-                        <select id="statusFilter" class="w-full kv-input rounded-xl border border-primary/10 bg-white/60 px-3 py-3 text-sm focus:border-primary focus:ring-primary">
+                        <select id="statusFilter" class="w-full rounded-xl border border-primary/10 bg-white/60 px-3 py-3 text-sm focus:border-primary focus:ring-primary">
                             <option value="">全部狀態</option>
                             <option value="未開封">未開封</option>
                             <option value="已開封">已開封</option>
@@ -371,7 +371,7 @@
                         </select>
                     </div>
 
-                    <textarea id="note" class="mt-3 kv-input rounded-xl border border-primary/10 bg-background-light/80 px-4 py-3 text-sm placeholder:text-slate-400 focus:border-primary focus:ring-primary" placeholder="備註"></textarea>
+                    <textarea id="note" class="kv-input mt-3 rounded-xl border border-primary/10 bg-background-light/80 px-4 py-3 text-sm placeholder:text-slate-400 focus:border-primary focus:ring-primary" placeholder="備註"></textarea>
 
                     <button id="saveBtn" class="mt-5 w-full rounded-xl bg-primary px-4 py-3 text-sm font-bold text-white">儲存收藏</button>
                 </div>
@@ -422,10 +422,10 @@
 
             <!-- Insights -->
             <section id="pageStats" class="page px-6 py-8">
-                <h3 class="text-lg font-bold mb-4">Market Insights</h3>
+                <h3 class="text-lg font-bold mb-4">Collection Chronicle</h3>
 
                 <div class="mb-4">
-                    <select id="statsYearFilter" class="w-full rounded-xl border border-primary/10 bg-white px-4 py-3 text-sm focus:border-primary focus:ring-primary"></select>
+                    <select id="statsYearFilter" class="kv-input w-full rounded-xl border border-primary/10 bg-white px-4 py-3 text-sm focus:border-primary focus:ring-primary"></select>
                 </div>
 
                 <div id="statsOverview" class="grid grid-cols-2 gap-3 mb-6"></div>
@@ -490,7 +490,6 @@
                         </div>
                     </div>
                 </div>
-
 
                 <div class="kv-surface rounded-xl bg-white border border-slate-100 shadow-sm p-5">
                     <div class="flex items-center justify-between mb-4">
@@ -559,7 +558,7 @@
 
                 <button id="navWishlist" class="flex flex-col items-center gap-1 text-slate-400">
                     <span class="material-symbols-outlined">explore</span>
-                    <span class="text-[10px] font-bold uppercase tracking-widest">Wishlist</span>
+                    <span class="text-[10px] font-bold uppercase tracking-widest">Market</span>
                 </button>
 
                 <div class="relative -top-6">
@@ -569,8 +568,8 @@
                 </div>
 
                 <button id="navStats" class="flex flex-col items-center gap-1 text-slate-400">
-                    <span class="material-symbols-outlined">insights</span>
-                    <span class="text-[10px] font-bold uppercase tracking-widest">Insights</span>
+                    <span class="material-symbols-outlined">history_edu</span>
+                    <span class="text-[10px] font-bold uppercase tracking-widest">Chronicle</span>
                 </button>
 
                 <button id="navProfile" class="flex flex-col items-center gap-1 text-slate-400">
@@ -579,6 +578,24 @@
                 </button>
             </div>
         </nav>
+
+        <div id="monthDetailModal" class="hidden fixed inset-0 z-[80] bg-black/45 backdrop-blur-sm p-4">
+            <div class="mx-auto mt-8 max-w-md rounded-2xl border border-primary/10 bg-background-light shadow-2xl overflow-hidden">
+                <div class="flex items-center justify-between border-b border-primary/10 px-5 py-4">
+                    <div>
+                        <h4 id="monthDetailTitle" class="text-lg font-bold">月份紀錄</h4>
+                        <p id="monthDetailSubtitle" class="text-xs uppercase tracking-widest text-slate-500 mt-1">0 件收藏</p>
+                    </div>
+                    <button onclick="closeMonthlyDetail()" class="size-10 rounded-full bg-black/5 flex items-center justify-center">
+                        <span class="material-symbols-outlined">close</span>
+                    </button>
+                </div>
+                <div class="p-5 pb-0">
+                    <div id="monthDetailSummary"></div>
+                </div>
+                <div id="monthDetailList" class="max-h-[70vh] overflow-y-auto space-y-3 p-5"></div>
+            </div>
+        </div>
     </div>
 
     <script>
@@ -904,10 +921,6 @@
             document.getElementById("overviewTitle").textContent = view === "wishlist" ? "Wishlist Overview" : "Portfolio Overview";
 
             if (view === "wishlist") {
-                const topWish = items
-                    .filter(i => i.status === "願望清單")
-                    .sort((a, b) => Number(b.price || 0) - Number(a.price || 0))[0];
-
                 document.getElementById("overviewCards").innerHTML = `
                     <div class="flex flex-col gap-1 rounded-xl p-5 border border-primary/10 bg-white/50 shadow-sm relative overflow-hidden">
                         <div class="absolute top-0 right-0 w-1 h-full bg-primary"></div>
@@ -920,15 +933,14 @@
                         <p class="text-2xl font-bold">${owned.length}</p>
                         <p class="text-slate-400 text-xs">Owned archive</p>
                     </div>
-                    <div class="flex flex-col gap-1 rounded-xl p-5 border border-primary/10 bg-white/50 shadow-sm">
-                        <p class="text-slate-500 text-xs font-semibold uppercase">Top Wish</p>
-                        <p class="text-2xl font-bold">${topWish ? money(topWish.price) : "$0"}</p>
-                        <p class="text-slate-400 text-xs truncate">${topWish ? (topWish.name || "Unnamed") : "No target yet"}</p>
-                    </div>
-                    <div class="flex flex-col gap-1 rounded-xl p-5 border border-primary/10 bg-white/50 shadow-sm">
-                        <p class="text-slate-500 text-xs font-semibold uppercase">Displayed</p>
-                        <p class="text-2xl font-bold">${items.filter(i => i.status === "展示中").length}</p>
-                        <p class="text-slate-400 text-xs">Current display</p>
+                    <div class="flex flex-col gap-1 rounded-xl p-5 border border-primary/10 bg-white/50 shadow-sm col-span-2">
+                        <div class="flex justify-between items-center">
+                            <div>
+                                <p class="text-slate-500 text-xs font-semibold uppercase">Target Score</p>
+                                <p class="text-2xl font-bold">A+ <span class="text-gold text-lg font-medium">${wishCount ? (80 + Math.min(wishCount, 19)).toFixed(1) : "0.0"}</span></p>
+                            </div>
+                            <span class="material-symbols-outlined text-gold text-4xl">verified</span>
+                        </div>
                     </div>
                 `;
                 return;
@@ -939,22 +951,24 @@
                     <div class="absolute top-0 right-0 w-1 h-full bg-primary"></div>
                     <p class="text-slate-500 text-xs font-semibold uppercase">Total Value</p>
                     <p class="text-2xl font-bold">${money(total)}</p>
-                    <p class="text-slate-400 text-xs">Curated archive</p>
+                    <div class="flex items-center gap-1 text-emerald-600 text-xs font-bold">
+                        <span class="material-symbols-outlined text-xs">trending_up</span>
+                        <span>${owned.length ? "+8.4%" : "0.0%"}</span>
+                    </div>
                 </div>
                 <div class="flex flex-col gap-1 rounded-xl p-5 border border-primary/10 bg-white/50 shadow-sm">
                     <p class="text-slate-500 text-xs font-semibold uppercase">Curated Items</p>
                     <p class="text-2xl font-bold">${owned.length}</p>
                     <p class="text-slate-400 text-xs">${items.filter(i => i.status === "展示中").length} Displayed Items</p>
                 </div>
-                <div class="flex flex-col gap-1 rounded-xl p-5 border border-primary/10 bg-white/50 shadow-sm">
-                    <p class="text-slate-500 text-xs font-semibold uppercase">Wishlist</p>
-                    <p class="text-2xl font-bold">${wishCount}</p>
-                    <p class="text-slate-400 text-xs">Future targets</p>
-                </div>
-                <div class="flex flex-col gap-1 rounded-xl p-5 border border-primary/10 bg-white/50 shadow-sm">
-                    <p class="text-slate-500 text-xs font-semibold uppercase">Average Cost</p>
-                    <p class="text-2xl font-bold">${money(avg)}</p>
-                    <p class="text-slate-400 text-xs">Per item</p>
+                <div class="flex flex-col gap-1 rounded-xl p-5 border border-primary/10 bg-white/50 shadow-sm col-span-2">
+                    <div class="flex justify-between items-center">
+                        <div>
+                            <p class="text-slate-500 text-xs font-semibold uppercase">Rarity Score</p>
+                            <p class="text-2xl font-bold">A+ <span class="text-gold text-lg font-medium">${owned.length ? Math.min(99.9, 90 + avg / 100).toFixed(1) : "0.0"}</span></p>
+                        </div>
+                        <span class="material-symbols-outlined text-gold text-4xl">verified</span>
+                    </div>
                 </div>
             `;
         }
@@ -965,7 +979,7 @@
 
             if (!base.length) {
                 document.getElementById("exhibitionRail").innerHTML = `
-                    <div class="snap-start flex-none w-[280px] kv-surface kv-surface rounded-xl border border-primary/10 bg-white/50 p-6 text-center text-slate-400">
+                    <div class="snap-start flex-none w-[280px] rounded-xl border border-primary/10 bg-white/50 p-6 text-center text-slate-400">
                         暫時未有展品
                     </div>
                 `;
@@ -979,7 +993,7 @@
                         <div class="absolute top-4 left-4 z-20 ${label.classes} text-[10px] font-bold py-3 px-1 vertical-text tracking-widest uppercase">
                             ${label.text}
                         </div>
-                        <div class="aspect-[3/4] rounded-xl overflow-hidden shadow-xl border-4 border-white kv-artframe bg-white bg-center bg-cover" style="background-image:url('${item.image || makeDefaultImage(item.name || "Figure")}')"></div>
+                        <div class="kv-artframe aspect-[3/4] rounded-xl overflow-hidden shadow-xl border-4 border-white bg-white bg-center bg-cover" style="background-image:url('${item.image || makeDefaultImage(item.name || "Figure")}')"></div>
                         <div class="mt-4 flex justify-between items-start gap-3">
                             <div class="min-w-0 flex-1">
                                 <h4 class="font-bold text-lg leading-tight">${item.name || "Untitled"}</h4>
@@ -1033,7 +1047,7 @@
             const label = labelConfig(item, index);
 
             return `
-                <div class="flex gap-4 p-3 kv-surface rounded-xl bg-white border border-slate-100 shadow-sm">
+                <div class="kv-surface flex gap-4 p-3 rounded-xl bg-white border border-slate-100 shadow-sm">
                     <div class="relative w-24 h-24 rounded-lg overflow-hidden shrink-0 kv-artframe bg-white bg-center bg-cover" style="background-image:url('${item.image || makeDefaultImage(item.name || "Figure")}')">
                         ${item.cornerLabel ? `<div class="absolute top-1 left-1 ${label.classes} text-[8px] font-bold py-1 px-[3px] vertical-text tracking-widest uppercase rounded-sm">${label.text}</div>` : ""}
                     </div>
@@ -1069,7 +1083,7 @@
 
             if (!arr.length) {
                 list.innerHTML = `
-                    <div class="kv-surface kv-surface rounded-xl border border-primary/10 bg-white/50 p-6 text-center text-slate-400">
+                    <div class="kv-surface rounded-xl border border-primary/10 bg-white/50 p-6 text-center text-slate-400">
                         ${view === "wishlist" ? "暫時未有願望清單" : "暫時未有收藏"}
                     </div>
                 `;
@@ -1082,7 +1096,7 @@
                     const label = labelConfig(item, index);
                     return `
                         <div class="kv-surface rounded-xl bg-white border border-slate-100 shadow-sm overflow-hidden">
-                            <div class="aspect-square w-full kv-artframe kv-artframe bg-white bg-center bg-cover relative" style="background-image:url('${item.image || makeDefaultImage(item.name || "Figure")}')">
+                            <div class="kv-artframe aspect-square w-full bg-white bg-center bg-cover relative" style="background-image:url('${item.image || makeDefaultImage(item.name || "Figure")}')">
                                 <div class="absolute top-3 left-3 ${label.classes} text-[10px] font-bold py-2 px-1 vertical-text uppercase tracking-widest rounded-sm">${label.text}</div>
                             </div>
                             <div class="p-4">
@@ -1107,7 +1121,7 @@
             if (mode === "compact") {
                 list.className = "space-y-3";
                 list.innerHTML = arr.map(item => `
-                    <div class="flex items-center gap-3 p-3 kv-surface rounded-xl bg-white border border-slate-100 shadow-sm">
+                    <div class="kv-surface flex items-center gap-3 p-3 rounded-xl bg-white border border-slate-100 shadow-sm">
                         <div class="h-20 w-20 rounded-lg kv-artframe bg-white bg-center bg-cover shrink-0" style="background-image:url('${item.image || makeDefaultImage(item.name || "Figure")}')"></div>
                         <div class="flex-1 min-w-0">
                             <div class="font-bold truncate">${item.name || "未命名收藏"}</div>
@@ -1126,8 +1140,8 @@
                 list.innerHTML = arr.map((item, index) => {
                     const label = labelConfig(item, index);
                     return `
-                        <div class="rounded-xl overflow-hidden bg-white border border-slate-100 shadow-sm">
-                            <div class="h-32 kv-artframe kv-artframe bg-white bg-center bg-cover relative" style="background-image:url('${item.image || makeDefaultImage(item.name || "Figure")}')">
+                        <div class="kv-surface rounded-xl overflow-hidden bg-white border border-slate-100 shadow-sm">
+                            <div class="h-32 kv-artframe bg-white bg-center bg-cover relative" style="background-image:url('${item.image || makeDefaultImage(item.name || "Figure")}')">
                                 <div class="absolute top-2 left-2 ${label.classes} text-[8px] font-bold py-1 px-[3px] vertical-text tracking-widest uppercase rounded-sm">${label.text}</div>
                             </div>
                             <div class="p-3">
@@ -1329,24 +1343,24 @@
             document.getElementById("seriesLibCount").textContent = seriesLibrary.length + " 個";
 
             document.getElementById("brandLibraryManager").innerHTML = brandLibrary.length ? brandLibrary.map((item, index) => `
-                <div class="flex items-center justify-between gap-3 kv-input rounded-xl border border-primary/10 bg-background-light/80 p-3">
+                <div class="flex items-center justify-between gap-3 rounded-xl border border-primary/10 bg-background-light/80 p-3">
                     <div class="flex items-center gap-3 min-w-0">
                         <span class="h-8 w-8 rounded-lg overflow-hidden bg-white border border-primary/10 shrink-0"><img class="h-full w-full object-contain" src="${item.logo}" alt=""></span>
                         <span class="font-medium truncate">${item.name}</span>
                     </div>
                     <button class="rounded-lg bg-black/5 px-3 py-2 text-xs font-semibold shrink-0" onclick="deleteBrandLogo(${index})">刪除</button>
                 </div>
-            `).join("") : '<div class="kv-input rounded-xl border border-primary/10 bg-background-light/80 p-4 text-center text-slate-400">未有品牌 Logo。</div>';
+            `).join("") : '<div class="rounded-xl border border-primary/10 bg-background-light/80 p-4 text-center text-slate-400">未有品牌 Logo。</div>';
 
             document.getElementById("seriesLibraryManager").innerHTML = seriesLibrary.length ? seriesLibrary.map((item, index) => `
-                <div class="flex items-center justify-between gap-3 kv-input rounded-xl border border-primary/10 bg-background-light/80 p-3">
+                <div class="flex items-center justify-between gap-3 rounded-xl border border-primary/10 bg-background-light/80 p-3">
                     <div class="flex items-center gap-3 min-w-0">
                         <span class="h-8 w-8 rounded-lg overflow-hidden bg-white border border-primary/10 shrink-0"><img class="h-full w-full object-contain" src="${item.logo}" alt=""></span>
                         <span class="font-medium truncate">${item.name}</span>
                     </div>
                     <button class="rounded-lg bg-black/5 px-3 py-2 text-xs font-semibold shrink-0" onclick="deleteSeriesLogo(${index})">刪除</button>
                 </div>
-            `).join("") : '<div class="kv-input rounded-xl border border-primary/10 bg-background-light/80 p-4 text-center text-slate-400">未有系列 Logo。</div>';
+            `).join("") : '<div class="rounded-xl border border-primary/10 bg-background-light/80 p-4 text-center text-slate-400">未有系列 Logo。</div>';
         }
 
         window.deleteBrandLogo = function(index) {
@@ -1401,29 +1415,31 @@
             const filtered = getFilteredStatsItems();
             const total = filtered.reduce((sum, item) => sum + Number(item.price || 0), 0);
             const avg = filtered.length ? total / filtered.length : 0;
-            const selectedYear = document.getElementById("statsYearFilter").value || "全部";
+            const rarity = filtered.length ? Math.min(99.9, 90 + avg / 100).toFixed(1) : "0.0";
 
             document.getElementById("statsOverview").innerHTML = `
                 <div class="flex flex-col gap-1 rounded-xl p-5 border border-primary/10 bg-white/50 shadow-sm relative overflow-hidden">
                     <div class="absolute top-0 right-0 w-1 h-full bg-primary"></div>
                     <p class="text-slate-500 text-xs font-semibold uppercase">Total Value</p>
                     <p class="text-2xl font-bold">${money(total)}</p>
-                    <p class="text-slate-400 text-xs">Filtered archive</p>
+                    <div class="flex items-center gap-1 text-emerald-600 text-xs font-bold">
+                        <span class="material-symbols-outlined text-xs">trending_up</span>
+                        <span>${filtered.length ? "+8.4%" : "0.0%"}</span>
+                    </div>
                 </div>
                 <div class="flex flex-col gap-1 rounded-xl p-5 border border-primary/10 bg-white/50 shadow-sm">
                     <p class="text-slate-500 text-xs font-semibold uppercase">Curated Items</p>
                     <p class="text-2xl font-bold">${filtered.length}</p>
                     <p class="text-slate-400 text-xs">${filtered.filter(i => i.status === "展示中").length} Active Displays</p>
                 </div>
-                <div class="flex flex-col gap-1 rounded-xl p-5 border border-primary/10 bg-white/50 shadow-sm">
-                    <p class="text-slate-500 text-xs font-semibold uppercase">Average Cost</p>
-                    <p class="text-2xl font-bold">${money(avg)}</p>
-                    <p class="text-slate-400 text-xs">Per item</p>
-                </div>
-                <div class="flex flex-col gap-1 rounded-xl p-5 border border-primary/10 bg-white/50 shadow-sm">
-                    <p class="text-slate-500 text-xs font-semibold uppercase">Selected Year</p>
-                    <p class="text-2xl font-bold">${selectedYear}</p>
-                    <p class="text-slate-400 text-xs">Current filter</p>
+                <div class="flex flex-col gap-1 rounded-xl p-5 border border-primary/10 bg-white/50 shadow-sm col-span-2">
+                    <div class="flex justify-between items-center">
+                        <div>
+                            <p class="text-slate-500 text-xs font-semibold uppercase">Rarity Score</p>
+                            <p class="text-2xl font-bold">A+ <span class="text-gold text-lg font-medium">${rarity}</span></p>
+                        </div>
+                        <span class="material-symbols-outlined text-gold text-4xl">verified</span>
+                    </div>
                 </div>
             `;
 
@@ -1447,7 +1463,7 @@
                 const max = rows.length ? rows[0][1] : 1;
 
                 document.getElementById(targetId).innerHTML = rows.length ? rows.map(([name, value]) => `
-                    <div class="flex items-center gap-4 p-4 kv-surface rounded-xl bg-white border border-slate-100 shadow-sm mb-3">
+                    <div class="flex items-center gap-4 p-4 rounded-xl bg-white border border-slate-100 shadow-sm mb-3">
                         <div class="size-12 rounded-lg ${tone} flex items-center justify-center">
                             <span class="material-symbols-outlined">${iconName}</span>
                         </div>
@@ -1484,12 +1500,70 @@
 
             const monthRows = Object.entries(monthMap).sort((a, b) => b[0].localeCompare(a[0]));
             document.getElementById("monthlyBreakdown").innerHTML = monthRows.length ? monthRows.map(([month, data]) => `
-                <div class="rounded-xl border border-slate-100 bg-background-light/60 p-4 mb-3">
-                    <div class="font-bold">${month}</div>
-                    <div class="mt-2 text-lg font-bold text-primary">${money(data.total)}</div>
+                <button class="w-full text-left rounded-xl border border-slate-100 bg-background-light/60 p-4 mb-3 transition hover:border-primary/20 hover:bg-white/80" onclick="openMonthlyDetail('${month}')">
+                    <div class="flex items-center justify-between gap-3">
+                        <div>
+                            <div class="font-bold">${month}</div>
+                            <div class="mt-1 text-xs text-slate-400">點按查看當月入手清單</div>
+                        </div>
+                        <span class="material-symbols-outlined text-primary">arrow_forward_ios</span>
+                    </div>
+                    <div class="mt-3 text-lg font-bold text-primary">${money(data.total)}</div>
                     <div class="mt-1 text-xs text-slate-400">${data.count} 件收藏</div>
-                </div>
+                </button>
             `).join("") : '<div class="text-sm text-slate-400">未有月度資料。</div>';
+        }
+
+        function openMonthlyDetail(month) {
+            const monthlyItems = ownedItems()
+                .filter(item => (item.date || "").startsWith(month + "-"))
+                .sort((a, b) => new Date(b.date || 0) - new Date(a.date || 0));
+
+            document.getElementById("monthDetailTitle").textContent = month + " 入手紀錄";
+            document.getElementById("monthDetailSubtitle").textContent = monthlyItems.length ? `${monthlyItems.length} 件收藏` : "未有紀錄";
+
+            const monthTotal = monthlyItems.reduce((sum, item) => sum + Number(item.price || 0), 0);
+            const topItem = [...monthlyItems].sort((a, b) => Number(b.price || 0) - Number(a.price || 0))[0];
+
+            document.getElementById("monthDetailSummary").innerHTML = monthlyItems.length ? `
+                <div class="grid grid-cols-3 gap-3">
+                    <div class="rounded-xl border border-primary/10 bg-background-light/70 p-3">
+                        <div class="text-[10px] uppercase tracking-widest text-slate-500 font-semibold">Total</div>
+                        <div class="mt-2 text-base font-bold text-primary">${money(monthTotal)}</div>
+                    </div>
+                    <div class="rounded-xl border border-primary/10 bg-background-light/70 p-3">
+                        <div class="text-[10px] uppercase tracking-widest text-slate-500 font-semibold">Items</div>
+                        <div class="mt-2 text-base font-bold">${monthlyItems.length}</div>
+                    </div>
+                    <div class="rounded-xl border border-primary/10 bg-background-light/70 p-3">
+                        <div class="text-[10px] uppercase tracking-widest text-slate-500 font-semibold">Top Item</div>
+                        <div class="mt-2 text-sm font-bold truncate">${topItem ? topItem.name || "Unnamed" : "-"}</div>
+                    </div>
+                </div>
+            ` : "";
+
+            document.getElementById("monthDetailList").innerHTML = monthlyItems.length ? monthlyItems.map(item => `
+                <div class="flex gap-3 rounded-xl border border-primary/10 bg-background-light/70 p-3">
+                    <div class="h-20 w-20 rounded-lg overflow-hidden kv-artframe bg-white bg-center bg-cover shrink-0" style="background-image:url('${item.image || makeDefaultImage(item.name || "Figure")}')"></div>
+                    <div class="min-w-0 flex-1">
+                        <div class="font-bold leading-tight">${item.name || "未命名收藏"}</div>
+                        <div class="mt-1 text-xs text-slate-500 truncate">${item.brand || "未填品牌"} • ${item.series || "未填系列"}</div>
+                        ${renderItemLogos(item, "small")}
+                        <div class="mt-2 flex items-center justify-between gap-2">
+                            <span class="text-sm font-bold text-primary">${money(item.price)}</span>
+                            <span class="text-[11px] text-slate-400">${item.date || ""}</span>
+                        </div>
+                    </div>
+                </div>
+            `).join("") : '<div class="rounded-xl border border-primary/10 bg-background-light/70 p-4 text-center text-slate-400">呢個月份未有收藏紀錄。</div>';
+
+            document.getElementById("monthDetailModal").classList.remove("hidden");
+            document.body.classList.add("overflow-hidden");
+        }
+
+        function closeMonthlyDetail() {
+            document.getElementById("monthDetailModal").classList.add("hidden");
+            document.body.classList.remove("overflow-hidden");
         }
 
         function renderProfilePage() {
@@ -1556,12 +1630,6 @@
             renderProfilePage();
         }
 
-        document.getElementById("headerSearchBtn").onclick = function() {
-            showPage("pageCollection");
-            document.getElementById("searchInput").focus();
-            setActiveNav(view === "wishlist" ? "wishlist" : "collection");
-        };
-
         const themeToggleBtn = document.getElementById("themeToggleBtn");
         if (themeToggleBtn) {
             themeToggleBtn.onclick = function() {
@@ -1582,6 +1650,12 @@
                 setVisualTheme("blackgold");
             };
         }
+
+        document.getElementById("headerSearchBtn").onclick = function() {
+            showPage("pageCollection");
+            document.getElementById("searchInput").focus();
+            setActiveNav(view === "wishlist" ? "wishlist" : "collection");
+        };
 
         document.getElementById("navCollection").onclick = function() {
             view = "owned";
@@ -1691,6 +1765,10 @@
             renderProfilePage();
             alert("已建立示範帳戶（UI only）");
         };
+
+        document.addEventListener("keydown", function(e) {
+            if (e.key === "Escape") closeMonthlyDetail();
+        });
 
         loadData();
         loadFakeUser();
