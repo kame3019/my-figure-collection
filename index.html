@@ -921,6 +921,10 @@
             document.getElementById("overviewTitle").textContent = view === "wishlist" ? "Wishlist Overview" : "Portfolio Overview";
 
             if (view === "wishlist") {
+                const topWish = items
+                    .filter(i => i.status === "願望清單")
+                    .sort((a, b) => Number(b.price || 0) - Number(a.price || 0))[0];
+
                 document.getElementById("overviewCards").innerHTML = `
                     <div class="flex flex-col gap-1 rounded-xl p-5 border border-primary/10 bg-white/50 shadow-sm relative overflow-hidden">
                         <div class="absolute top-0 right-0 w-1 h-full bg-primary"></div>
@@ -933,14 +937,15 @@
                         <p class="text-2xl font-bold">${owned.length}</p>
                         <p class="text-slate-400 text-xs">Owned archive</p>
                     </div>
-                    <div class="flex flex-col gap-1 rounded-xl p-5 border border-primary/10 bg-white/50 shadow-sm col-span-2">
-                        <div class="flex justify-between items-center">
-                            <div>
-                                <p class="text-slate-500 text-xs font-semibold uppercase">Target Score</p>
-                                <p class="text-2xl font-bold">A+ <span class="text-gold text-lg font-medium">${wishCount ? (80 + Math.min(wishCount, 19)).toFixed(1) : "0.0"}</span></p>
-                            </div>
-                            <span class="material-symbols-outlined text-gold text-4xl">verified</span>
-                        </div>
+                    <div class="flex flex-col gap-1 rounded-xl p-5 border border-primary/10 bg-white/50 shadow-sm">
+                        <p class="text-slate-500 text-xs font-semibold uppercase">Top Wish</p>
+                        <p class="text-2xl font-bold">${topWish ? money(topWish.price) : "$0"}</p>
+                        <p class="text-slate-400 text-xs">${topWish ? (topWish.name || "Unnamed") : "No target yet"}</p>
+                    </div>
+                    <div class="flex flex-col gap-1 rounded-xl p-5 border border-primary/10 bg-white/50 shadow-sm">
+                        <p class="text-slate-500 text-xs font-semibold uppercase">Displayed</p>
+                        <p class="text-2xl font-bold">${items.filter(i => i.status === "展示中").length}</p>
+                        <p class="text-slate-400 text-xs">Current display</p>
                     </div>
                 `;
                 return;
@@ -951,24 +956,22 @@
                     <div class="absolute top-0 right-0 w-1 h-full bg-primary"></div>
                     <p class="text-slate-500 text-xs font-semibold uppercase">Total Value</p>
                     <p class="text-2xl font-bold">${money(total)}</p>
-                    <div class="flex items-center gap-1 text-emerald-600 text-xs font-bold">
-                        <span class="material-symbols-outlined text-xs">trending_up</span>
-                        <span>${owned.length ? "+8.4%" : "0.0%"}</span>
-                    </div>
+                    <p class="text-slate-400 text-xs">Curated archive</p>
                 </div>
                 <div class="flex flex-col gap-1 rounded-xl p-5 border border-primary/10 bg-white/50 shadow-sm">
                     <p class="text-slate-500 text-xs font-semibold uppercase">Curated Items</p>
                     <p class="text-2xl font-bold">${owned.length}</p>
                     <p class="text-slate-400 text-xs">${items.filter(i => i.status === "展示中").length} Displayed Items</p>
                 </div>
-                <div class="flex flex-col gap-1 rounded-xl p-5 border border-primary/10 bg-white/50 shadow-sm col-span-2">
-                    <div class="flex justify-between items-center">
-                        <div>
-                            <p class="text-slate-500 text-xs font-semibold uppercase">Rarity Score</p>
-                            <p class="text-2xl font-bold">A+ <span class="text-gold text-lg font-medium">${owned.length ? Math.min(99.9, 90 + avg / 100).toFixed(1) : "0.0"}</span></p>
-                        </div>
-                        <span class="material-symbols-outlined text-gold text-4xl">verified</span>
-                    </div>
+                <div class="flex flex-col gap-1 rounded-xl p-5 border border-primary/10 bg-white/50 shadow-sm">
+                    <p class="text-slate-500 text-xs font-semibold uppercase">Wishlist</p>
+                    <p class="text-2xl font-bold">${wishCount}</p>
+                    <p class="text-slate-400 text-xs">Future targets</p>
+                </div>
+                <div class="flex flex-col gap-1 rounded-xl p-5 border border-primary/10 bg-white/50 shadow-sm">
+                    <p class="text-slate-500 text-xs font-semibold uppercase">Average Cost</p>
+                    <p class="text-2xl font-bold">${money(avg)}</p>
+                    <p class="text-slate-400 text-xs">Per item</p>
                 </div>
             `;
         }
@@ -1415,31 +1418,28 @@
             const filtered = getFilteredStatsItems();
             const total = filtered.reduce((sum, item) => sum + Number(item.price || 0), 0);
             const avg = filtered.length ? total / filtered.length : 0;
-            const rarity = filtered.length ? Math.min(99.9, 90 + avg / 100).toFixed(1) : "0.0";
 
             document.getElementById("statsOverview").innerHTML = `
                 <div class="flex flex-col gap-1 rounded-xl p-5 border border-primary/10 bg-white/50 shadow-sm relative overflow-hidden">
                     <div class="absolute top-0 right-0 w-1 h-full bg-primary"></div>
                     <p class="text-slate-500 text-xs font-semibold uppercase">Total Value</p>
                     <p class="text-2xl font-bold">${money(total)}</p>
-                    <div class="flex items-center gap-1 text-emerald-600 text-xs font-bold">
-                        <span class="material-symbols-outlined text-xs">trending_up</span>
-                        <span>${filtered.length ? "+8.4%" : "0.0%"}</span>
-                    </div>
+                    <p class="text-slate-400 text-xs">Filtered archive</p>
                 </div>
                 <div class="flex flex-col gap-1 rounded-xl p-5 border border-primary/10 bg-white/50 shadow-sm">
                     <p class="text-slate-500 text-xs font-semibold uppercase">Curated Items</p>
                     <p class="text-2xl font-bold">${filtered.length}</p>
                     <p class="text-slate-400 text-xs">${filtered.filter(i => i.status === "展示中").length} Active Displays</p>
                 </div>
-                <div class="flex flex-col gap-1 rounded-xl p-5 border border-primary/10 bg-white/50 shadow-sm col-span-2">
-                    <div class="flex justify-between items-center">
-                        <div>
-                            <p class="text-slate-500 text-xs font-semibold uppercase">Rarity Score</p>
-                            <p class="text-2xl font-bold">A+ <span class="text-gold text-lg font-medium">${rarity}</span></p>
-                        </div>
-                        <span class="material-symbols-outlined text-gold text-4xl">verified</span>
-                    </div>
+                <div class="flex flex-col gap-1 rounded-xl p-5 border border-primary/10 bg-white/50 shadow-sm">
+                    <p class="text-slate-500 text-xs font-semibold uppercase">Average Cost</p>
+                    <p class="text-2xl font-bold">${money(avg)}</p>
+                    <p class="text-slate-400 text-xs">Per item</p>
+                </div>
+                <div class="flex flex-col gap-1 rounded-xl p-5 border border-primary/10 bg-white/50 shadow-sm">
+                    <p class="text-slate-500 text-xs font-semibold uppercase">Selected Year</p>
+                    <p class="text-2xl font-bold">${document.getElementById("statsYearFilter").value || "全部"}</p>
+                    <p class="text-slate-400 text-xs">Current filter</p>
                 </div>
             `;
 
@@ -1485,36 +1485,7 @@
             const monthMap = {};
 
             filtered.forEach(item => {
-                const brand = item.brand || "未填品牌";
-                const series = item.series || "未填系列";
-                const month = item.date ? item.date.slice(0, 7) : "未填日期";
-                brandMap[brand] = (brandMap[brand] || 0) + Number(item.price || 0);
-                seriesMap[series] = (seriesMap[series] || 0) + Number(item.price || 0);
-                if (!monthMap[month]) monthMap[month] = { total: 0, count: 0 };
-                monthMap[month].total += Number(item.price || 0);
-                monthMap[month].count += 1;
-            });
-
-            renderBarSection(brandMap, "brandBreakdown", "inventory_2", "bg-primary/5 text-primary");
-            renderBarSection(seriesMap, "seriesBreakdown", "diamond", "bg-gold/10 text-gold");
-
-            const monthRows = Object.entries(monthMap).sort((a, b) => b[0].localeCompare(a[0]));
-            document.getElementById("monthlyBreakdown").innerHTML = monthRows.length ? monthRows.map(([month, data]) => `
-                <button class="w-full text-left rounded-xl border border-slate-100 bg-background-light/60 p-4 mb-3 transition hover:border-primary/20 hover:bg-white/80" onclick="openMonthlyDetail('${month}')">
-                    <div class="flex items-center justify-between gap-3">
-                        <div>
-                            <div class="font-bold">${month}</div>
-                            <div class="mt-1 text-xs text-slate-400">點按查看當月入手清單</div>
-                        </div>
-                        <span class="material-symbols-outlined text-primary">arrow_forward_ios</span>
-                    </div>
-                    <div class="mt-3 text-lg font-bold text-primary">${money(data.total)}</div>
-                    <div class="mt-1 text-xs text-slate-400">${data.count} 件收藏</div>
-                </button>
-            `).join("") : '<div class="text-sm text-slate-400">未有月度資料。</div>';
-        }
-
-        function openMonthlyDetail(month) {
+                const brand = item.brand || "未填品牌";(month) {
             const monthlyItems = ownedItems()
                 .filter(item => (item.date || "").startsWith(month + "-"))
                 .sort((a, b) => new Date(b.date || 0) - new Date(a.date || 0));
