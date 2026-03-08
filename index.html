@@ -2383,4 +2383,66 @@
   }
 })();
 </script>
+
+<script>
+(function () {
+  async function currentUserIsAdmin() {
+    const fb = window.kuraFirebase;
+    const uid = fb?.auth?.currentUser?.uid;
+    if (!fb || !uid) return false;
+
+    try {
+      const snap = await fb.getDoc(fb.doc(fb.db, "admins", uid));
+      return snap.exists();
+    } catch (err) {
+      console.error("Admin check failed:", err);
+      return false;
+    }
+  }
+
+  const oldDeleteItem = window.deleteItem;
+
+  window.deleteItem = async function (id) {
+    const item = (window.items || []).find(x => x.id === id);
+    if (!item) return;
+
+    const isAdmin = await currentUserIsAdmin();
+    const currentUid = window.kuraFirebase?.auth?.currentUser?.uid || null;
+
+    // 非 admin 只可刪自己
+    if (!isAdmin && item.ownerUid && item.ownerUid !== currentUid) {
+      alert("你不能刪除其他人的展品");
+      return;
+    }
+
+    if (!confirm("確定刪除呢件展品？")) return;
+
+    try {
+      // 先刪雲端
+      if (item.ownerUid) {
+        await window.kuraFirebase.deleteDoc(
+          window.kuraFirebase.doc(
+            window.kuraFirebase.db,
+            "users",
+            item.ownerUid,
+            "items",
+            item.id
+          )
+        );
+      }
+
+      // 再刪本地畫面資料
+      window.items = (window.items || []).filter(x => x.id !== id);
+
+      if (typeof render === "function") render();
+      if (typeof renderProfilePage === "function") renderProfilePage();
+
+      alert("已刪除展品");
+    } catch (err) {
+      console.error("Delete failed:", err);
+      alert(err.message || "刪除失敗");
+    }
+  };
+})();
+</script>
 </html>
