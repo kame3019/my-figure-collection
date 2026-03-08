@@ -2445,4 +2445,82 @@
   };
 })();
 </script>
+
+<script>
+(function () {
+  function readItems() {
+    try {
+      if (Array.isArray(items)) return items;
+    } catch (e) {}
+    return Array.isArray(window.items) ? window.items : [];
+  }
+
+  function writeItems(next) {
+    try {
+      items = next;
+    } catch (e) {}
+    window.items = next;
+  }
+
+  async function currentUserIsAdmin() {
+    const fb = window.kuraFirebase;
+    const uid = fb?.auth?.currentUser?.uid;
+    if (!fb || !uid) return false;
+
+    try {
+      const snap = await fb.getDoc(fb.doc(fb.db, "admins", uid));
+      return snap.exists();
+    } catch (err) {
+      console.error("Admin check failed:", err);
+      return false;
+    }
+  }
+
+  window.deleteItem = async function (id) {
+    const list = readItems();
+    const item = list.find(x => x.id === id);
+
+    if (!item) {
+      alert("找不到這件展品");
+      return;
+    }
+
+    const currentUid = window.kuraFirebase?.auth?.currentUser?.uid || "";
+    const isAdmin = await currentUserIsAdmin();
+    const ownerUid = item.ownerUid || currentUid;
+
+    if (!isAdmin && ownerUid && ownerUid !== currentUid) {
+      alert("你不能刪除其他人的展品");
+      return;
+    }
+
+    if (!confirm("確定刪除呢件展品？")) return;
+
+    try {
+      if (window.kuraFirebase && ownerUid) {
+        await window.kuraFirebase.deleteDoc(
+          window.kuraFirebase.doc(
+            window.kuraFirebase.db,
+            "users",
+            ownerUid,
+            "items",
+            id
+          )
+        );
+      }
+
+      const next = list.filter(x => x.id !== id);
+      writeItems(next);
+
+      if (typeof render === "function") render();
+      if (typeof renderProfilePage === "function") renderProfilePage();
+
+      alert("已刪除展品");
+    } catch (err) {
+      console.error("Delete failed:", err);
+      alert(err.message || "刪除失敗");
+    }
+  };
+})();
+</script>
 </html>
