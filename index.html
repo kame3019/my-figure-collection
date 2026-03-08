@@ -1861,9 +1861,7 @@
       lastLoginAt: Date.now()
     };
 
-    if (!snap.exists()) {
-      payload.createdAt = Date.now();
-    }
+    if (!snap.exists()) payload.createdAt = Date.now();
 
     await setDoc(profileRef, payload, { merge: true });
   }
@@ -1874,7 +1872,7 @@
       await upsertUserProfile(result.user);
       alert("Google 登入成功");
     } catch (err) {
-      console.error("Google login error:", err);
+      console.error(err);
       alert(err.message || "Google 登入失敗");
     }
   }
@@ -1884,7 +1882,7 @@
       await signOut(auth);
       alert("已登出");
     } catch (err) {
-      console.error("Logout error:", err);
+      console.error(err);
       alert(err.message || "登出失敗");
     }
   }
@@ -1911,28 +1909,18 @@
 
     const nameEl = $("profileDisplayName");
     const emailEl = $("profileDisplayEmail");
-    const ownedEl = $("profileOwnedCount");
-    const wishEl = $("profileWishCount");
     const logoutBtn = $("googleLogoutBtn");
 
     if (user) {
       try {
         await upsertUserProfile(user);
       } catch (err) {
-        console.error("Profile sync error:", err);
+        console.error(err);
       }
 
       if (nameEl) nameEl.textContent = user.displayName || "Collector";
       if (emailEl) emailEl.textContent = user.email || "";
       if (logoutBtn) logoutBtn.style.display = "inline-flex";
-
-      // 先保留你原本本機統計顯示
-      if (ownedEl && window.items) {
-        ownedEl.textContent = window.items.filter(item => item.status !== "願望清單").length;
-      }
-      if (wishEl && window.items) {
-        wishEl.textContent = window.items.filter(item => item.status === "願望清單").length;
-      }
     } else {
       if (nameEl) nameEl.textContent = "Guest Collector";
       if (emailEl) emailEl.textContent = "Not signed in";
@@ -1945,6 +1933,67 @@
   } else {
     bindButtons();
   }
-
-  console.log("Firebase Google Auth ready");
 </script>
+
+<script>
+(function () {
+  function syncFirebaseProfileUI() {
+    const fbUser = window.kuraFirebase?.auth?.currentUser || null;
+
+    const nameEl = document.getElementById("profileDisplayName");
+    const emailEl = document.getElementById("profileDisplayEmail");
+    const logoutBtn = document.getElementById("googleLogoutBtn");
+
+    if (!nameEl || !emailEl) return;
+
+    if (fbUser) {
+      nameEl.textContent = fbUser.displayName || "Collector";
+      emailEl.textContent = fbUser.email || "";
+      if (logoutBtn) logoutBtn.style.display = "inline-flex";
+    } else {
+      nameEl.textContent = "Guest Collector";
+      emailEl.textContent = "Not signed in";
+      if (logoutBtn) logoutBtn.style.display = "none";
+    }
+  }
+
+  // 如果原本有 renderProfilePage，就包一層
+  const oldRenderProfilePage = window.renderProfilePage;
+  window.renderProfilePage = function () {
+    if (typeof oldRenderProfilePage === "function") {
+      oldRenderProfilePage.apply(this, arguments);
+    }
+    syncFirebaseProfileUI();
+  };
+
+  // 開頁先跑一次
+  document.addEventListener("DOMContentLoaded", function () {
+    setTimeout(syncFirebaseProfileUI, 300);
+  });
+
+  // 撳 Profile tab 後再同步一次
+  document.addEventListener("click", function (e) {
+    if (e.target.closest("#navProfile")) {
+      setTimeout(syncFirebaseProfileUI, 100);
+      setTimeout(syncFirebaseProfileUI, 500);
+    }
+  });
+
+  // Google 登入 / 登出後補同步
+  document.addEventListener("click", function (e) {
+    if (e.target.closest("#googleLoginBtn") || e.target.closest("#googleLogoutBtn")) {
+      setTimeout(syncFirebaseProfileUI, 800);
+      setTimeout(syncFirebaseProfileUI, 1500);
+    }
+  });
+
+  // 保險起見，定時檢查幾次
+  let count = 0;
+  const timer = setInterval(function () {
+    syncFirebaseProfileUI();
+    count += 1;
+    if (count > 12) clearInterval(timer);
+  }, 1000);
+})();
+</script>
+</html>
