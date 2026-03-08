@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Figure Collector V8</title>
+<title>Figure Collector V8.5</title>
 <meta name="theme-color" content="#0d0d0f">
 <style>
 :root{
@@ -17,7 +17,7 @@ body{
   background:radial-gradient(circle at top,rgba(212,175,55,.08),transparent 24%),linear-gradient(180deg,#111214 0%,#0a0a0c 100%);
   font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Hiragino Sans","Yu Gothic","Noto Sans JP","PingFang TC",sans-serif
 }
-.wrap{max-width:620px;margin:auto;min-height:100vh;padding:max(18px,env(safe-area-inset-top)) 16px calc(110px + env(safe-area-inset-bottom))}
+.wrap{max-width:640px;margin:auto;min-height:100vh;padding:max(18px,env(safe-area-inset-top)) 16px calc(110px + env(safe-area-inset-bottom))}
 .card,.hero,.stat,.item,.rankRow{
   background:linear-gradient(180deg,rgba(29,30,35,.98),rgba(20,20,24,.98));
   border:1px solid rgba(212,175,55,.20);border-radius:var(--radius);box-shadow:var(--shadow)
@@ -34,11 +34,11 @@ h1{margin:0 0 6px;font-size:30px;letter-spacing:-.04em}
   display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:6px;background:#111215;
   border:1px solid rgba(212,175,55,.16);border-radius:18px;margin:14px 0 12px
 }
-.toggleBtn,.tab,.modeBtn,.quickBtn,.ghostBtn,.smallBtn{
+.toggleBtn,.tab,.modeBtn,.quickBtn,.smallBtn,.chipBtn{
   border:none;background:transparent;color:var(--muted);font-weight:700;cursor:pointer
 }
 .toggleBtn{padding:12px 10px;border-radius:14px;font-size:14px}
-.toggleBtn.active,.modeBtn.active,.quickBtn.active{
+.toggleBtn.active,.modeBtn.active,.quickBtn.active,.chipBtn.active{
   background:linear-gradient(180deg,rgba(212,175,55,.98),rgba(156,124,33,.98));color:#111
 }
 .stats{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin:0 0 14px}
@@ -52,12 +52,13 @@ h1{margin:0 0 6px;font-size:30px;letter-spacing:-.04em}
   width:100%;border:none;outline:none;background:transparent;color:var(--text);font:inherit
 }
 .search input::placeholder,.field input::placeholder,.field textarea::placeholder{color:#8d8578}
-.row,.modes,.twoCol,.backupRow{display:flex;gap:10px;margin-bottom:14px}
-.quickBtn,.modeBtn,.ghostBtn,.smallBtn{
+.row,.modes,.twoCol,.backupRow,.logoPicker{display:flex;gap:10px;margin-bottom:14px;flex-wrap:wrap}
+.quickBtn,.modeBtn,.smallBtn,.chipBtn{
   background:linear-gradient(180deg,rgba(31,31,36,.98),rgba(20,20,24,.98));
   border:1px solid rgba(212,175,55,.16);border-radius:14px;padding:12px 12px;font-size:13px
 }
 .quickBtn,.modeBtn,.smallBtn{flex:1}
+.chipBtn{padding:10px 12px;font-size:12px}
 .primaryBtn{
   width:100%;border:none;border-radius:14px;padding:14px 15px;font-size:14px;font-weight:700;cursor:pointer;
   background:linear-gradient(180deg,rgba(212,175,55,.98),rgba(156,124,33,.98));color:#111
@@ -100,19 +101,29 @@ h1{margin:0 0 6px;font-size:30px;letter-spacing:-.04em}
 .rankNo{width:28px;height:28px;border-radius:999px;display:flex;align-items:center;justify-content:center;font-weight:700;background:linear-gradient(180deg,rgba(212,175,55,.98),rgba(156,124,33,.98));color:#111}
 .empty{padding:40px 18px;text-align:center;color:var(--muted);background:linear-gradient(180deg,rgba(27,27,31,.98),rgba(17,17,20,.98));border:1px dashed rgba(212,175,55,.16);border-radius:18px}
 .notice{padding:12px 14px;border:1px solid rgba(212,175,55,.16);border-radius:14px;background:rgba(255,255,255,.03);font-size:12px;color:var(--muted);margin-bottom:12px}
+.logoRow{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:10px}
+.logoBox{
+  width:34px;height:34px;border-radius:10px;background:#111;display:flex;align-items:center;justify-content:center;
+  border:1px solid rgba(212,175,55,.14);overflow:hidden;flex:0 0 34px
+}
+.logoBox img{width:100%;height:100%;object-fit:cover}
+.logoText{font-size:12px;color:var(--muted)}
+.inlineLogo{display:inline-flex;align-items:center;gap:6px;margin-right:8px}
+.inlineLogo .logoBox{width:24px;height:24px;border-radius:8px}
+.logoBadge{display:flex;align-items:center;gap:6px;background:rgba(255,255,255,.04);padding:6px 8px;border-radius:999px;border:1px solid rgba(212,175,55,.10)}
 .tabs{position:fixed;left:0;right:0;bottom:0;background:rgba(12,12,14,.94);backdrop-filter:blur(10px);border-top:1px solid rgba(212,175,55,.16);display:grid;grid-template-columns:1fr 1fr 1fr;z-index:50;padding:10px 10px calc(10px + env(safe-area-inset-bottom))}
 .tab{display:grid;gap:4px;justify-items:center;font-size:12px}.tab .ico{font-size:22px;line-height:1}.tab.active{color:var(--gold)}
 @media (max-width:560px){.stats{grid-template-columns:repeat(2,1fr)}}
 @media (max-width:430px){.list.grid{grid-template-columns:1fr}.list.wall{grid-template-columns:1fr 1fr}}
-@media (max-width:390px){.row,.modes,.twoCol,.row2,.backupRow{display:grid;grid-template-columns:1fr}.list.wall{grid-template-columns:1fr 1fr}}
+@media (max-width:390px){.row,.modes,.twoCol,.row2,.backupRow,.logoPicker{display:grid;grid-template-columns:1fr}.list.wall{grid-template-columns:1fr 1fr}}
 </style>
 </head>
 <body>
 <div class="wrap">
   <div class="hero">
-    <div class="eyebrow">FIGURE COLLECTOR V8</div>
+    <div class="eyebrow">FIGURE COLLECTOR V8.5</div>
     <h1>My Figure Collection</h1>
-    <div class="sub">真收藏版。重點加咗：資料遷移、備份 JSON、還原 JSON、穩定 key，改版都盡量保住紀錄。</div>
+    <div class="sub">黑金收藏家版。加咗品牌 / 系列 logo 系統，仲可以自訂上傳 logo。</div>
   </div>
 
   <section id="pageCollection" class="page show">
@@ -126,7 +137,7 @@ h1{margin:0 0 6px;font-size:30px;letter-spacing:-.04em}
       <div class="stat"><div class="k">現值總額</div><div class="v" id="currentTotal">$0</div></div>
       <div class="stat"><div class="k">升跌總額</div><div class="v" id="deltaTotal">$0</div></div>
     </div>
-    <input id="searchInput" class="search" placeholder="搜尋模型、分類、系列…">
+    <input id="searchInput" class="search" placeholder="搜尋模型、分類、系列、品牌…">
     <div class="modes" style="margin-top:12px">
       <button class="quickBtn active" data-mode="grid">網格</button>
       <button class="quickBtn" data-mode="listview">列表</button>
@@ -158,10 +169,26 @@ h1{margin:0 0 6px;font-size:30px;letter-spacing:-.04em}
           <div class="field"><input id="name" placeholder="模型名稱"></div>
           <div class="field"><input id="brand" placeholder="品牌 / 廠商"></div>
         </div>
+
+        <div class="panelTitle" style="margin-top:2px">品牌 Logo</div>
+        <div class="logoPicker" id="brandPresetPicker"></div>
+        <div class="row2">
+          <div class="field"><input id="brandLogoUrl" placeholder="品牌 logo 網址（可留空）"></div>
+          <div class="field"><input id="brandLogoFile" type="file" accept="image/*"></div>
+        </div>
+
         <div class="row2">
           <div class="field"><input id="series" placeholder="系列 / 作品"></div>
           <div class="field"><input id="itemCode" placeholder="商品編號 / 條碼"></div>
         </div>
+
+        <div class="panelTitle" style="margin-top:2px">系列 Logo</div>
+        <div class="logoPicker" id="seriesPresetPicker"></div>
+        <div class="row2">
+          <div class="field"><input id="seriesLogoUrl" placeholder="系列 logo 網址（可留空）"></div>
+          <div class="field"><input id="seriesLogoFile" type="file" accept="image/*"></div>
+        </div>
+
         <div class="row2">
           <div class="field"><input id="price" type="number" placeholder="入手價 HKD"></div>
           <div class="field"><input id="currentValue" type="number" placeholder="現值 HKD"></div>
@@ -189,12 +216,10 @@ h1{margin:0 0 6px;font-size:30px;letter-spacing:-.04em}
 
     <div class="card panel" style="margin-top:12px">
       <div class="panelTitle">備份 / 還原</div>
-      <div class="notice">
-        呢版會優先讀取舊版本資料，再搬到 V8 穩定資料庫。你之後再換 UI，只要保留同一個資料 key，就唔會無啦啦冇紀錄。
-      </div>
+      <div class="notice">會優先讀舊版資料並搬去 V8.5。你之後再改 UI，只要保留同一個資料 key，就比較安全。</div>
       <div class="backupRow">
-        <button class="smallBtn" id="exportBtn">⬇️ 匯出 JSON 備份</button>
-        <button class="smallBtn" id="importBtn">⬆️ 匯入 JSON 還原</button>
+        <button class="smallBtn" id="exportBtn">⬇️ 匯出 JSON</button>
+        <button class="smallBtn" id="importBtn">⬆️ 匯入 JSON</button>
         <button class="smallBtn" id="clearBtn">🗑️ 清空資料</button>
       </div>
       <input id="importFile" type="file" accept=".json,application/json" style="display:none">
@@ -222,8 +247,9 @@ h1{margin:0 0 6px;font-size:30px;letter-spacing:-.04em}
 </nav>
 
 <script>
-const STABLE_KEY='figure_collector_v8_master';
+const STABLE_KEY='figure_collector_v85_master';
 const LEGACY_KEYS=[
+  'figure_collector_v8_master',
   'figure_collector_pro_clean_v1',
   'figure_collector_pro_route2',
   'my_figure_collection_v7_lite',
@@ -231,10 +257,22 @@ const LEGACY_KEYS=[
   'my_figure_collection_v42',
   'my_figure_collection_v41',
   'my_figure_collection_v4',
-  'figure_collection_v3',
-  'figure_collection_v3',
   'figures'
 ];
+const BRAND_PRESETS={
+  'Bandai':'https://upload.wikimedia.org/wikipedia/commons/thumb/7/7a/Bandai_Logo.svg/512px-Bandai_Logo.svg.png',
+  'Good Smile':'https://upload.wikimedia.org/wikipedia/commons/thumb/d/da/Good_Smile_Company_logo.svg/512px-Good_Smile_Company_logo.svg.png',
+  'Kotobukiya':'https://upload.wikimedia.org/wikipedia/commons/thumb/d/de/Kotobukiya_logo.svg/512px-Kotobukiya_logo.svg.png',
+  'MegaHouse':'https://upload.wikimedia.org/wikipedia/commons/thumb/8/8d/MegaHouse_logo.svg/512px-MegaHouse_logo.svg.png',
+  'Hot Toys':'https://upload.wikimedia.org/wikipedia/en/thumb/0/0f/Hot_Toys_logo.svg/512px-Hot_Toys_logo.svg.png'
+};
+const SERIES_PRESETS={
+  'Gundam':'https://upload.wikimedia.org/wikipedia/commons/thumb/0/0b/Gundam_series_logo.svg/512px-Gundam_series_logo.svg.png',
+  'SHF':'https://tamashiiweb.com/images/common/logo_tamashii.png',
+  'Figma':'https://upload.wikimedia.org/wikipedia/commons/thumb/4/4d/Max_Factory_logo.svg/512px-Max_Factory_logo.svg.png',
+  'Nendoroid':'https://upload.wikimedia.org/wikipedia/commons/thumb/d/da/Good_Smile_Company_logo.svg/512px-Good_Smile_Company_logo.svg.png',
+  'Chiikawa':'https://upload.wikimedia.org/wikipedia/commons/thumb/c/c7/Chiikawa_logo.svg/512px-Chiikawa_logo.svg.png'
+};
 let items=[];
 let view='owned', mode='grid';
 
@@ -249,7 +287,9 @@ function normalizeRecord(raw){
     id: raw.id || uid(),
     name: raw.name || '',
     brand: raw.brand || '',
+    brandLogo: raw.brandLogo || '',
     series: raw.series || '',
+    seriesLogo: raw.seriesLogo || '',
     itemCode: raw.itemCode || raw.item_code || '',
     price: raw.price || '',
     currentValue: raw.currentValue || '',
@@ -276,15 +316,15 @@ function loadData(){
       if(Array.isArray(parsed) && parsed.length){
         items = parsed.map(normalizeRecord).filter(Boolean);
         save();
-        document.getElementById('backupStatus').textContent = '已由舊版本資料自動搬到 V8';
+        const s=document.getElementById('backupStatus'); if(s) s.textContent='已由舊版本資料自動搬到 V8.5';
         return;
       }
     }catch(e){}
   }
   items = [
-    {id:uid(),name:'RX-78-2 Gundam',category:'高達',series:'Mobile Suit Gundam',brand:'Bandai',price:189,currentValue:260,date:'2026-03-02',itemCode:'HG-RX78',status:'未開封',location:'展示櫃上層',sellPrice:'',sourceLink:'',note:'HG 系列，未開盒。',image:''},
-    {id:uid(),name:'幪面超人 1 號',category:'幪面超人',series:'Kamen Rider',brand:'Bandai',price:299,currentValue:340,date:'2026-02-15',itemCode:'SHF-KR1',status:'展示中',location:'書櫃 A',sellPrice:'',sourceLink:'',note:'已開封展示。',image:''},
-    {id:uid(),name:'Chiikawa 公仔',category:'Chiikawa',series:'Chiikawa',brand:'Good Smile',price:129,currentValue:'',date:'2026-01-20',itemCode:'',status:'願望清單',location:'',sellPrice:'',sourceLink:'',note:'想入手。',image:''}
+    {id:uid(),name:'RX-78-2 Gundam',category:'高達',series:'Gundam',seriesLogo:SERIES_PRESETS['Gundam'],brand:'Bandai',brandLogo:BRAND_PRESETS['Bandai'],price:189,currentValue:260,date:'2026-03-02',itemCode:'HG-RX78',status:'未開封',location:'展示櫃上層',sellPrice:'',sourceLink:'',note:'HG 系列，未開盒。',image:''},
+    {id:uid(),name:'幪面超人 1 號',category:'幪面超人',series:'SHF',seriesLogo:SERIES_PRESETS['SHF'],brand:'Bandai',brandLogo:BRAND_PRESETS['Bandai'],price:299,currentValue:340,date:'2026-02-15',itemCode:'SHF-KR1',status:'展示中',location:'書櫃 A',sellPrice:'',sourceLink:'',note:'已開封展示。',image:''},
+    {id:uid(),name:'Chiikawa 公仔',category:'Chiikawa',series:'Chiikawa',seriesLogo:SERIES_PRESETS['Chiikawa'],brand:'Good Smile',brandLogo:BRAND_PRESETS['Good Smile'],price:129,currentValue:'',date:'2026-01-20',itemCode:'',status:'願望清單',location:'',sellPrice:'',sourceLink:'',note:'想入手。',image:''}
   ];
   save();
 }
@@ -300,6 +340,28 @@ document.querySelectorAll('[data-mode]').forEach(b=>b.onclick=()=>{mode=b.datase
 document.getElementById('searchInput').oninput=renderList;
 document.getElementById('sortSelect').onchange=renderList;
 document.getElementById('categoryFilter').onchange=renderList;
+
+function renderPresetPickers(){
+  const brandWrap=document.getElementById('brandPresetPicker');
+  const seriesWrap=document.getElementById('seriesPresetPicker');
+  brandWrap.innerHTML=Object.entries(BRAND_PRESETS).map(([name,url])=>`
+    <button class="chipBtn" type="button" onclick="applyBrandPreset('${escapeQuotes(name)}','${escapeQuotes(url)}')">
+      <span class="inlineLogo"><span class="logoBox"><img src="${url}" alt=""></span><span>${name}</span></span>
+    </button>`).join('');
+  seriesWrap.innerHTML=Object.entries(SERIES_PRESETS).map(([name,url])=>`
+    <button class="chipBtn" type="button" onclick="applySeriesPreset('${escapeQuotes(name)}','${escapeQuotes(url)}')">
+      <span class="inlineLogo"><span class="logoBox"><img src="${url}" alt=""></span><span>${name}</span></span>
+    </button>`).join('');
+}
+function escapeQuotes(s){return String(s).replace(/'/g,"&#39;")}
+window.applyBrandPreset=function(name,url){
+  document.getElementById('brand').value=name;
+  document.getElementById('brandLogoUrl').value=url;
+}
+window.applySeriesPreset=function(name,url){
+  document.getElementById('series').value=name;
+  document.getElementById('seriesLogoUrl').value=url;
+}
 
 function refreshCategories(){
   const categoryFilter=document.getElementById('categoryFilter');
@@ -339,6 +401,10 @@ function filtered(){
   });
   return arr;
 }
+function logoBadge(name, logo){
+  if(!name && !logo) return '';
+  return `<span class="logoBadge">${logo?`<span class="logoBox"><img src="${logo}" alt=""></span>`:''}<span>${name||''}</span></span>`;
+}
 function itemHtml(i){
   const d=deltaOf(i);
   const delta=i.currentValue?`<span class="chip ${d>=0?'gain':'loss'}">${d>=0?'+':''}${money(d).replace('$','')}</span>`:'';
@@ -351,6 +417,10 @@ function itemHtml(i){
     <div class="body">
       <div class="name">${i.name||''}</div>
       <div class="meta">${i.category||'其他'} · ${i.series||'未填系列'} · ${i.brand||'未填品牌'}</div>
+      <div class="logoRow">
+        ${logoBadge(i.brand,i.brandLogo)}
+        ${logoBadge(i.series,i.seriesLogo)}
+      </div>
       <div class="chips">
         ${i.location?`<span class="chip">${i.location}</span>`:''}
         ${i.date?`<span class="chip">${i.date}</span>`:''}
@@ -430,13 +500,32 @@ async function saveRecord(){
   const id=saveBtn.dataset.editing||uid();
   const old=items.find(x=>x.id===id);
   let image=old?.image||'';
+  let brandLogo=old?.brandLogo||'';
+  let seriesLogo=old?.seriesLogo||'';
+
   const photo=document.getElementById('photo').files[0]||document.getElementById('photoLibrary').files[0];
   if(photo) image=await toDataURL(photo);
+
+  const brandLogoFile=document.getElementById('brandLogoFile').files[0];
+  const seriesLogoFile=document.getElementById('seriesLogoFile').files[0];
+  const brandLogoUrl=document.getElementById('brandLogoUrl').value.trim();
+  const seriesLogoUrl=document.getElementById('seriesLogoUrl').value.trim();
+
+  if(brandLogoFile) brandLogo=await toDataURL(brandLogoFile);
+  else if(brandLogoUrl) brandLogo=brandLogoUrl;
+  else if(BRAND_PRESETS[document.getElementById('brand').value.trim()]) brandLogo=BRAND_PRESETS[document.getElementById('brand').value.trim()];
+
+  if(seriesLogoFile) seriesLogo=await toDataURL(seriesLogoFile);
+  else if(seriesLogoUrl) seriesLogo=seriesLogoUrl;
+  else if(SERIES_PRESETS[document.getElementById('series').value.trim()]) seriesLogo=SERIES_PRESETS[document.getElementById('series').value.trim()];
+
   const rec={
     id,
     name:document.getElementById('name').value.trim(),
     brand:document.getElementById('brand').value.trim(),
+    brandLogo,
     series:document.getElementById('series').value.trim(),
+    seriesLogo,
     itemCode:document.getElementById('itemCode').value.trim(),
     price:document.getElementById('price').value,
     currentValue:document.getElementById('currentValue').value,
@@ -452,15 +541,15 @@ async function saveRecord(){
   if(old) items=items.map(x=>x.id===id?rec:x); else items.unshift(rec);
   save();
   clearForm();
-  document.getElementById('backupStatus').textContent='已儲存到 V8 本地資料庫';
+  document.getElementById('backupStatus').textContent='已儲存到 V8.5 本地資料庫';
   render();
   showPage('pageCollection');
 }
 function clearForm(){
-  ['name','brand','series','itemCode','price','currentValue','date','category','location','sellPrice','sourceLink','note','photo','photoLibrary'].forEach(id=>{
+  ['name','brand','series','itemCode','price','currentValue','date','category','location','sellPrice','sourceLink','note','brandLogoUrl','seriesLogoUrl','photo','photoLibrary','brandLogoFile','seriesLogoFile'].forEach(id=>{
     const el=document.getElementById(id);
     if(!el) return;
-    if(el.type==='file') el.value=''; else el.value='';
+    el.value='';
   });
   document.getElementById('status').value='未開封';
   delete document.getElementById('saveBtn').dataset.editing;
@@ -469,7 +558,9 @@ window.editItem=function(id){
   const i=items.find(x=>x.id===id); if(!i) return;
   document.getElementById('name').value=i.name||'';
   document.getElementById('brand').value=i.brand||'';
+  document.getElementById('brandLogoUrl').value=i.brandLogo||'';
   document.getElementById('series').value=i.series||'';
+  document.getElementById('seriesLogoUrl').value=i.seriesLogo||'';
   document.getElementById('itemCode').value=i.itemCode||'';
   document.getElementById('price').value=i.price||'';
   document.getElementById('currentValue').value=i.currentValue||'';
@@ -491,17 +582,11 @@ window.deleteItem=function(id){
   render();
 }
 function exportBackup(){
-  const payload={
-    app:'Figure Collector V8',
-    version:1,
-    exported_at:new Date().toISOString(),
-    count:items.length,
-    items
-  };
+  const payload={app:'Figure Collector V8.5',version:1,exported_at:new Date().toISOString(),count:items.length,items};
   const blob=new Blob([JSON.stringify(payload,null,2)],{type:'application/json'});
   const a=document.createElement('a');
   a.href=URL.createObjectURL(blob);
-  a.download='figure_collector_v8_backup.json';
+  a.download='figure_collector_v85_backup.json';
   a.click();
   URL.revokeObjectURL(a.href);
   document.getElementById('backupStatus').textContent='已匯出 JSON 備份';
@@ -512,7 +597,7 @@ function importBackup(file){
     try{
       const parsed=JSON.parse(reader.result);
       const imported=Array.isArray(parsed)?parsed:(parsed.items||[]);
-      if(!Array.isArray(imported)) throw new Error('invalid backup');
+      if(!Array.isArray(imported)) throw new Error('invalid');
       items=imported.map(normalizeRecord).filter(Boolean);
       save();
       document.getElementById('backupStatus').textContent='已成功匯入 JSON 備份';
@@ -535,7 +620,8 @@ document.getElementById('clearBtn').onclick=()=>{
 }
 function render(){refreshCategories();renderTop();renderList();renderStats()}
 loadData();
+renderPresetPickers();
 render();
 </script>
 </body>
-</html
+</html>
