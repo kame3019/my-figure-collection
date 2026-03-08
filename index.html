@@ -1783,3 +1783,168 @@
     </script>
 </body>
 </html>
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-app.js";
+  import {
+    getAuth,
+    GoogleAuthProvider,
+    signInWithPopup,
+    onAuthStateChanged,
+    signOut
+  } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-auth.js";
+  import {
+    getFirestore,
+    doc,
+    setDoc,
+    getDoc
+  } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-firestore.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyBcfXAKbsysChltrsepGlYSsBhp5NRpQrg",
+    authDomain: "kura-archive3019.firebaseapp.com",
+    projectId: "kura-archive3019",
+    storageBucket: "kura-archive3019.firebasestorage.app",
+    messagingSenderId: "7620724666",
+    appId: "1:7620724666:web:0e06048e72281df8bf7f83",
+    measurementId: "G-94TRB4BQGE"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  const db = getFirestore(app);
+  const provider = new GoogleAuthProvider();
+
+  window.kuraFirebase = { auth, db, provider };
+
+  function $(id) {
+    return document.getElementById(id);
+  }
+
+  function ensureGoogleButtons() {
+    const loginBtn = $("fakeLoginBtn");
+    const registerBtn = $("fakeRegisterBtn");
+
+    if (loginBtn && !$("googleLoginBtn")) {
+      const googleBtn = document.createElement("button");
+      googleBtn.id = "googleLoginBtn";
+      googleBtn.className = "w-full rounded-xl bg-black px-4 py-3 text-sm font-bold text-white mt-3";
+      googleBtn.textContent = "Google 登入";
+      loginBtn.insertAdjacentElement("afterend", googleBtn);
+    }
+
+    if (registerBtn && !$("googleRegisterHint")) {
+      const hint = document.createElement("div");
+      hint.id = "googleRegisterHint";
+      hint.className = "mt-3 text-xs text-slate-500";
+      hint.textContent = "朋友可直接用 Google 登入，唔使另外註冊密碼。";
+      registerBtn.insertAdjacentElement("afterend", hint);
+    }
+
+    const profileEmail = $("profileDisplayEmail");
+    if (profileEmail && !$("googleLogoutBtn")) {
+      const logoutBtn = document.createElement("button");
+      logoutBtn.id = "googleLogoutBtn";
+      logoutBtn.className = "mt-3 rounded-xl bg-black/5 px-4 py-2 text-sm font-bold";
+      logoutBtn.textContent = "登出";
+      profileEmail.insertAdjacentElement("afterend", logoutBtn);
+    }
+  }
+
+  async function upsertUserProfile(user) {
+    const profileRef = doc(db, "users", user.uid, "settings", "profile");
+    const snap = await getDoc(profileRef);
+
+    const payload = {
+      displayName: user.displayName || "Collector",
+      email: user.email || "",
+      photoURL: user.photoURL || "",
+      lastLoginAt: Date.now()
+    };
+
+    if (!snap.exists()) {
+      payload.createdAt = Date.now();
+    }
+
+    await setDoc(profileRef, payload, { merge: true });
+  }
+
+  async function handleGoogleLogin() {
+    try {
+      const result = await signInWithPopup(auth, provider);
+      await upsertUserProfile(result.user);
+      alert("Google 登入成功");
+    } catch (err) {
+      console.error("Google login error:", err);
+      alert(err.message || "Google 登入失敗");
+    }
+  }
+
+  async function handleLogout() {
+    try {
+      await signOut(auth);
+      alert("已登出");
+    } catch (err) {
+      console.error("Logout error:", err);
+      alert(err.message || "登出失敗");
+    }
+  }
+
+  function bindButtons() {
+    ensureGoogleButtons();
+
+    const googleLoginBtn = $("googleLoginBtn");
+    const googleLogoutBtn = $("googleLogoutBtn");
+
+    if (googleLoginBtn && !googleLoginBtn.dataset.bound) {
+      googleLoginBtn.dataset.bound = "1";
+      googleLoginBtn.addEventListener("click", handleGoogleLogin);
+    }
+
+    if (googleLogoutBtn && !googleLogoutBtn.dataset.bound) {
+      googleLogoutBtn.dataset.bound = "1";
+      googleLogoutBtn.addEventListener("click", handleLogout);
+    }
+  }
+
+  onAuthStateChanged(auth, async (user) => {
+    bindButtons();
+
+    const nameEl = $("profileDisplayName");
+    const emailEl = $("profileDisplayEmail");
+    const ownedEl = $("profileOwnedCount");
+    const wishEl = $("profileWishCount");
+    const logoutBtn = $("googleLogoutBtn");
+
+    if (user) {
+      try {
+        await upsertUserProfile(user);
+      } catch (err) {
+        console.error("Profile sync error:", err);
+      }
+
+      if (nameEl) nameEl.textContent = user.displayName || "Collector";
+      if (emailEl) emailEl.textContent = user.email || "";
+      if (logoutBtn) logoutBtn.style.display = "inline-flex";
+
+      // 先保留你原本本機統計顯示
+      if (ownedEl && window.items) {
+        ownedEl.textContent = window.items.filter(item => item.status !== "願望清單").length;
+      }
+      if (wishEl && window.items) {
+        wishEl.textContent = window.items.filter(item => item.status === "願望清單").length;
+      }
+    } else {
+      if (nameEl) nameEl.textContent = "Guest Collector";
+      if (emailEl) emailEl.textContent = "Not signed in";
+      if (logoutBtn) logoutBtn.style.display = "none";
+    }
+  });
+
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", bindButtons);
+  } else {
+    bindButtons();
+  }
+
+  console.log("Firebase Google Auth ready");
+</script>
