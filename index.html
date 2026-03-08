@@ -2684,84 +2684,97 @@
     return document.getElementById(id);
   }
 
-  function currentUid() {
+  function uid() {
     return fb()?.auth?.currentUser?.uid || "";
   }
 
   async function isAdmin() {
     const api = fb();
-    const uid = currentUid();
-    if (!api || !uid) return false;
+    const me = uid();
+    if (!api || !me) return false;
 
     try {
-      const snap = await api.getDoc(api.doc(api.db, "admins", uid));
+      const snap = await api.getDoc(api.doc(api.db, "admins", me));
       return snap.exists();
     } catch (err) {
-      console.error("Admin check failed:", err);
+      console.error(err);
       return false;
     }
-  }
-
-  function readBrandLibrary() {
-    try { return Array.isArray(brandLibrary) ? brandLibrary : []; }
-    catch (e) { return Array.isArray(window.brandLibrary) ? window.brandLibrary : []; }
-  }
-
-  function readSeriesLibrary() {
-    try { return Array.isArray(seriesLibrary) ? seriesLibrary : []; }
-    catch (e) { return Array.isArray(window.seriesLibrary) ? window.seriesLibrary : []; }
-  }
-
-  function setBrandLibrary(next) {
-    try { brandLibrary = next; } catch (e) { window.brandLibrary = next; }
-  }
-
-  function setSeriesLibrary(next) {
-    try { seriesLibrary = next; } catch (e) { window.seriesLibrary = next; }
   }
 
   function normalizeLogo(docSnap, type) {
     const data = docSnap.data() || {};
     const path = docSnap.ref?.path || "";
     const parts = path.split("/");
-    const ownerFromPath = parts[0] === "users" ? parts[1] : "";
-    const scope = parts[0] === "users" ? "personal" : "global";
+    const ownerUid = parts[0] === "users" ? parts[1] : "";
 
     return {
       id: docSnap.id,
       name: data.name || "",
       logo: data.logo || "",
-      ownerUid: data.ownerUid || ownerFromPath || "",
-      scope,
+      ownerUid,
       type,
-      createdAt: data.createdAt || 0,
-      updatedAt: data.updatedAt || 0,
-      _path: path
+      path
     };
   }
 
-  function uniqByPath(arr) {
-    const map = new Map();
-    for (const item of arr) {
-      const key = item._path || `${item.scope}-${item.ownerUid}-${item.id}`;
-      map.set(key, item);
-    }
-    return [...map.values()];
+  function ensureAdminUserLogoPanel() {
+    if ($("adminUserLogoPanel")) return;
+
+    const profilePage = $("pageProfile") || $("pageAdd");
+    if (!profilePage) return;
+
+    const panel = document.createElement("div");
+    panel.id = "adminUserLogoPanel";
+    panel.className = "hidden kv-surface rounded-xl bg-white border border-slate-100 shadow-sm p-5 mt-4";
+    panel.innerHTML = `
+      <div class="flex items-center justify-between mb-4">
+        <div>
+          <h3 class="text-lg font-bold">User Logos</h3>
+          <p class="text-xs text-slate-500 uppercase tracking-widest mt-1">Admin Review</p>
+        </div>
+        <span class="material-symbols-outlined text-primary text-3xl">shield_person</span>
+      </div>
+
+      <div class="mb-4">
+        <button id="reloadUserLogosBtn" class="w-full rounded-xl bg-primary px-4 py-3 text-sm font-bold text-white">
+          重新載入 User Logos
+        </button>
+      </div>
+
+      <div class="grid grid-cols-1 gap-4">
+        <div>
+          <div class="font-semibold mb-2">User Brand Logos</div>
+          <div id="adminUserBrandLogos" class="space-y-2"></div>
+        </div>
+
+        <div>
+          <div class="font-semibold mb-2">User Series Logos</div>
+          <div id="adminUserSeriesLogos" class="space-y-2"></div>
+        </div>
+      </div>
+    `;
+
+    profilePage.appendChild(panel);
   }
 
-  function scopeLabel(item, uid) {
-    if (item.scope === "global") return "Global";
-    if ((item.ownerUid || "") === (uid || "")) return "My";
-    return "User";
-  }
-
-  async function fetchAllUserPersonalLogos() {
+  async function loadAllUserLogosForAdmin() {
     const api = fb();
-    const uid = currentUid();
-    if (!api) return { brand: [], series: [] };
+    const me = uid();
+    if (!api || !me) return;
 
     const admin = await isAdmin();
-    if (!admin) return { brand: [], series: [] };
+    ensureAdminUserLogoPanel();
+
+    const panel = $("adminUserLogoPanel");
+    if (!panel) return;
+
+    if (!admin) {
+      panel.classList.add("hidden");
+      return;
+    }
+
+    panel.classList.remove("hidden");
 
     try {
       const [brandSnap, seriesSnap] = await Promise.all([
@@ -2769,177 +2782,115 @@
         getDocs(collectionGroup(api.db, "seriesLogos"))
       ]);
 
-      const brand = brandSnap.docs
+      const brandItems = brandSnap.docs
         .map(d => normalizeLogo(d, "brand"))
-        .filter(x => x._path.startsWith("users/") && x.ownerUid && x.ownerUid !== uid);
+        .filter(x => x.path.startsWith("users/") && x.ownerUid && x.ownerUid !== me)
+        .sort((a, b) => (a.name || "").localeCompare(b.name || ""));
 
-      const series = seriesSnap.docs
+      const seriesItems = seriesSnap.docs
         .map(d => normalizeLogo(d, "series"))
-        .filter(x => x._path.startsWith("users/") && x.ownerUid && x.ownerUid !== uid);
+        .filter(x => x.path.startsWith("users/") && x.ownerUid && x.ownerUid !== me)
+        .sort((a, b) => (a.name || "").localeCompare(b.name || ""));
 
-      return { brand, series };
+      $("adminUserBrandLogos").innerHTML = brandItems.length
+        ? brandItems.map(item => `
+            <div class="flex items-center justify-between gap-3 rounded-xl border border-primary/10 bg-background-light/80 p-3">
+              <div class="flex items-center gap-3 min-w-0">
+                <span class="h-8 w-8 rounded-lg overflow-hidden bg-white border border-primary/10 shrink-0">
+                  <img class="h-full w-full object-contain" src="${item.logo}" alt="">
+                </span>
+                <div class="min-w-0">
+                  <div class="font-medium truncate">${item.name}</div>
+                  <div class="text-[10px] uppercase tracking-widest text-slate-400 mt-1">User • ${item.ownerUid}</div>
+                </div>
+              </div>
+              <button class="rounded-lg bg-black/5 px-3 py-2 text-xs font-semibold shrink-0"
+                onclick="adminDeleteUserLogo('brand','${item.ownerUid}','${item.id}','${item.name.replace(/'/g, "\\'")}')">
+                刪除
+              </button>
+            </div>
+          `).join("")
+        : '<div class="rounded-xl border border-primary/10 bg-background-light/80 p-4 text-center text-slate-400">未有 User Brand Logos。</div>';
+
+      $("adminUserSeriesLogos").innerHTML = seriesItems.length
+        ? seriesItems.map(item => `
+            <div class="flex items-center justify-between gap-3 rounded-xl border border-primary/10 bg-background-light/80 p-3">
+              <div class="flex items-center gap-3 min-w-0">
+                <span class="h-8 w-8 rounded-lg overflow-hidden bg-white border border-primary/10 shrink-0">
+                  <img class="h-full w-full object-contain" src="${item.logo}" alt="">
+                </span>
+                <div class="min-w-0">
+                  <div class="font-medium truncate">${item.name}</div>
+                  <div class="text-[10px] uppercase tracking-widest text-slate-400 mt-1">User • ${item.ownerUid}</div>
+                </div>
+              </div>
+              <button class="rounded-lg bg-black/5 px-3 py-2 text-xs font-semibold shrink-0"
+                onclick="adminDeleteUserLogo('series','${item.ownerUid}','${item.id}','${item.name.replace(/'/g, "\\'")}')">
+                刪除
+              </button>
+            </div>
+          `).join("")
+        : '<div class="rounded-xl border border-primary/10 bg-background-light/80 p-4 text-center text-slate-400">未有 User Series Logos。</div>';
+
     } catch (err) {
-      console.error("fetchAllUserPersonalLogos failed:", err);
-      return { brand: [], series: [] };
+      console.error("loadAllUserLogosForAdmin failed:", err);
     }
   }
 
-  async function mergeAdminUserLogos() {
-    const admin = await isAdmin();
-    if (!admin) return;
-
-    const extra = await fetchAllUserPersonalLogos();
-
-    const mergedBrand = uniqByPath([...readBrandLibrary(), ...extra.brand])
-      .sort((a, b) => (a.name || "").localeCompare(b.name || ""));
-    const mergedSeries = uniqByPath([...readSeriesLibrary(), ...extra.series])
-      .sort((a, b) => (a.name || "").localeCompare(b.name || ""));
-
-    setBrandLibrary(mergedBrand);
-    setSeriesLibrary(mergedSeries);
-
-    if (typeof renderPresetPickers === "function") {
-      renderPresetPickers();
-    }
-
-    renderLogoManagersAdminAware();
-  }
-
-  function renderLogoManagersAdminAware() {
-    const uid = currentUid();
-    const brands = readBrandLibrary();
-    const series = readSeriesLibrary();
-
-    if ($("brandLibCount")) $("brandLibCount").textContent = brands.length + " 個";
-    if ($("seriesLibCount")) $("seriesLibCount").textContent = series.length + " 個";
-
-    if ($("brandLibraryManager")) {
-      $("brandLibraryManager").innerHTML = brands.length ? brands.map((item, index) => `
-        <div class="flex items-center justify-between gap-3 rounded-xl border border-primary/10 bg-background-light/80 p-3">
-          <div class="flex items-center gap-3 min-w-0">
-            <span class="h-8 w-8 rounded-lg overflow-hidden bg-white border border-primary/10 shrink-0">
-              <img class="h-full w-full object-contain" src="${item.logo}" alt="">
-            </span>
-            <div class="min-w-0">
-              <div class="font-medium truncate">${item.name}</div>
-              <div class="text-[10px] uppercase tracking-widest text-slate-400 mt-1">${scopeLabel(item, uid)}</div>
-            </div>
-          </div>
-          <button class="rounded-lg bg-black/5 px-3 py-2 text-xs font-semibold shrink-0" onclick="deleteBrandLogo(${index})">刪除</button>
-        </div>
-      `).join("") : '<div class="rounded-xl border border-primary/10 bg-background-light/80 p-4 text-center text-slate-400">未有品牌 Logo。</div>';
-    }
-
-    if ($("seriesLibraryManager")) {
-      $("seriesLibraryManager").innerHTML = series.length ? series.map((item, index) => `
-        <div class="flex items-center justify-between gap-3 rounded-xl border border-primary/10 bg-background-light/80 p-3">
-          <div class="flex items-center gap-3 min-w-0">
-            <span class="h-8 w-8 rounded-lg overflow-hidden bg-white border border-primary/10 shrink-0">
-              <img class="h-full w-full object-contain" src="${item.logo}" alt="">
-            </span>
-            <div class="min-w-0">
-              <div class="font-medium truncate">${item.name}</div>
-              <div class="text-[10px] uppercase tracking-widest text-slate-400 mt-1">${scopeLabel(item, uid)}</div>
-            </div>
-          </div>
-          <button class="rounded-lg bg-black/5 px-3 py-2 text-xs font-semibold shrink-0" onclick="deleteSeriesLogo(${index})">刪除</button>
-        </div>
-      `).join("") : '<div class="rounded-xl border border-primary/10 bg-background-light/80 p-4 text-center text-slate-400">未有系列 Logo。</div>';
-    }
-  }
-
-  window.deleteBrandLogo = async function (index) {
+  window.adminDeleteUserLogo = async function (type, ownerUid, logoId, logoName) {
     const api = fb();
-    const uid = currentUid();
-    if (!api || !uid) return;
-
-    const item = readBrandLibrary()[index];
-    if (!item) return;
+    if (!api) return;
 
     const admin = await isAdmin();
-
-    if (item.scope === "global" && !admin) {
-      alert("只有 admin 可以刪除 Global Brand Logo");
+    if (!admin) {
+      alert("只有 admin 可以刪除其他用戶的 logos");
       return;
     }
 
-    if (item.scope === "personal" && !admin && item.ownerUid !== uid) {
-      alert("你不能刪除其他人的 Brand Logo");
-      return;
-    }
-
-    if (!confirm("確定刪除 Brand Logo：" + item.name + "？")) return;
+    if (!confirm(`確定刪除 ${logoName}？`)) return;
 
     try {
-      const ref = item.scope === "global"
-        ? api.doc(api.db, "appConfig", "public", "brandLogos", item.id)
-        : api.doc(api.db, "users", item.ownerUid || uid, "brandLogos", item.id);
+      const ref = type === "brand"
+        ? api.doc(api.db, "users", ownerUid, "brandLogos", logoId)
+        : api.doc(api.db, "users", ownerUid, "seriesLogos", logoId);
 
       await api.deleteDoc(ref);
-      await mergeAdminUserLogos();
+      await loadAllUserLogosForAdmin();
+      alert("已刪除");
     } catch (err) {
-      console.error("Delete brand logo failed:", err);
-      alert(err.message || "刪除 Brand Logo 失敗");
+      console.error(err);
+      alert(err.message || "刪除失敗");
     }
   };
 
-  window.deleteSeriesLogo = async function (index) {
-    const api = fb();
-    const uid = currentUid();
-    if (!api || !uid) return;
-
-    const item = readSeriesLibrary()[index];
-    if (!item) return;
-
-    const admin = await isAdmin();
-
-    if (item.scope === "global" && !admin) {
-      alert("只有 admin 可以刪除 Global Series Logo");
-      return;
+  function bindAdminUserLogoPanel() {
+    const btn = $("reloadUserLogosBtn");
+    if (btn && !btn.dataset.bound) {
+      btn.dataset.bound = "1";
+      btn.onclick = loadAllUserLogosForAdmin;
     }
+  }
 
-    if (item.scope === "personal" && !admin && item.ownerUid !== uid) {
-      alert("你不能刪除其他人的 Series Logo");
-      return;
-    }
-
-    if (!confirm("確定刪除 Series Logo：" + item.name + "？")) return;
-
-    try {
-      const ref = item.scope === "global"
-        ? api.doc(api.db, "appConfig", "public", "seriesLogos", item.id)
-        : api.doc(api.db, "users", item.ownerUid || uid, "seriesLogos", item.id);
-
-      await api.deleteDoc(ref);
-      await mergeAdminUserLogos();
-    } catch (err) {
-      console.error("Delete series logo failed:", err);
-      alert(err.message || "刪除 Series Logo 失敗");
-    }
-  };
-
-  async function bootAdminUserLogoFix() {
-    await mergeAdminUserLogos();
+  async function boot() {
+    ensureAdminUserLogoPanel();
+    bindAdminUserLogoPanel();
+    await loadAllUserLogosForAdmin();
 
     document.addEventListener("click", function (e) {
-      if (e.target.closest("#navAddCenter") || e.target.closest("#navProfile")) {
-        setTimeout(mergeAdminUserLogos, 300);
-        setTimeout(mergeAdminUserLogos, 1000);
+      if (e.target.closest("#navProfile")) {
+        setTimeout(async () => {
+          ensureAdminUserLogoPanel();
+          bindAdminUserLogoPanel();
+          await loadAllUserLogosForAdmin();
+        }, 300);
       }
     });
-
-    let count = 0;
-    const timer = setInterval(async () => {
-      await mergeAdminUserLogos();
-      count += 1;
-      if (count > 20) clearInterval(timer);
-    }, 1500);
   }
 
   if (document.readyState === "loading") {
-    document.addEventListener("DOMContentLoaded", bootAdminUserLogoFix);
+    document.addEventListener("DOMContentLoaded", boot);
   } else {
-    bootAdminUserLogoFix();
+    boot();
   }
 })();
 </script>
