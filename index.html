@@ -1,322 +1,1570 @@
-from pathlib import Path
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <title>Figure Collector V8.9 Readable</title>
+    <meta name="theme-color" content="#0d0d0f">
 
-html = Path("/mnt/data/Figure_Collector_V8_8_Ultimate.html").read_text(encoding="utf-8")
-
-# Add styles before media queries
-style_inject = """
-.statGrid{
-    display:grid;
-    grid-template-columns:repeat(4,1fr);
-    gap:10px;
-    margin-bottom:14px;
-}
-.statCard{
-    padding:14px 12px;
-    background:linear-gradient(180deg,rgba(29,30,35,.98),rgba(20,20,24,.98));
-    border:1px solid rgba(212,175,55,.20);
-    border-radius:18px;
-}
-.statTitle{
-    font-size:11px;
-    color:var(--gold);
-    margin-bottom:6px;
-}
-.statNumber{
-    font-size:20px;
-    font-weight:800;
-}
-.rankCard,
-.monthCard,
-.barCard{
-    padding:12px;
-    border:1px solid rgba(212,175,55,.10);
-    border-radius:14px;
-    background:rgba(255,255,255,.03);
-    margin-bottom:10px;
-}
-.rankRow{
-    display:flex;
-    justify-content:space-between;
-    align-items:center;
-    gap:10px;
-    padding:10px 0;
-    border-bottom:1px solid rgba(212,175,55,.08);
-}
-.rankRow:last-child{
-    border-bottom:none;
-    padding-bottom:0;
-}
-.rankLeft{
-    display:flex;
-    align-items:center;
-    gap:10px;
-}
-.rankNo{
-    width:26px;
-    height:26px;
-    border-radius:999px;
-    background:linear-gradient(180deg,rgba(212,175,55,.98),rgba(156,124,33,.98));
-    color:#111;
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    font-size:12px;
-    font-weight:800;
-}
-.barTrack{
-    height:10px;
-    background:rgba(255,255,255,.06);
-    border-radius:999px;
-    overflow:hidden;
-    margin-top:8px;
-}
-.barFill{
-    height:100%;
-    background:linear-gradient(90deg,var(--gold2),var(--gold));
-    border-radius:999px;
-}
-.barTop{
-    display:flex;
-    justify-content:space-between;
-    align-items:center;
-    gap:10px;
-}
-.monthGrid{
-    display:grid;
-    grid-template-columns:1fr 1fr;
-    gap:10px;
-}
-.yearRow{
-    display:flex;
-    gap:10px;
-    margin-bottom:12px;
-}
-.yearChip{
-    flex:1;
-}
-@media (max-width:560px){
-    .statGrid{grid-template-columns:repeat(2,1fr);}
-}
-"""
-html = html.replace("@media (max-width:560px){", style_inject + "\n@media (max-width:560px){", 1)
-
-# Replace stats page section
-import re
-pattern = re.compile(r'<section id="pageStats" class="page">.*?</section>', re.S)
-replacement = """
-<section id="pageStats" class="page">
-    <div class="card" style="padding:14px">
-        <div class="panelTitle">統計總覽</div>
-        <div class="yearRow">
-            <div class="field yearChip">
-                <select id="statsYearFilter"></select>
-            </div>
-        </div>
-        <div id="statsOverview"></div>
-    </div>
-
-    <div class="card" style="padding:14px;margin-top:12px">
-        <div class="panelTitle">最貴收藏排行榜</div>
-        <div id="topRanking"></div>
-    </div>
-
-    <div class="card" style="padding:14px;margin-top:12px">
-        <div class="panelTitle">品牌分佈</div>
-        <div id="brandBreakdown"></div>
-    </div>
-
-    <div class="card" style="padding:14px;margin-top:12px">
-        <div class="panelTitle">系列分佈</div>
-        <div id="seriesBreakdown"></div>
-    </div>
-
-    <div class="card" style="padding:14px;margin-top:12px">
-        <div class="panelTitle">月度統計</div>
-        <div id="monthlyBreakdown"></div>
-    </div>
-</section>
-"""
-html = pattern.sub(replacement, html, count=1)
-
-# add onchange binding after category onchange line
-html = html.replace(
-    'document.getElementById("categoryFilter").onchange = renderList;',
-    'document.getElementById("categoryFilter").onchange = renderList;\ndocument.getElementById("statsYearFilter").onchange = renderStats;'
-)
-
-# replace renderTop statsPanel usage and render() function
-old_render_top = """
-function renderTop(){
-    const owned = ownedItems();
-    const total = owned.reduce((sum,item) => sum + Number(item.price || 0), 0);
-    const wish = items.filter(item => item.status === "願望清單").length;
-
-    const now = new Date();
-    const key = now.getFullYear() + "-" + String(now.getMonth()+1).padStart(2,"0");
-    const monthSpend = owned.filter(item => (item.date || "").startsWith(key)).reduce((sum,item) => sum + Number(item.price || 0), 0);
-
-    document.getElementById("countAll").textContent = owned.length;
-    document.getElementById("sumPrice").textContent = money(total);
-    document.getElementById("wishTop").textContent = wish;
-    document.getElementById("monthSpend").textContent = money(monthSpend);
-
-    document.getElementById("statsPanel").innerHTML = `
-        收藏件數：${owned.length}<br>
-        總花費：${money(total)}<br>
-        願望清單：${wish}<br>
-        本月花費：${money(monthSpend)}
-    `;
-}
-"""
-new_render_top = """
-function renderTop(){
-    const owned = ownedItems();
-    const total = owned.reduce((sum,item) => sum + Number(item.price || 0), 0);
-    const wish = items.filter(item => item.status === "願望清單").length;
-
-    const now = new Date();
-    const key = now.getFullYear() + "-" + String(now.getMonth()+1).padStart(2,"0");
-    const monthSpend = owned.filter(item => (item.date || "").startsWith(key)).reduce((sum,item) => sum + Number(item.price || 0), 0);
-
-    document.getElementById("countAll").textContent = owned.length;
-    document.getElementById("sumPrice").textContent = money(total);
-    document.getElementById("wishTop").textContent = wish;
-    document.getElementById("monthSpend").textContent = money(monthSpend);
-}
-"""
-html = html.replace(old_render_top, new_render_top)
-
-stats_js = """
-function getYearOptions(){
-    const years = new Set();
-    items.forEach(item => {
-        if(item.date && /^\\d{4}/.test(item.date)){
-            years.add(item.date.slice(0,4));
+    <style>
+        :root {
+            --bg: #0d0d0f;
+            --card: #17181c;
+            --gold: #d4af37;
+            --gold2: #9c7c21;
+            --text: #f5f1e8;
+            --muted: #b7ad9b;
+            --line: #3a3017;
+            --radius: 18px;
         }
-    });
-    const arr = [...years].sort((a,b)=>b.localeCompare(a));
-    return arr;
-}
 
-function renderYearFilter(){
-    const el = document.getElementById("statsYearFilter");
-    const current = el.value;
-    const years = getYearOptions();
-    el.innerHTML = '<option value="">全部年份</option>' + years.map(y => `<option value="${y}">${y} 年</option>`).join("");
-    if(years.includes(current)) el.value = current;
-}
-
-function getFilteredStatsItems(){
-    const selectedYear = document.getElementById("statsYearFilter").value;
-    const owned = ownedItems();
-    return selectedYear ? owned.filter(item => (item.date || "").startsWith(selectedYear + "-")) : owned;
-}
-
-function renderStats(){
-    renderYearFilter();
-
-    const filtered = getFilteredStatsItems();
-    const selectedYear = document.getElementById("statsYearFilter").value;
-    const total = filtered.reduce((sum,item)=>sum + Number(item.price || 0), 0);
-    const count = filtered.length;
-
-    const monthMap = {};
-    filtered.forEach(item => {
-        const monthKey = item.date ? item.date.slice(0,7) : "未填日期";
-        if(!monthMap[monthKey]){
-            monthMap[monthKey] = { total:0, count:0 };
+        * {
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
         }
-        monthMap[monthKey].total += Number(item.price || 0);
-        monthMap[monthKey].count += 1;
-    });
 
-    const brandMap = {};
-    filtered.forEach(item => {
-        const key = item.brand || "未填品牌";
-        brandMap[key] = (brandMap[key] || 0) + Number(item.price || 0);
-    });
+        body {
+            margin: 0;
+            background: linear-gradient(180deg, #111214 0%, #0a0a0c 100%);
+            color: var(--text);
+            font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "PingFang TC", sans-serif;
+        }
 
-    const seriesMap = {};
-    filtered.forEach(item => {
-        const key = item.series || "未填系列";
-        seriesMap[key] = (seriesMap[key] || 0) + Number(item.price || 0);
-    });
+        .wrap {
+            max-width: 720px;
+            margin: auto;
+            padding: 20px 16px 110px;
+        }
 
-    const currentYear = selectedYear || new Date().getFullYear().toString();
-    const yearCount = filtered.filter(item => (item.date || "").startsWith(currentYear + "-")).length;
-    const yearSpend = filtered.filter(item => (item.date || "").startsWith(currentYear + "-")).reduce((sum,item)=>sum + Number(item.price || 0),0);
-    const avg = count ? total / count : 0;
+        .hero,
+        .card,
+        .item {
+            background: linear-gradient(180deg, rgba(29, 30, 35, .98), rgba(20, 20, 24, .98));
+            border: 1px solid rgba(212, 175, 55, .20);
+            border-radius: var(--radius);
+            box-shadow: 0 14px 32px rgba(0, 0, 0, .28);
+        }
 
-    document.getElementById("statsOverview").innerHTML = `
-        <div class="statGrid">
-            <div class="statCard">
-                <div class="statTitle">收藏件數</div>
-                <div class="statNumber">${count}</div>
-            </div>
-            <div class="statCard">
-                <div class="statTitle">總花費</div>
-                <div class="statNumber">${money(total)}</div>
-            </div>
-            <div class="statCard">
-                <div class="statTitle">${selectedYear ? selectedYear + ' 年新增' : currentYear + ' 年新增'}</div>
-                <div class="statNumber">${yearCount}</div>
-            </div>
-            <div class="statCard">
-                <div class="statTitle">平均入手價</div>
-                <div class="statNumber">${money(avg)}</div>
-            </div>
+        .hero {
+            padding: 20px 16px;
+            margin-bottom: 16px;
+        }
+
+        .eyebrow {
+            color: var(--gold);
+            font-size: 12px;
+            letter-spacing: .15em;
+            margin-bottom: 8px;
+        }
+
+        h1 {
+            margin: 0 0 8px;
+            font-size: 30px;
+        }
+
+        .sub {
+            color: var(--muted);
+            font-size: 13px;
+            line-height: 1.6;
+        }
+
+        .page {
+            display: none;
+        }
+
+        .page.show {
+            display: block;
+        }
+
+        .topToggle {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+            margin: 14px 0;
+        }
+
+        .toggleBtn,
+        .modeBtn,
+        .tabBtn,
+        .smallBtn,
+        .btn2,
+        .chipBtn,
+        .primaryBtn {
+            border: none;
+            border-radius: 14px;
+            padding: 12px;
+            font-weight: 700;
+            cursor: pointer;
+            background: linear-gradient(180deg, rgba(31, 31, 36, .98), rgba(20, 20, 24, .98));
+            color: var(--muted);
+            border: 1px solid rgba(212, 175, 55, .16);
+        }
+
+        .toggleBtn.active,
+        .modeBtn.active,
+        .tabBtn.active {
+            background: linear-gradient(180deg, rgba(212, 175, 55, .98), rgba(156, 124, 33, .98));
+            color: #111;
+        }
+
+        .primaryBtn {
+            width: 100%;
+            background: linear-gradient(180deg, rgba(212, 175, 55, .98), rgba(156, 124, 33, .98));
+            color: #111;
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+            margin-bottom: 14px;
+        }
+
+        .stat {
+            padding: 14px 12px;
+        }
+
+        .k {
+            font-size: 11px;
+            color: var(--gold);
+            margin-bottom: 6px;
+        }
+
+        .v {
+            font-size: 18px;
+            font-weight: 700;
+        }
+
+        .search,
+        .field {
+            width: 100%;
+            background: linear-gradient(180deg, rgba(27, 27, 31, .98), rgba(17, 17, 20, .98));
+            border: 1px solid rgba(212, 175, 55, .16);
+            border-radius: 14px;
+            padding: 12px;
+            color: var(--text);
+            margin-bottom: 10px;
+        }
+
+        input,
+        textarea,
+        select {
+            width: 100%;
+            background: transparent;
+            border: none;
+            outline: none;
+            color: var(--text);
+            font: inherit;
+        }
+
+        textarea {
+            min-height: 90px;
+            resize: vertical;
+        }
+
+        .row {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+
+        .row > * {
+            flex: 1;
+        }
+
+        .modes {
+            display: grid;
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+            gap: 8px;
+            margin: 12px 0;
+        }
+
+        .modeBtn {
+            padding: 10px 6px;
+            font-size: 13px;
+            white-space: nowrap;
+        }
+
+        .list {
+            display: grid;
+            gap: 12px;
+        }
+
+        .list.grid {
+            grid-template-columns: 1fr 1fr;
+        }
+
+        .list.listview,
+        .list.compact {
+            grid-template-columns: 1fr;
+        }
+
+        .list.wall {
+            grid-template-columns: 1fr 1fr;
+        }
+
+        .item {
+            overflow: hidden;
+        }
+
+        .thumb {
+            height: 190px;
+            background-color: #27231a;
+            background-position: center;
+            background-size: contain;
+            background-repeat: no-repeat;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #a89d85;
+            position: relative;
+        }
+
+        .list.wall .thumb {
+            height: 110px;
+        }
+
+        .status {
+            position: absolute;
+            right: 12px;
+            bottom: 12px;
+            padding: 7px 11px;
+            border-radius: 999px;
+            font-size: 12px;
+            font-weight: 700;
+            background: rgba(17, 17, 19, .9);
+            border: 1px solid rgba(212, 175, 55, .16);
+        }
+
+        .body {
+            padding: 14px;
+        }
+
+        .name {
+            font-size: 20px;
+            font-weight: 800;
+            margin-bottom: 6px;
+        }
+
+        .meta {
+            color: var(--muted);
+            font-size: 13px;
+            line-height: 1.5;
+            margin-bottom: 10px;
+        }
+
+        .logoRow,
+        .chips,
+        .actions,
+        .pickerRow {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-bottom: 10px;
+        }
+
+        .logoBadge,
+        .chip {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            background: rgba(255, 255, 255, .04);
+            padding: 6px 10px;
+            border-radius: 999px;
+            border: 1px solid rgba(212, 175, 55, .10);
+            font-size: 12px;
+        }
+
+        .logoBox {
+            width: 24px;
+            height: 24px;
+            border-radius: 8px;
+            overflow: hidden;
+            background: #111;
+            border: 1px solid rgba(212, 175, 55, .14);
+            flex: 0 0 24px;
+        }
+
+        .logoBox img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+        }
+
+        .priceBlock {
+            margin: 10px 0;
+            padding: 12px;
+            border-radius: 14px;
+            background: rgba(255, 255, 255, .03);
+            border: 1px solid rgba(212, 175, 55, .10);
+        }
+
+        .priceLabel {
+            font-size: 11px;
+            color: var(--muted);
+            margin-bottom: 4px;
+        }
+
+        .priceValue {
+            font-size: 22px;
+            font-weight: 800;
+            color: var(--gold);
+        }
+
+        .note {
+            color: #e0d8cb;
+            line-height: 1.6;
+            font-size: 13px;
+            margin-bottom: 10px;
+        }
+
+        .btn2 {
+            flex: 1;
+            padding: 10px 12px;
+        }
+
+        .panelTitle {
+            color: var(--gold);
+            font-weight: 800;
+            margin: 0 0 10px;
+        }
+
+        .notice {
+            padding: 12px;
+            border-radius: 14px;
+            background: rgba(255, 255, 255, .03);
+            border: 1px solid rgba(212, 175, 55, .10);
+            color: var(--muted);
+            font-size: 12px;
+            line-height: 1.6;
+            margin-bottom: 12px;
+        }
+
+        .libraryItem {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            padding: 10px 12px;
+            border: 1px solid rgba(212, 175, 55, .10);
+            border-radius: 14px;
+            margin-bottom: 8px;
+            background: rgba(255, 255, 255, .03);
+        }
+
+        .libraryLeft {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .empty {
+            padding: 24px;
+            text-align: center;
+            color: var(--muted);
+            border: 1px dashed rgba(212, 175, 55, .16);
+            border-radius: 14px;
+        }
+
+        .tabs {
+            position: fixed;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 10px;
+            padding: 10px 10px 18px;
+            background: rgba(12, 12, 14, .95);
+            border-top: 1px solid rgba(212, 175, 55, .16);
+        }
+
+        .statGrid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+            margin-bottom: 14px;
+        }
+
+        .statCard {
+            padding: 14px 12px;
+            background: linear-gradient(180deg, rgba(29, 30, 35, .98), rgba(20, 20, 24, .98));
+            border: 1px solid rgba(212, 175, 55, .20);
+            border-radius: 18px;
+        }
+
+        .statTitle {
+            font-size: 11px;
+            color: var(--gold);
+            margin-bottom: 6px;
+        }
+
+        .statNumber {
+            font-size: 20px;
+            font-weight: 800;
+        }
+
+        .rankCard,
+        .monthCard,
+        .barCard {
+            padding: 12px;
+            border: 1px solid rgba(212, 175, 55, .10);
+            border-radius: 14px;
+            background: rgba(255, 255, 255, .03);
+            margin-bottom: 10px;
+        }
+
+        .rankRow {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 0;
+            border-bottom: 1px solid rgba(212, 175, 55, .08);
+        }
+
+        .rankRow:last-child {
+            border-bottom: none;
+            padding-bottom: 0;
+        }
+
+        .rankLeft {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .rankNo {
+            width: 26px;
+            height: 26px;
+            border-radius: 999px;
+            background: linear-gradient(180deg, rgba(212, 175, 55, .98), rgba(156, 124, 33, .98));
+            color: #111;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            font-weight: 800;
+        }
+
+        .barTrack {
+            height: 10px;
+            background: rgba(255, 255, 255, .06);
+            border-radius: 999px;
+            overflow: hidden;
+            margin-top: 8px;
+        }
+
+        .barFill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--gold2), var(--gold));
+            border-radius: 999px;
+        }
+
+        .barTop {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .monthGrid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+
+        .yearRow {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 12px;
+        }
+
+        .yearChip {
+            flex: 1;
+        }
+
+        @media (max-width: 560px) {
+            .stats {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .statGrid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .list.grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 430px) {
+            .row {
+                display: grid;
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="wrap">
+        <div class="hero">
+            <div class="eyebrow">FIGURE COLLECTOR V8.9 READABLE</div>
+            <h1>My Figure Collection</h1>
+            <div class="sub">呢個係唔短 code、可讀版。統計頁已加年份篩選、排行榜、品牌分佈、系列分佈、月度統計。</div>
         </div>
-    `;
 
-    const top3 = [...filtered].sort((a,b)=>Number(b.price||0)-Number(a.price||0)).slice(0,3);
-    document.getElementById("topRanking").innerHTML = top3.length ? top3.map((item,index)=>`
-        <div class="rankRow">
-            <div class="rankLeft">
-                <div class="rankNo">${index + 1}</div>
-                <div>
-                    <div style="font-weight:800">${item.name || '未命名收藏'}</div>
-                    <div class="small">${item.brand || '未填品牌'} · ${item.series || '未填系列'}</div>
+        <section id="pageCollection" class="page show">
+            <div class="topToggle">
+                <button class="toggleBtn active" id="ownedBtn">📦 已在庫存</button>
+                <button class="toggleBtn" id="wishBtn">🖤 願望清單</button>
+            </div>
+
+            <div class="stats">
+                <div class="item stat">
+                    <div class="k">收藏數量</div>
+                    <div class="v" id="countAll">0</div>
+                </div>
+                <div class="item stat">
+                    <div class="k">總花費</div>
+                    <div class="v" id="sumPrice">$0</div>
+                </div>
+                <div class="item stat">
+                    <div class="k">願望清單</div>
+                    <div class="v" id="wishTop">0</div>
+                </div>
+                <div class="item stat">
+                    <div class="k">本月花費</div>
+                    <div class="v" id="monthSpend">$0</div>
                 </div>
             </div>
-            <div style="font-weight:800;color:var(--gold)">${money(item.price)}</div>
-        </div>
-    `).join("") : '<div class="empty">未有排行榜資料。</div>';
 
-    const renderBarSection = (mapObj, targetId) => {
-        const rows = Object.entries(mapObj).sort((a,b)=>b[1]-a[1]).slice(0,6);
-        const max = rows.length ? rows[0][1] : 1;
-        document.getElementById(targetId).innerHTML = rows.length ? rows.map(([name,value]) => `
-            <div class="barCard">
-                <div class="barTop">
-                    <div style="font-weight:700">${name}</div>
-                    <div style="color:var(--gold);font-weight:800">${money(value)}</div>
+            <input id="searchInput" class="search" placeholder="搜尋模型、品牌、系列、分類…">
+
+            <div class="modes">
+                <button class="modeBtn active" data-mode="grid">網格</button>
+                <button class="modeBtn" data-mode="listview">列表</button>
+                <button class="modeBtn" data-mode="compact">卡片</button>
+                <button class="modeBtn" data-mode="wall">收藏牆</button>
+            </div>
+
+            <div class="row">
+                <div class="field">
+                    <select id="sortSelect">
+                        <option value="date_desc">最新加入</option>
+                        <option value="date_asc">最舊加入</option>
+                        <option value="price_desc">價錢高到低</option>
+                        <option value="price_asc">價錢低到高</option>
+                        <option value="name_asc">名稱 A-Z</option>
+                        <option value="name_desc">名稱 Z-A</option>
+                    </select>
                 </div>
-                <div class="barTrack">
-                    <div class="barFill" style="width:${(value/max)*100}%"></div>
+                <div class="field">
+                    <select id="categoryFilter"></select>
                 </div>
             </div>
-        `).join("") : '<div class="empty">暫時未有資料。</div>';
-    };
 
-    renderBarSection(brandMap, "brandBreakdown");
-    renderBarSection(seriesMap, "seriesBreakdown");
+            <div class="row" style="align-items:center">
+                <h2 style="margin:0;flex:1">我的收藏</h2>
+                <div id="resultNote" class="small">0 件</div>
+            </div>
 
-    const monthRows = Object.entries(monthMap).sort((a,b)=>b[0].localeCompare(a[0]));
-    document.getElementById("monthlyBreakdown").innerHTML = monthRows.length ? `
-        <div class="monthGrid">
-            ${monthRows.map(([month,data]) => `
-                <div class="monthCard">
-                    <div style="font-weight:800;margin-bottom:4px">${month}</div>
-                    <div style="color:var(--gold);font-weight:800;margin-bottom:4px">${money(data.total)}</div>
-                    <div class="small">${data.count} 件收藏</div>
+            <div id="list" class="list grid"></div>
+        </section>
+
+        <section id="pageAdd" class="page">
+            <div class="card" style="padding:14px">
+                <div class="panelTitle">新增 / 修改收藏</div>
+
+                <div class="row">
+                    <div class="field"><input id="name" placeholder="模型名稱"></div>
+                    <div class="field"><input id="brand" placeholder="品牌 / 廠商"></div>
                 </div>
-            `).join("")}
-        </div>
-    ` : '<div class="empty">未有月度資料。</div>';
-}
-"""
-html = html.replace("function render(){\n    refreshCategories();\n    renderTop();\n    renderList();\n    renderLogoManagers();\n}\n\nloadData();\nrenderPresetPickers();\nrender();", stats_js + "\nfunction render(){\n    refreshCategories();\n    renderTop();\n    renderList();\n    renderLogoManagers();\n    renderStats();\n}\n\nloadData();\nrenderPresetPickers();\nrender();")
 
-out = Path("/mnt/data/Figure_Collector_V8_9_統計美化版.html")
-out.write_text(html, encoding="utf-8")
-print(out)
+                <div class="panelTitle">品牌 Logo</div>
+                <div id="brandPresetPicker" class="pickerRow"></div>
+                <div class="row">
+                    <div class="field"><input id="brandLogoUrl" placeholder="品牌 logo 網址"></div>
+                    <div class="field"><input id="brandLogoFile" type="file" accept="image/*"></div>
+                </div>
+                <button class="smallBtn" id="saveBrandLibBtn" type="button">加入品牌 Logo 庫</button>
+
+                <div class="row" style="margin-top:10px">
+                    <div class="field"><input id="series" placeholder="系列 / 作品"></div>
+                    <div class="field"><input id="itemCode" placeholder="商品編號 / 條碼"></div>
+                </div>
+
+                <div class="panelTitle">系列 Logo</div>
+                <div id="seriesPresetPicker" class="pickerRow"></div>
+                <div class="row">
+                    <div class="field"><input id="seriesLogoUrl" placeholder="系列 logo 網址"></div>
+                    <div class="field"><input id="seriesLogoFile" type="file" accept="image/*"></div>
+                </div>
+                <button class="smallBtn" id="saveSeriesLibBtn" type="button">加入系列 Logo 庫</button>
+
+                <div class="row" style="margin-top:10px">
+                    <div class="field"><input id="price" type="number" placeholder="購入價 HKD"></div>
+                    <div class="field"><input id="date" type="date"></div>
+                </div>
+
+                <div class="row">
+                    <div class="field"><input id="category" placeholder="分類"></div>
+                    <div class="field"><input id="location" placeholder="擺放位置 / 展示櫃"></div>
+                </div>
+
+                <div class="row">
+                    <div class="field">
+                        <select id="status">
+                            <option>未開封</option>
+                            <option>已開封</option>
+                            <option>展示中</option>
+                            <option>已售出</option>
+                            <option>願望清單</option>
+                        </select>
+                    </div>
+                    <div class="field"><input id="sourceLink" placeholder="產品來源連結"></div>
+                </div>
+
+                <div class="row">
+                    <div class="field"><input id="photo" type="file" accept="image/*" capture="environment"></div>
+                    <div class="field"><input id="photoLibrary" type="file" accept="image/*"></div>
+                </div>
+
+                <div class="field">
+                    <textarea id="note" placeholder="備註"></textarea>
+                </div>
+
+                <button class="primaryBtn" id="saveBtn">儲存收藏</button>
+            </div>
+
+            <div class="card" style="padding:14px;margin-top:12px">
+                <div class="panelTitle">Logo Library 管理</div>
+                <div class="notice">預設 logo 同你自己新增嘅 logo，全部都可以直接刪除。</div>
+
+                <div class="row" style="align-items:center">
+                    <h3 style="margin:0;flex:1">品牌 Logos</h3>
+                    <div id="brandLibCount" class="small">0 個</div>
+                </div>
+                <div id="brandLibraryManager"></div>
+
+                <div class="row" style="align-items:center;margin-top:14px">
+                    <h3 style="margin:0;flex:1">系列 Logos</h3>
+                    <div id="seriesLibCount" class="small">0 個</div>
+                </div>
+                <div id="seriesLibraryManager"></div>
+            </div>
+
+            <div class="card" style="padding:14px;margin-top:12px">
+                <div class="panelTitle">備份 / 還原</div>
+                <div class="notice">收藏資料 + Logo 庫 會一齊備份。</div>
+
+                <div class="row">
+                    <button class="smallBtn" id="exportBtn">⬇️ 匯出 JSON</button>
+                    <button class="smallBtn" id="importBtn">⬆️ 匯入 JSON</button>
+                    <button class="smallBtn" id="clearBtn">🗑️ 清空資料</button>
+                </div>
+
+                <input id="importFile" type="file" accept=".json,application/json" style="display:none">
+                <div id="backupStatus" class="small">未匯出 / 未匯入</div>
+            </div>
+        </section>
+
+        <section id="pageStats" class="page">
+            <div class="card" style="padding:14px">
+                <div class="panelTitle">統計總覽</div>
+
+                <div class="yearRow">
+                    <div class="field yearChip">
+                        <select id="statsYearFilter"></select>
+                    </div>
+                </div>
+
+                <div id="statsOverview"></div>
+            </div>
+
+            <div class="card" style="padding:14px;margin-top:12px">
+                <div class="panelTitle">最貴收藏排行榜</div>
+                <div id="topRanking"></div>
+            </div>
+
+            <div class="card" style="padding:14px;margin-top:12px">
+                <div class="panelTitle">品牌分佈</div>
+                <div id="brandBreakdown"></div>
+            </div>
+
+            <div class="card" style="padding:14px;margin-top:12px">
+                <div class="panelTitle">系列分佈</div>
+                <div id="seriesBreakdown"></div>
+            </div>
+
+            <div class="card" style="padding:14px;margin-top:12px">
+                <div class="panelTitle">月度統計</div>
+                <div id="monthlyBreakdown"></div>
+            </div>
+        </section>
+    </div>
+
+    <nav class="tabs">
+        <button class="tabBtn active" data-page="pageCollection">🗂️ 收藏</button>
+        <button class="tabBtn" data-page="pageAdd">➕ 新增</button>
+        <button class="tabBtn" data-page="pageStats">📊 統計</button>
+    </nav>
+
+    <script>
+        const STABLE_KEY = "figure_collector_v89_readable_master";
+        const BRAND_LIB_KEY = "figure_collector_v89_readable_brand_library";
+        const SERIES_LIB_KEY = "figure_collector_v89_readable_series_library";
+
+        const BRAND_DEFAULTS = [
+            { name: "Bandai", logo: "https://upload.wikimedia.org/wikipedia/commons/thumb/7/7a/Bandai_Logo.svg/512px-Bandai_Logo.svg.png" },
+            { name: "Good Smile", logo: "https://upload.wikimedia.org/wikipedia/commons/thumb/d/da/Good_Smile_Company_logo.svg/512px-Good_Smile_Company_logo.svg.png" },
+            { name: "Kotobukiya", logo: "https://upload.wikimedia.org/wikipedia/commons/thumb/d/de/Kotobukiya_logo.svg/512px-Kotobukiya_logo.svg.png" }
+        ];
+
+        const SERIES_DEFAULTS = [
+            { name: "Gundam", logo: "https://upload.wikimedia.org/wikipedia/commons/thumb/0/0b/Gundam_series_logo.svg/512px-Gundam_series_logo.svg.png" },
+            { name: "SHF", logo: "https://tamashiiweb.com/images/common/logo_tamashii.png" },
+            { name: "Chiikawa", logo: "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c7/Chiikawa_logo.svg/512px-Chiikawa_logo.svg.png" }
+        ];
+
+        const LEGACY_KEYS = [
+            "figure_collector_v88_master",
+            "figure_collector_v82_master",
+            "figure_collector_v81_master",
+            "figure_collector_v8_master",
+            "figure_collector_v85_master",
+            "figure_collector_v86_master",
+            "figure_collector_v9_master",
+            "figure_collector_pro_clean_v1"
+        ];
+
+        let items = [];
+        let brandLibrary = [];
+        let seriesLibrary = [];
+        let view = "owned";
+        let mode = "grid";
+
+        function money(v) {
+            return "$" + Number(v || 0).toLocaleString("en-HK", { maximumFractionDigits: 2 });
+        }
+
+        function uid() {
+            return crypto.randomUUID ? crypto.randomUUID() : String(Date.now()) + Math.random().toString(16).slice(2);
+        }
+
+        function save() {
+            localStorage.setItem(STABLE_KEY, JSON.stringify(items));
+            localStorage.setItem(BRAND_LIB_KEY, JSON.stringify(brandLibrary));
+            localStorage.setItem(SERIES_LIB_KEY, JSON.stringify(seriesLibrary));
+        }
+
+        function normalizeRecord(raw) {
+            if (!raw || typeof raw !== "object") {
+                return null;
+            }
+
+            return {
+                id: raw.id || uid(),
+                name: raw.name || "",
+                brand: raw.brand || "",
+                brandLogo: raw.brandLogo || "",
+                series: raw.series || "",
+                seriesLogo: raw.seriesLogo || "",
+                itemCode: raw.itemCode || raw.item_code || "",
+                price: raw.price || "",
+                date: raw.date || "",
+                status: raw.status || "未開封",
+                category: raw.category || "其他",
+                location: raw.location || "",
+                sourceLink: raw.sourceLink || "",
+                note: raw.note || "",
+                image: raw.image || ""
+            };
+        }
+
+        function seedDefaultsIfNeeded() {
+            if (!brandLibrary.length) {
+                brandLibrary = [...BRAND_DEFAULTS];
+            }
+
+            if (!seriesLibrary.length) {
+                seriesLibrary = [...SERIES_DEFAULTS];
+            }
+        }
+
+        function loadData() {
+            try {
+                brandLibrary = JSON.parse(localStorage.getItem(BRAND_LIB_KEY) || "[]");
+            } catch (e) {
+                brandLibrary = [];
+            }
+
+            try {
+                seriesLibrary = JSON.parse(localStorage.getItem(SERIES_LIB_KEY) || "[]");
+            } catch (e) {
+                seriesLibrary = [];
+            }
+
+            seedDefaultsIfNeeded();
+
+            const stable = localStorage.getItem(STABLE_KEY);
+
+            if (stable) {
+                try {
+                    items = JSON.parse(stable).map(normalizeRecord).filter(Boolean);
+                    save();
+                    return;
+                } catch (e) {}
+            }
+
+            for (const key of LEGACY_KEYS) {
+                const data = localStorage.getItem(key);
+
+                if (!data) {
+                    continue;
+                }
+
+                try {
+                    const parsed = JSON.parse(data);
+
+                    if (Array.isArray(parsed) && parsed.length) {
+                        items = parsed.map(normalizeRecord).filter(Boolean);
+                        save();
+                        return;
+                    }
+                } catch (e) {}
+            }
+
+            items = [
+                {
+                    id: uid(),
+                    name: "RX-78-2 Gundam",
+                    category: "高達",
+                    series: "Gundam",
+                    seriesLogo: SERIES_DEFAULTS[0].logo,
+                    brand: "Bandai",
+                    brandLogo: BRAND_DEFAULTS[0].logo,
+                    price: 189,
+                    date: "2026-03-02",
+                    itemCode: "HG-RX78",
+                    status: "未開封",
+                    location: "展示櫃 A",
+                    sourceLink: "",
+                    note: "HG 系列，未開盒。",
+                    image: ""
+                }
+            ];
+
+            save();
+        }
+
+        function showPage(id) {
+            document.querySelectorAll(".page").forEach(page => {
+                page.classList.remove("show");
+            });
+
+            document.getElementById(id).classList.add("show");
+
+            document.querySelectorAll(".tabBtn").forEach(btn => {
+                btn.classList.toggle("active", btn.dataset.page === id);
+            });
+        }
+
+        document.querySelectorAll(".tabBtn").forEach(btn => {
+            btn.onclick = () => showPage(btn.dataset.page);
+        });
+
+        document.getElementById("ownedBtn").onclick = function () {
+            view = "owned";
+            document.getElementById("ownedBtn").classList.add("active");
+            document.getElementById("wishBtn").classList.remove("active");
+            render();
+        };
+
+        document.getElementById("wishBtn").onclick = function () {
+            view = "wishlist";
+            document.getElementById("wishBtn").classList.add("active");
+            document.getElementById("ownedBtn").classList.remove("active");
+            render();
+        };
+
+        document.querySelectorAll("[data-mode]").forEach(btn => {
+            btn.onclick = function () {
+                mode = btn.dataset.mode;
+
+                document.querySelectorAll("[data-mode]").forEach(x => {
+                    x.classList.toggle("active", x.dataset.mode === mode);
+                });
+
+                renderList();
+            };
+        });
+
+        document.getElementById("searchInput").oninput = renderList;
+        document.getElementById("sortSelect").onchange = renderList;
+        document.getElementById("categoryFilter").onchange = renderList;
+        document.getElementById("statsYearFilter").onchange = renderStats;
+
+        function renderPresetPickers() {
+            const brandWrap = document.getElementById("brandPresetPicker");
+            const seriesWrap = document.getElementById("seriesPresetPicker");
+
+            brandWrap.innerHTML = brandLibrary.map(item => `
+                <button class="chipBtn" type="button" onclick="applyBrandPreset('${escapeText(item.name)}','${escapeText(item.logo)}')">
+                    <span class="logoBadge">
+                        <span class="logoBox"><img src="${item.logo}" alt=""></span>
+                        <span>${item.name}</span>
+                    </span>
+                </button>
+            `).join("");
+
+            seriesWrap.innerHTML = seriesLibrary.map(item => `
+                <button class="chipBtn" type="button" onclick="applySeriesPreset('${escapeText(item.name)}','${escapeText(item.logo)}')">
+                    <span class="logoBadge">
+                        <span class="logoBox"><img src="${item.logo}" alt=""></span>
+                        <span>${item.name}</span>
+                    </span>
+                </button>
+            `).join("");
+        }
+
+        function escapeText(text) {
+            return String(text).replace(/'/g, "&#39;");
+        }
+
+        window.applyBrandPreset = function (name, logo) {
+            document.getElementById("brand").value = name;
+            document.getElementById("brandLogoUrl").value = logo;
+        };
+
+        window.applySeriesPreset = function (name, logo) {
+            document.getElementById("series").value = name;
+            document.getElementById("seriesLogoUrl").value = logo;
+        };
+
+        function refreshCategories() {
+            const categoryFilter = document.getElementById("categoryFilter");
+            const set = new Set(["全部分類"]);
+
+            items.forEach(item => {
+                set.add(item.category || "其他");
+            });
+
+            const current = categoryFilter.value;
+            categoryFilter.innerHTML = "";
+
+            [...set].forEach(value => {
+                const option = document.createElement("option");
+                option.value = value === "全部分類" ? "" : value;
+                option.textContent = value;
+
+                if (option.value === current) {
+                    option.selected = true;
+                }
+
+                categoryFilter.appendChild(option);
+            });
+        }
+
+        function ownedItems() {
+            return items.filter(item => item.status !== "願望清單");
+        }
+
+        function filteredItems() {
+            const query = document.getElementById("searchInput").value.trim().toLowerCase();
+            const category = document.getElementById("categoryFilter").value;
+            const sort = document.getElementById("sortSelect").value;
+
+            let arr = items.filter(item => {
+                const matchesView = view === "owned" ? item.status !== "願望清單" : item.status === "願望清單";
+                const text = [item.name, item.brand, item.series, item.category, item.note, item.itemCode, item.location].join(" ").toLowerCase();
+
+                return matchesView && (!query || text.includes(query)) && (!category || item.category === category);
+            });
+
+            arr.sort((a, b) => {
+                switch (sort) {
+                    case "date_asc":
+                        return new Date(a.date || 0) - new Date(b.date || 0);
+                    case "price_desc":
+                        return Number(b.price || 0) - Number(a.price || 0);
+                    case "price_asc":
+                        return Number(a.price || 0) - Number(b.price || 0);
+                    case "name_asc":
+                        return (a.name || "").localeCompare(b.name || "");
+                    case "name_desc":
+                        return (b.name || "").localeCompare(a.name || "");
+                    default:
+                        return new Date(b.date || 0) - new Date(a.date || 0);
+                }
+            });
+
+            return arr;
+        }
+
+        function logoBadge(name, logo) {
+            if (!name && !logo) {
+                return "";
+            }
+
+            return `
+                <span class="logoBadge">
+                    ${logo ? `<span class="logoBox"><img src="${logo}" alt=""></span>` : ""}
+                    <span>${name || ""}</span>
+                </span>
+            `;
+        }
+
+        function itemHtml(item) {
+            return `
+                <div class="item">
+                    <div class="thumb" style="${item.image ? `background-image:url('${item.image}')` : ""}">
+                        ${item.image ? "" : "模型圖片"}
+                        <div class="status">${item.status || ""}</div>
+                    </div>
+
+                    <div class="body">
+                        <div class="name">${item.name || ""}</div>
+                        <div class="meta">${item.category || "其他"} · ${item.series || "未填系列"} · ${item.brand || "未填品牌"}</div>
+
+                        <div class="logoRow">
+                            ${logoBadge(item.brand, item.brandLogo)}
+                            ${logoBadge(item.series, item.seriesLogo)}
+                        </div>
+
+                        <div class="priceBlock">
+                            <div class="priceLabel">購入價</div>
+                            <div class="priceValue">${money(item.price)}</div>
+                        </div>
+
+                        <div class="chips">
+                            ${item.date ? `<span class="chip">${item.date}</span>` : ""}
+                            ${item.location ? `<span class="chip">${item.location}</span>` : ""}
+                            ${item.itemCode ? `<span class="chip">#${item.itemCode}</span>` : ""}
+                        </div>
+
+                        ${item.note ? `<div class="note">${item.note}</div>` : ""}
+
+                        <div class="actions">
+                            ${item.sourceLink ? `<button class="btn2" onclick="window.open('${item.sourceLink}','_blank')">打開連結</button>` : ""}
+                            <button class="btn2" onclick="editItem('${item.id}')">修改</button>
+                            <button class="btn2" onclick="deleteItem('${item.id}')">刪除</button>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderList() {
+            const list = document.getElementById("list");
+            list.className = "list " + mode;
+
+            const arr = filteredItems();
+            document.getElementById("resultNote").textContent = arr.length + " 件";
+
+            if (!arr.length) {
+                list.innerHTML = `<div class="empty">${view === "owned" ? "還沒有收藏品" : "還沒有願望清單"}</div>`;
+                return;
+            }
+
+            list.innerHTML = arr.map(itemHtml).join("");
+        }
+
+        function renderTop() {
+            const owned = ownedItems();
+            const total = owned.reduce((sum, item) => sum + Number(item.price || 0), 0);
+            const wish = items.filter(item => item.status === "願望清單").length;
+
+            const now = new Date();
+            const key = now.getFullYear() + "-" + String(now.getMonth() + 1).padStart(2, "0");
+            const monthSpend = owned
+                .filter(item => (item.date || "").startsWith(key))
+                .reduce((sum, item) => sum + Number(item.price || 0), 0);
+
+            document.getElementById("countAll").textContent = owned.length;
+            document.getElementById("sumPrice").textContent = money(total);
+            document.getElementById("wishTop").textContent = wish;
+            document.getElementById("monthSpend").textContent = money(monthSpend);
+        }
+
+        function getYearOptions() {
+            const years = new Set();
+
+            items.forEach(item => {
+                if (item.date && /^\\d{4}/.test(item.date)) {
+                    years.add(item.date.slice(0, 4));
+                }
+            });
+
+            return [...years].sort((a, b) => b.localeCompare(a));
+        }
+
+        function renderYearFilter() {
+            const el = document.getElementById("statsYearFilter");
+            const current = el.value;
+            const years = getYearOptions();
+
+            el.innerHTML =
+                '<option value="">全部年份</option>' +
+                years.map(y => `<option value="${y}">${y} 年</option>`).join("");
+
+            if (years.includes(current)) {
+                el.value = current;
+            }
+        }
+
+        function getFilteredStatsItems() {
+            const selectedYear = document.getElementById("statsYearFilter").value;
+            const owned = ownedItems();
+
+            if (!selectedYear) {
+                return owned;
+            }
+
+            return owned.filter(item => (item.date || "").startsWith(selectedYear + "-"));
+        }
+
+        function renderStats() {
+            renderYearFilter();
+
+            const filtered = getFilteredStatsItems();
+            const selectedYear = document.getElementById("statsYearFilter").value;
+
+            const total = filtered.reduce((sum, item) => sum + Number(item.price || 0), 0);
+            const count = filtered.length;
+            const avg = count ? total / count : 0;
+
+            const monthMap = {};
+            filtered.forEach(item => {
+                const monthKey = item.date ? item.date.slice(0, 7) : "未填日期";
+
+                if (!monthMap[monthKey]) {
+                    monthMap[monthKey] = { total: 0, count: 0 };
+                }
+
+                monthMap[monthKey].total += Number(item.price || 0);
+                monthMap[monthKey].count += 1;
+            });
+
+            const brandMap = {};
+            filtered.forEach(item => {
+                const key = item.brand || "未填品牌";
+                brandMap[key] = (brandMap[key] || 0) + Number(item.price || 0);
+            });
+
+            const seriesMap = {};
+            filtered.forEach(item => {
+                const key = item.series || "未填系列";
+                seriesMap[key] = (seriesMap[key] || 0) + Number(item.price || 0);
+            });
+
+            const activeYear = selectedYear || new Date().getFullYear().toString();
+            const yearCount = filtered.filter(item => (item.date || "").startsWith(activeYear + "-")).length;
+
+            document.getElementById("statsOverview").innerHTML = `
+                <div class="statGrid">
+                    <div class="statCard">
+                        <div class="statTitle">收藏件數</div>
+                        <div class="statNumber">${count}</div>
+                    </div>
+                    <div class="statCard">
+                        <div class="statTitle">總花費</div>
+                        <div class="statNumber">${money(total)}</div>
+                    </div>
+                    <div class="statCard">
+                        <div class="statTitle">${activeYear} 年新增</div>
+                        <div class="statNumber">${yearCount}</div>
+                    </div>
+                    <div class="statCard">
+                        <div class="statTitle">平均入手價</div>
+                        <div class="statNumber">${money(avg)}</div>
+                    </div>
+                </div>
+            `;
+
+            const top3 = [...filtered]
+                .sort((a, b) => Number(b.price || 0) - Number(a.price || 0))
+                .slice(0, 3);
+
+            document.getElementById("topRanking").innerHTML = top3.length
+                ? top3.map((item, index) => `
+                    <div class="rankRow">
+                        <div class="rankLeft">
+                            <div class="rankNo">${index + 1}</div>
+                            <div>
+                                <div style="font-weight:800">${item.name || "未命名收藏"}</div>
+                                <div class="small">${item.brand || "未填品牌"} · ${item.series || "未填系列"}</div>
+                            </div>
+                        </div>
+                        <div style="font-weight:800;color:var(--gold)">${money(item.price)}</div>
+                    </div>
+                `).join("")
+                : '<div class="empty">未有排行榜資料。</div>';
+
+            function renderBarSection(mapObj, targetId) {
+                const rows = Object.entries(mapObj)
+                    .sort((a, b) => b[1] - a[1])
+                    .slice(0, 6);
+
+                const max = rows.length ? rows[0][1] : 1;
+
+                document.getElementById(targetId).innerHTML = rows.length
+                    ? rows.map(([name, value]) => `
+                        <div class="barCard">
+                            <div class="barTop">
+                                <div style="font-weight:700">${name}</div>
+                                <div style="color:var(--gold);font-weight:800">${money(value)}</div>
+                            </div>
+                            <div class="barTrack">
+                                <div class="barFill" style="width:${(value / max) * 100}%"></div>
+                            </div>
+                        </div>
+                    `).join("")
+                    : '<div class="empty">暫時未有資料。</div>';
+            }
+
+            renderBarSection(brandMap, "brandBreakdown");
+            renderBarSection(seriesMap, "seriesBreakdown");
+
+            const monthRows = Object.entries(monthMap).sort((a, b) => b[0].localeCompare(a[0]));
+
+            document.getElementById("monthlyBreakdown").innerHTML = monthRows.length
+                ? `
+                    <div class="monthGrid">
+                        ${monthRows.map(([month, data]) => `
+                            <div class="monthCard">
+                                <div style="font-weight:800;margin-bottom:4px">${month}</div>
+                                <div style="color:var(--gold);font-weight:800;margin-bottom:4px">${money(data.total)}</div>
+                                <div class="small">${data.count} 件收藏</div>
+                            </div>
+                        `).join("")}
+                    </div>
+                `
+                : '<div class="empty">未有月度資料。</div>';
+        }
+
+        async function fileToDataURL(file) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = () => resolve(reader.result);
+                reader.onerror = reject;
+                reader.readAsDataURL(file);
+            });
+        }
+
+        async function saveRecord() {
+            const saveBtn = document.getElementById("saveBtn");
+            const id = saveBtn.dataset.editing || uid();
+            const old = items.find(item => item.id === id);
+
+            let image = old?.image || "";
+            let brandLogo = old?.brandLogo || "";
+            let seriesLogo = old?.seriesLogo || "";
+
+            const photo = document.getElementById("photo").files[0] || document.getElementById("photoLibrary").files[0];
+            if (photo) {
+                image = await fileToDataURL(photo);
+            }
+
+            const brandLogoFile = document.getElementById("brandLogoFile").files[0];
+            const seriesLogoFile = document.getElementById("seriesLogoFile").files[0];
+            const brandLogoUrl = document.getElementById("brandLogoUrl").value.trim();
+            const seriesLogoUrl = document.getElementById("seriesLogoUrl").value.trim();
+
+            if (brandLogoFile) {
+                brandLogo = await fileToDataURL(brandLogoFile);
+            } else if (brandLogoUrl) {
+                brandLogo = brandLogoUrl;
+            }
+
+            if (seriesLogoFile) {
+                seriesLogo = await fileToDataURL(seriesLogoFile);
+            } else if (seriesLogoUrl) {
+                seriesLogo = seriesLogoUrl;
+            }
+
+            const record = {
+                id: id,
+                name: document.getElementById("name").value.trim(),
+                brand: document.getElementById("brand").value.trim(),
+                brandLogo: brandLogo,
+                series: document.getElementById("series").value.trim(),
+                seriesLogo: seriesLogo,
+                itemCode: document.getElementById("itemCode").value.trim(),
+                price: document.getElementById("price").value,
+                date: document.getElementById("date").value,
+                status: document.getElementById("status").value,
+                category: document.getElementById("category").value.trim() || "其他",
+                location: document.getElementById("location").value.trim(),
+                sourceLink: document.getElementById("sourceLink").value.trim(),
+                note: document.getElementById("note").value.trim(),
+                image: image
+            };
+
+            if (old) {
+                items = items.map(item => item.id === id ? record : item);
+            } else {
+                items.unshift(record);
+            }
+
+            save();
+            clearForm();
+            document.getElementById("backupStatus").textContent = "已儲存到 V8.9";
+            render();
+            showPage("pageCollection");
+        }
+
+        function clearForm() {
+            [
+                "name", "brand", "series", "itemCode", "price", "date", "category", "location",
+                "sourceLink", "note", "brandLogoUrl", "seriesLogoUrl", "photo", "photoLibrary",
+                "brandLogoFile", "seriesLogoFile"
+            ].forEach(id => {
+                const el = document.getElementById(id);
+                if (el) {
+                    el.value = "";
+                }
+            });
+
+            document.getElementById("status").value = "未開封";
+            delete document.getElementById("saveBtn").dataset.editing;
+        }
+
+        window.editItem = function (id) {
+            const item = items.find(x => x.id === id);
+
+            if (!item) {
+                return;
+            }
+
+            document.getElementById("name").value = item.name || "";
+            document.getElementById("brand").value = item.brand || "";
+            document.getElementById("brandLogoUrl").value = item.brandLogo || "";
+            document.getElementById("series").value = item.series || "";
+            document.getElementById("seriesLogoUrl").value = item.seriesLogo || "";
+            document.getElementById("itemCode").value = item.itemCode || "";
+            document.getElementById("price").value = item.price || "";
+            document.getElementById("date").value = item.date || "";
+            document.getElementById("status").value = item.status || "未開封";
+            document.getElementById("category").value = item.category || "";
+            document.getElementById("location").value = item.location || "";
+            document.getElementById("sourceLink").value = item.sourceLink || "";
+            document.getElementById("note").value = item.note || "";
+            document.getElementById("saveBtn").dataset.editing = id;
+
+            showPage("pageAdd");
+        };
+
+        window.deleteItem = function (id) {
+            if (!confirm("確定刪除呢件收藏？")) {
+                return;
+            }
+
+            items = items.filter(item => item.id !== id);
+            save();
+            render();
+        };
+
+        async function addBrandLibrary() {
+            const name = document.getElementById("brand").value.trim();
+            const url = document.getElementById("brandLogoUrl").value.trim();
+            const file = document.getElementById("brandLogoFile").files[0];
+
+            if (!name || (!url && !file)) {
+                alert("先填品牌名稱同 logo");
+                return;
+            }
+
+            const logo = file ? await fileToDataURL(file) : url;
+            brandLibrary = brandLibrary.filter(item => item.name !== name);
+            brandLibrary.unshift({ name, logo });
+
+            save();
+            renderPresetPickers();
+            renderLogoManagers();
+            document.getElementById("backupStatus").textContent = "已加入品牌 Logo 庫";
+        }
+
+        async function addSeriesLibrary() {
+            const name = document.getElementById("series").value.trim();
+            const url = document.getElementById("seriesLogoUrl").value.trim();
+            const file = document.getElementById("seriesLogoFile").files[0];
+
+            if (!name || (!url && !file)) {
+                alert("先填系列名稱同 logo");
+                return;
+            }
+
+            const logo = file ? await fileToDataURL(file) : url;
+            seriesLibrary = seriesLibrary.filter(item => item.name !== name);
+            seriesLibrary.unshift({ name, logo });
+
+            save();
+            renderPresetPickers();
+            renderLogoManagers();
+            document.getElementById("backupStatus").textContent = "已加入系列 Logo 庫";
+        }
+
+        function renderLogoManagers() {
+            const brandWrap = document.getElementById("brandLibraryManager");
+            const seriesWrap = document.getElementById("seriesLibraryManager");
+
+            document.getElementById("brandLibCount").textContent = brandLibrary.length + " 個";
+            document.getElementById("seriesLibCount").textContent = seriesLibrary.length + " 個";
+
+            if (!brandLibrary.length) {
+                brandWrap.innerHTML = '<div class="empty">未有品牌 Logo。</div>';
+            } else {
+                brandWrap.innerHTML = brandLibrary.map((item, index) => `
+                    <div class="libraryItem">
+                        <div class="libraryLeft">
+                            <span class="logoBox"><img src="${item.logo}" alt=""></span>
+                            <span>${item.name}</span>
+                        </div>
+                        <button class="btn2" style="flex:0 0 auto" onclick="deleteBrandLogo(${index})">刪除</button>
+                    </div>
+                `).join("");
+            }
+
+            if (!seriesLibrary.length) {
+                seriesWrap.innerHTML = '<div class="empty">未有系列 Logo。</div>';
+            } else {
+                seriesWrap.innerHTML = seriesLibrary.map((item, index) => `
+                    <div class="libraryItem">
+                        <div class="libraryLeft">
+                            <span class="logoBox"><img src="${item.logo}" alt=""></span>
+                            <span>${item.name}</span>
+                        </div>
+                        <button class="btn2" style="flex:0 0 auto" onclick="deleteSeriesLogo(${index})">刪除</button>
+                    </div>
+                `).join("");
+            }
+        }
+
+        window.deleteBrandLogo = function (index) {
+            const item = brandLibrary[index];
+
+            if (!item) {
+                return;
+            }
+
+            if (!confirm("確定刪除品牌 Logo：" + item.name + "？")) {
+                return;
+            }
+
+            brandLibrary.splice(index, 1);
+            save();
+            renderPresetPickers();
+            renderLogoManagers();
+            document.getElementById("backupStatus").textContent = "已刪除品牌 Logo";
+        };
+
+        window.deleteSeriesLogo = function (index) {
+            const item = seriesLibrary[index];
+
+            if (!item) {
+                return;
+            }
+
+            if (!confirm("確定刪除系列 Logo：" + item.name + "？")) {
+                return;
+            }
+
+            seriesLibrary.splice(index, 1);
+            save();
+            renderPresetPickers();
+            renderLogoManagers();
+            document.getElementById("backupStatus").textContent = "已刪除系列 Logo";
+        };
+
+        function exportBackup() {
+            const payload = {
+                app: "Figure Collector V8.9 Readable",
+                version: 1,
+                exported_at: new Date().toISOString(),
+                items: items,
+                brandLibrary: brandLibrary,
+                seriesLibrary: seriesLibrary
+            };
+
+            const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
+            const a = document.createElement("a");
+            a.href = URL.createObjectURL(blob);
+            a.download = "figure_collector_v89_readable_backup.json";
+            a.click();
+            URL.revokeObjectURL(a.href);
+
+            document.getElementById("backupStatus").textContent = "已匯出 JSON（含 Logo 庫）";
+        }
+
+        function importBackup(file) {
+            const reader = new FileReader();
+
+            reader.onload = function () {
+                try {
+                    const parsed = JSON.parse(reader.result);
+                    const imported = Array.isArray(parsed) ? parsed : (parsed.items || []);
+
+                    if (!Array.isArray(imported)) {
+                        throw new Error("invalid");
+                    }
+
+                    items = imported.map(normalizeRecord).filter(Boolean);
+                    brandLibrary = Array.isArray(parsed.brandLibrary) ? parsed.brandLibrary : [];
+                    seriesLibrary = Array.isArray(parsed.seriesLibrary) ? parsed.seriesLibrary : [];
+
+                    save();
+                    renderPresetPickers();
+                    render();
+                    document.getElementById("backupStatus").textContent = "已匯入 JSON（含 Logo 庫）";
+                    showPage("pageCollection");
+                } catch (e) {
+                    document.getElementById("backupStatus").textContent = "匯入失敗：檔案格式不正確";
+                }
+            };
+
+            reader.readAsText(file, "utf-8");
+        }
+
+        document.getElementById("saveBtn").onclick = saveRecord;
+        document.getElementById("saveBrandLibBtn").onclick = addBrandLibrary;
+        document.getElementById("saveSeriesLibBtn").onclick = addSeriesLibrary;
+        document.getElementById("exportBtn").onclick = exportBackup;
+        document.getElementById("importBtn").onclick = function () {
+            document.getElementById("importFile").click();
+        };
+        document.getElementById("importFile").onchange = function (e) {
+            const file = e.target.files[0];
+
+            if (file) {
+                importBackup(file);
+            }
+        };
+        document.getElementById("clearBtn").onclick = function () {
+            if (!confirm("確定清空全部收藏資料同 Logo 庫？")) {
+                return;
+            }
+
+            items = [];
+            brandLibrary = [...BRAND_DEFAULTS];
+            seriesLibrary = [...SERIES_DEFAULTS];
+            save();
+            renderPresetPickers();
+            render();
+            document.getElementById("backupStatus").textContent = "已清空資料";
+        };
+
+        function render() {
+            refreshCategories();
+            renderTop();
+            renderList();
+            renderLogoManagers();
+            renderStats();
+        }
+
+        loadData();
+        renderPresetPickers();
+        render();
+    </script>
+</body>
+</html>
