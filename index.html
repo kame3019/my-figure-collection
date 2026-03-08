@@ -1,11 +1,11 @@
 from pathlib import Path
 
-html = """<!DOCTYPE html>
+html = r"""<!DOCTYPE html>
 <html lang="zh-Hant">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-  <title>My Figure Collection - 排序篩選版</title>
+  <title>My Figure Collection v4.1</title>
   <meta name="theme-color" content="#f6f1e8" />
   <style>
     :root{
@@ -18,90 +18,54 @@ html = """<!DOCTYPE html>
       --soft2:#faf6ef;
       --accent:#7f6a52;
       --accent2:#c9b79d;
+      --dark:#111;
       --radius:22px;
     }
     *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-    body{
-      margin:0;
-      background:radial-gradient(circle at top, #fbf8f2 0%, #f6f1e8 45%, #f2ebdf 100%);
-      color:var(--ink);
-      font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans","Yu Gothic","SF Pro Text","Noto Sans JP","PingFang TC",sans-serif;
-    }
-    .app{max-width:500px;margin:0 auto;min-height:100vh;padding:max(18px, env(safe-area-inset-top)) 16px max(28px, env(safe-area-inset-bottom));}
-    .hero{
-      background:rgba(255,253,248,.75);
-      border:1px solid rgba(232,223,209,.9);
-      border-radius:28px;
-      padding:20px 18px 18px;
-      margin-bottom:16px;
-      box-shadow:0 10px 30px rgba(90,70,40,.06);
-    }
+    body{margin:0;background:radial-gradient(circle at top,#fbf8f2 0%,#f6f1e8 45%,#f2ebdf 100%);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans","Yu Gothic","SF Pro Text","Noto Sans JP","PingFang TC",sans-serif;}
+    .app{max-width:520px;margin:0 auto;min-height:100vh;padding:max(18px, env(safe-area-inset-top)) 16px max(110px, env(safe-area-inset-bottom));}
+    .hero{background:rgba(255,253,248,.8);border:1px solid rgba(232,223,209,.95);border-radius:28px;padding:20px 18px 18px;margin-bottom:16px;box-shadow:0 10px 30px rgba(90,70,40,.06);}
     .eyebrow{color:var(--muted);font-size:12px;letter-spacing:.14em;margin-bottom:8px}
     h1{margin:0 0 6px;font-size:30px;letter-spacing:-.04em}
     .sub{margin:0;color:var(--muted);font-size:13px;line-height:1.55}
-    .collectionToggle{
-      display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:14px 0 12px;
-      background:var(--soft2);padding:6px;border-radius:18px;border:1px solid var(--line);
-    }
-    .toggleBtn{
-      border:none;background:transparent;color:var(--muted);padding:12px 10px;border-radius:14px;
-      font-size:14px;font-weight:700;cursor:pointer;
-    }
-    .toggleBtn.active{background:#111;color:#fff}
-    .tabs{
-      position:fixed;left:0;right:0;bottom:0;background:rgba(249,246,240,.94);backdrop-filter:blur(10px);
-      border-top:1px solid var(--line);display:grid;grid-template-columns:1fr 1fr 1fr;z-index:50;
-      padding:10px 10px calc(10px + env(safe-area-inset-bottom));
-    }
-    .tab{
-      border:none;background:transparent;color:var(--muted);padding:8px 6px;border-radius:16px;
-      font-size:12px;font-weight:700;display:grid;gap:4px;justify-items:center;
-    }
-    .tab .ico{font-size:22px;line-height:1}
-    .tab.active{color:var(--ink)}
-    .page{display:none;padding-bottom:94px}
+    .page{display:none;padding-bottom:8px}
     .page.show{display:block}
-    .section,.stat,.item,.modeBtn,.monthCard,.barRow,.filterPanel{
+    .section,.stat,.item,.modeBtn,.monthCard,.barRow,.sheetPanel,.rankingRow{
       background:var(--paper);border:1px solid var(--line);border-radius:var(--radius);box-shadow:0 8px 24px rgba(90,70,40,.04);
     }
     .stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:0 0 14px}
     .stat{padding:14px 12px}
     .k{font-size:11px;color:var(--muted);margin-bottom:7px}
     .v{font-size:19px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-    .search,.field{
-      background:var(--paper);border:1px solid var(--line);border-radius:16px;padding:12px 13px;
-    }
+    .toggle{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:14px 0 12px;background:var(--soft2);padding:6px;border-radius:18px;border:1px solid var(--line);}
+    .toggleBtn,.tab{border:none;background:transparent;color:var(--muted);padding:12px 10px;border-radius:14px;font-size:14px;font-weight:700;cursor:pointer}
+    .toggleBtn.active{background:var(--dark);color:#fff}
+    .search,.field{background:var(--paper);border:1px solid var(--line);border-radius:16px;padding:12px 13px;}
     .search{margin-bottom:10px}
-    .search input,.field input,.field textarea,.field select{
-      width:100%;border:none;outline:none;background:transparent;color:var(--ink);font:inherit;
-    }
-    .quickBar{display:flex;gap:10px;margin-bottom:14px}
-    .quickBtn,.primaryBtn,.ghostBtn,.modeBtn{
-      border-radius:15px;padding:12px 12px;font-size:13px;font-weight:700;cursor:pointer;
-    }
-    .quickBtn,.modeBtn,.ghostBtn{
-      background:var(--soft2);border:1px solid var(--line);color:var(--ink);
-    }
-    .quickBtn{flex:1}
-    .primaryBtn{background:var(--ink);color:#fff;border:none;width:100%;padding:14px 15px;font-size:14px}
-    .ghostBtn{width:100%}
+    .search input,.field input,.field textarea,.field select{width:100%;border:none;outline:none;background:transparent;color:var(--ink);font:inherit;}
+    .quickBar,.modes,.twoCol{display:flex;gap:10px;margin-bottom:14px}
+    .quickBtn,.modeBtn,.ghostBtn,.primaryBtn,.minorBtn{border-radius:15px;padding:12px 12px;font-size:13px;font-weight:700;cursor:pointer;border:1px solid var(--line);}
+    .quickBtn,.modeBtn,.ghostBtn,.minorBtn{background:var(--soft2);color:var(--ink)}
+    .quickBtn,.modeBtn{flex:1}
     .modeBtn.active,.quickBtn.active{background:var(--soft);border-color:var(--accent2)}
-    .modes,.twoCol{display:flex;gap:10px;margin-bottom:14px}
+    .primaryBtn{background:var(--dark);color:#fff;border:none;width:100%;padding:14px 15px;font-size:14px}
+    .minorBtn{padding:10px 12px;font-size:12px}
     .head{display:flex;justify-content:space-between;align-items:end;margin:14px 0 10px}
     .head h2{margin:0;font-size:18px}
     .small{font-size:12px;color:var(--muted)}
     .list{display:grid;gap:12px}
     .list.grid{grid-template-columns:1fr 1fr}
+    .list.wall{grid-template-columns:1fr 1fr 1fr}
     .list.listview,.list.compact{grid-template-columns:1fr}
     .item{overflow:hidden}
-    .thumb{
-      height:180px;background:#e9dfcf center/contain no-repeat;
-      display:flex;align-items:center;justify-content:center;color:#9b907f;position:relative;font-size:14px;
-    }
+    .thumb{height:180px;background:#e9dfcf center/contain no-repeat;display:flex;align-items:center;justify-content:center;color:#9b907f;position:relative;font-size:14px;}
+    .list.wall .thumb{height:96px}
+    .list.listview .item{display:flex;align-items:stretch}
+    .list.listview .thumb{width:120px;height:auto;min-height:120px;flex:0 0 120px}
     .pill{position:absolute;padding:7px 11px;border-radius:999px;font-size:12px;font-weight:700}
     .price{left:12px;bottom:12px;background:rgba(255,253,248,.92);border:1px solid rgba(255,253,248,.95)}
     .status{right:12px;top:12px;background:rgba(44,41,37,.86);color:#fff}
-    .body{padding:14px}
+    .body{padding:14px;flex:1}
     .name{font-size:18px;font-weight:700;margin-bottom:5px}
     .meta{font-size:13px;line-height:1.5;color:var(--muted);margin-bottom:10px}
     .chips{display:flex;flex-wrap:wrap;gap:7px;margin-bottom:10px}
@@ -109,25 +73,25 @@ html = """<!DOCTYPE html>
     .note{font-size:13px;line-height:1.55;color:#4b463f;margin-bottom:12px;word-break:break-word}
     .actions{display:flex;gap:8px;flex-wrap:wrap}
     .btn2{flex:1;border:none;background:var(--soft);border-radius:12px;padding:10px 12px;font-size:13px;font-weight:700;color:var(--ink);cursor:pointer}
-    .item.compactCard{display:flex;align-items:center;gap:12px;padding:12px}
-    .item.compactCard .thumb{width:88px;height:88px;flex:0 0 88px;border-radius:16px}
-    .item.compactCard .body{padding:0;flex:1}
-    .item.compactCard .pill,.item.compactCard .actions,.item.compactCard .note{display:none}
-    .item.compactCard .meta{margin-bottom:8px}
+    .list.compact .item{display:flex;align-items:center;gap:12px;padding:12px}
+    .list.compact .thumb{width:88px;height:88px;flex:0 0 88px;border-radius:16px}
+    .list.compact .body{padding:0;flex:1}
+    .list.compact .pill,.list.compact .actions,.list.compact .note{display:none}
+    .list.compact .meta{margin-bottom:8px}
+    .list.wall .body{padding:10px}
+    .list.wall .name{font-size:14px;line-height:1.2}
+    .list.wall .meta,.list.wall .actions,.list.wall .note{display:none}
+    .list.wall .chips{margin-bottom:0}
     .panel{padding:14px}
     .panelTitle{font-size:15px;font-weight:700;margin:0 0 10px}
     .form{display:grid;gap:10px}
     .row2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
     textarea{min-height:84px;resize:vertical}
-    .analysisBox{
-      background:var(--soft2);border:1px dashed var(--accent2);border-radius:18px;padding:14px;margin-bottom:12px;
-    }
-    .analysisResult{
-      background:#fff;border:1px solid var(--line);border-radius:16px;padding:12px;margin-top:10px;
-      display:grid;gap:8px
-    }
+    .analysisBox{background:var(--soft2);border:1px dashed var(--accent2);border-radius:18px;padding:14px;margin-bottom:12px;}
+    .analysisResult{background:#fff;border:1px solid var(--line);border-radius:16px;padding:12px;margin-top:10px;display:grid;gap:8px}
     .analysisTag{font-size:12px;color:var(--muted)}
-    .months,.barList{display:grid;gap:12px}
+    .helperText{font-size:12px;color:var(--muted);line-height:1.55}
+    .months,.barList,.rankingList{display:grid;gap:12px}
     .chartCard{padding:16px}
     .chartWrap{display:flex;align-items:center;justify-content:center;gap:16px;flex-wrap:wrap}
     .donutWrap{position:relative;width:220px;height:220px}
@@ -151,40 +115,44 @@ html = """<!DOCTYPE html>
     .monthName{font-weight:700;font-size:15px}
     .monthAmount{font-weight:700;font-size:16px}
     .monthMeta{font-size:12px;color:var(--muted)}
+    .rankingRow{padding:12px 14px;display:flex;justify-content:space-between;align-items:center}
+    .rankLeft{display:flex;gap:12px;align-items:center}
+    .rankNo{width:28px;height:28px;border-radius:999px;background:var(--soft);display:flex;align-items:center;justify-content:center;font-weight:700}
+    .rankName{font-weight:700}
     .empty{padding:40px 18px;text-align:center;color:var(--muted);background:var(--paper);border:1px dashed var(--line);border-radius:18px}
-    .sheet{
-      position:fixed;left:0;right:0;bottom:0;z-index:60;display:none;
-      background:rgba(0,0,0,.25);
-      padding:24px 12px calc(96px + env(safe-area-inset-bottom));
-    }
+    .sheet{position:fixed;left:0;right:0;bottom:0;z-index:60;display:none;background:rgba(0,0,0,.25);padding:24px 12px calc(96px + env(safe-area-inset-bottom));}
     .sheet.show{display:block}
-    .filterPanel{padding:16px;max-width:500px;margin:0 auto}
+    .sheetPanel{padding:16px;max-width:500px;margin:0 auto}
     .sheetHead{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
     .sheetTitle{font-size:18px;font-weight:700}
-    .closeBtn{border:none;background:var(--soft);border-radius:12px;padding:10px 12px;font-weight:700}
+    .closeBtn{border:none;background:var(--soft);border-radius:12px;padding:10px 12px;font-weight:700;cursor:pointer}
     .sheetGrid{display:grid;gap:10px}
-    @media (max-width:430px){.list.grid{grid-template-columns:1fr}}
-    @media (max-width:390px){.row2,.stats,.modes,.twoCol,.quickBar{display:grid;grid-template-columns:1fr}}
+    .tabs{position:fixed;left:0;right:0;bottom:0;background:rgba(249,246,240,.94);backdrop-filter:blur(10px);border-top:1px solid var(--line);display:grid;grid-template-columns:1fr 1fr 1fr;z-index:50;padding:10px 10px calc(10px + env(safe-area-inset-bottom));}
+    .tab{font-size:12px;display:grid;gap:4px;justify-items:center}
+    .tab .ico{font-size:22px;line-height:1}
+    .tab.active{color:var(--ink)}
+    @media (max-width:430px){.list.grid{grid-template-columns:1fr}.list.wall{grid-template-columns:1fr 1fr}}
+    @media (max-width:390px){.row2,.stats,.modes,.twoCol,.quickBar{display:grid;grid-template-columns:1fr}.list.wall{grid-template-columns:1fr 1fr}}
   </style>
 </head>
 <body>
   <div class="app">
     <div class="hero">
-      <div class="eyebrow">COLLECTOR APP</div>
+      <div class="eyebrow">COLLECTOR APP V4.1</div>
       <h1>My Figure Collection</h1>
-      <p class="sub">加咗排序 + 篩選彈出選單，展示頁更似 app。</p>
+      <p class="sub">網址強化分析版：識別常見平台，網址只有編號都會提示你手動補商品名。</p>
     </div>
 
     <section class="page show" id="pageCollection">
-      <div class="collectionToggle">
+      <div class="toggle">
         <button class="toggleBtn active" data-collection-view="owned">📦 已在庫存</button>
         <button class="toggleBtn" data-collection-view="wishlist">🖤 願望清單</button>
       </div>
 
       <div class="stats">
         <div class="stat"><div class="k">收藏數量</div><div class="v" id="countAll">0</div></div>
-        <div class="stat"><div class="k">未開封</div><div class="v" id="countSealed">0</div></div>
-        <div class="stat"><div class="k">總花費 HKD</div><div class="v" id="sumPrice">$0</div></div>
+        <div class="stat"><div class="k">總花費</div><div class="v" id="sumPrice">$0</div></div>
+        <div class="stat"><div class="k">最貴收藏</div><div class="v" id="topPrice">$0</div></div>
       </div>
 
       <div class="search"><input id="searchInput" placeholder="搜尋模型、分類、系列…" /></div>
@@ -198,6 +166,7 @@ html = """<!DOCTYPE html>
         <button class="modeBtn active" data-mode="grid">網格</button>
         <button class="modeBtn" data-mode="listview">列表</button>
         <button class="modeBtn" data-mode="compact">卡片</button>
+        <button class="modeBtn" data-mode="wall">收藏牆</button>
       </div>
 
       <div class="head">
@@ -210,13 +179,13 @@ html = """<!DOCTYPE html>
     <section class="page" id="pageAdd">
       <div class="analysisBox">
         <div class="panelTitle">半自動產品分析</div>
-        <div class="analysisTag">可貼淘寶分享文案、商品連結、Amazon 連結。會先幫你拆出名稱 / 平台 / link，再由你確認。</div>
+        <div class="analysisTag">可貼淘寶分享文案、商品連結、Amazon / Tamashii Web / Premium Bandai / Mercari 連結。會先幫你拆出平台、網址、品牌提示，再由你確認。</div>
         <div class="field" style="margin-top:10px">
           <textarea id="sourceText" placeholder="貼上產品分享文案或網址"></textarea>
         </div>
         <div class="twoCol" style="margin-top:10px">
           <button class="primaryBtn" id="analyzeBtn" style="margin:0">開始分析</button>
-          <button class="ghostBtn" id="fillBtn" style="margin:0">套用到新增表格</button>
+          <button class="ghostBtn" id="fillBtn" style="margin:0">套用到表格</button>
         </div>
         <div class="analysisResult" id="analysisResult">
           <div class="analysisTag">分析結果會顯示喺度</div>
@@ -263,6 +232,12 @@ html = """<!DOCTYPE html>
     </section>
 
     <section class="page" id="pageStats">
+      <div class="stats">
+        <div class="stat"><div class="k">已收藏總值</div><div class="v" id="statsTotal">$0</div></div>
+        <div class="stat"><div class="k">最貴收藏</div><div class="v" id="statsTop">$0</div></div>
+        <div class="stat"><div class="k">願望清單數</div><div class="v" id="wishlistCount">0</div></div>
+      </div>
+
       <div class="section chartCard">
         <div class="head" style="margin-top:0">
           <h2>每月花費圓型圖</h2>
@@ -289,6 +264,12 @@ html = """<!DOCTYPE html>
       </div>
 
       <div class="head">
+        <h2>最貴收藏排行榜</h2>
+        <div class="small">Top 5</div>
+      </div>
+      <div class="rankingList" id="rankingList"></div>
+
+      <div class="head">
         <h2>每月統計</h2>
         <div class="small">睇返每個月用咗幾多</div>
       </div>
@@ -297,17 +278,13 @@ html = """<!DOCTYPE html>
   </div>
 
   <div class="sheet" id="filterSheet">
-    <div class="filterPanel">
+    <div class="sheetPanel">
       <div class="sheetHead">
         <div class="sheetTitle">篩選</div>
         <button class="closeBtn" data-close-sheet="filterSheet">關閉</button>
       </div>
       <div class="sheetGrid">
-        <div class="field">
-          <select id="categoryFilter">
-            <option value="">全部分類</option>
-          </select>
-        </div>
+        <div class="field"><select id="categoryFilter"><option value="">全部分類</option></select></div>
         <div class="field">
           <select id="statusFilter">
             <option value="">全部狀態</option>
@@ -325,7 +302,7 @@ html = """<!DOCTYPE html>
   </div>
 
   <div class="sheet" id="sortSheet">
-    <div class="filterPanel">
+    <div class="sheetPanel">
       <div class="sheetHead">
         <div class="sheetTitle">排序</div>
         <button class="closeBtn" data-close-sheet="sortSheet">關閉</button>
@@ -347,13 +324,13 @@ html = """<!DOCTYPE html>
   </div>
 
   <nav class="tabs">
-    <button class="tab active" data-page="collection"><span class="ico">🗂️</span><span>我的收藏</span></button>
+    <button class="tab active" data-page="collection"><span class="ico">🗂️</span><span>收藏</span></button>
     <button class="tab" data-page="add"><span class="ico">➕</span><span>新增</span></button>
     <button class="tab" data-page="stats"><span class="ico">📊</span><span>統計</span></button>
   </nav>
 
 <script>
-const STORAGE_KEY = 'my_figure_collection_sort_filter_v1';
+const STORAGE_KEY = 'my_figure_collection_v41';
 const DEFAULT_CATEGORIES = ['高達','幪面超人','Chiikawa','其他'];
 const DONUT_COLORS = ['#c8b79f','#b49f87','#dfd3c2','#9f8a74','#eadfce','#8c7967'];
 
@@ -376,6 +353,7 @@ const itemForm = document.getElementById('itemForm');
 const months = document.getElementById('months');
 const legend = document.getElementById('legend');
 const categoryBars = document.getElementById('categoryBars');
+const rankingList = document.getElementById('rankingList');
 const donutCanvas = document.getElementById('donutChart');
 const analyzeBtn = document.getElementById('analyzeBtn');
 const fillBtn = document.getElementById('fillBtn');
@@ -410,7 +388,6 @@ toggleBtns.forEach(btn => btn.addEventListener('click', ()=>{
   renderCollectionView();
   renderList();
 }));
-
 function renderCollectionView(){
   toggleBtns.forEach(btn => btn.classList.toggle('active', btn.dataset.collectionView === collectionView));
   collectionTitle.textContent = collectionView === 'owned' ? '我的收藏' : '願望清單';
@@ -422,20 +399,13 @@ document.querySelectorAll('[data-close-sheet]').forEach(btn=>{
   btn.addEventListener('click', ()=> document.getElementById(btn.dataset.closeSheet).classList.remove('show'));
 });
 document.getElementById('applyFilterBtn').addEventListener('click', ()=>{
-  filterSheet.classList.remove('show');
-  renderList();
+  filterSheet.classList.remove('show'); renderList();
 });
 document.getElementById('resetFilterBtn').addEventListener('click', ()=>{
-  categoryFilter.value = '';
-  statusFilter.value = '';
-  filterSheet.classList.remove('show');
-  renderList();
+  categoryFilter.value=''; statusFilter.value=''; filterSheet.classList.remove('show'); renderList();
 });
 document.getElementById('applySortBtn').addEventListener('click', ()=>{
-  sortMode = sortSelect.value;
-  saveSort();
-  sortSheet.classList.remove('show');
-  renderList();
+  sortMode = sortSelect.value; saveSort(); sortSheet.classList.remove('show'); renderList();
 });
 
 function allCategories(){
@@ -459,11 +429,17 @@ function toDataURL(file){
     reader.readAsDataURL(file);
   });
 }
+function ownedItems(){ return items.filter(x => x.status !== '願望清單'); }
 function renderTopStats(){
-  const ownedItems = items.filter(x => x.status !== '願望清單');
-  document.getElementById('countAll').textContent = ownedItems.length;
-  document.getElementById('countSealed').textContent = ownedItems.filter(x => x.status === '未開封').length;
-  document.getElementById('sumPrice').textContent = money(ownedItems.reduce((a,b)=> a + Number(b.price || 0), 0));
+  const owned = ownedItems();
+  const total = owned.reduce((a,b)=> a + Number(b.price || 0), 0);
+  const max = owned.reduce((m,i)=> Math.max(m, Number(i.price || 0)), 0);
+  document.getElementById('countAll').textContent = owned.length;
+  document.getElementById('sumPrice').textContent = money(total);
+  document.getElementById('topPrice').textContent = money(max);
+  document.getElementById('statsTotal').textContent = money(total);
+  document.getElementById('statsTop').textContent = money(max);
+  document.getElementById('wishlistCount').textContent = items.filter(x=>x.status==='願望清單').length;
 }
 function sortItems(arr){
   return arr.sort((a,b)=>{
@@ -494,12 +470,11 @@ function renderModeButtons(){
   list.className = 'list ' + displayMode;
 }
 function itemHTML(item){
-  const compact = displayMode === 'compact';
+  const pricePill = item.status === '願望清單' && !item.price ? '' : `<div class="pill price">${money(item.price)}</div>`;
   const soldInfo = item.sellPrice ? `<span class="chip">售出 ${money(item.sellPrice)}</span>` : '';
   const linkInfo = item.sourceLink ? `<span class="chip">來源</span>` : '';
-  const pricePill = item.status === '願望清單' && !item.price ? '' : `<div class="pill price">${money(item.price)}</div>`;
   return `
-    <div class="item ${compact ? 'compactCard' : ''}">
+    <div class="item">
       <div class="thumb" style="${item.image ? `background-image:url('${item.image}')` : ''}">
         ${item.image ? '' : '模型圖片'}
         ${pricePill}
@@ -540,12 +515,11 @@ function monthKey(dateStr){
   return dateStr.slice(0,7);
 }
 function monthLabel(key){
-  const p = key.split('-');
-  return `${p[0]}年${Number(p[1])}月`;
+  const p = key.split('-'); return `${p[0]}年${Number(p[1])}月`;
 }
 function getMonthMap(){
   const map = {};
-  items.filter(x => x.status !== '願望清單').forEach(item=>{
+  ownedItems().forEach(item=>{
     const key = monthKey(item.date);
     if(!key) return;
     if(!map[key]) map[key] = {total:0,count:0};
@@ -562,8 +536,7 @@ function drawDonut(values){
   document.getElementById('donutTotal').textContent = money(total);
   if(!total){
     ctx.beginPath(); ctx.arc(center, center, radius, 0, Math.PI*2);
-    ctx.strokeStyle = '#ece5d9'; ctx.lineWidth = lineWidth; ctx.stroke();
-    return;
+    ctx.strokeStyle = '#ece5d9'; ctx.lineWidth = lineWidth; ctx.stroke(); return;
   }
   let start = -Math.PI/2;
   values.forEach((item, idx)=>{
@@ -583,6 +556,22 @@ function renderBars(target, rows, labelFn){
     </div>
   `).join('');
 }
+function renderRanking(){
+  const ranked = [...ownedItems()].sort((a,b)=> Number(b.price||0)-Number(a.price||0)).slice(0,5);
+  if(!ranked.length){ rankingList.innerHTML = `<div class="empty">未有排行榜資料。</div>`; return; }
+  rankingList.innerHTML = ranked.map((item, idx)=>`
+    <div class="rankingRow">
+      <div class="rankLeft">
+        <div class="rankNo">${idx+1}</div>
+        <div>
+          <div class="rankName">${esc(item.name || '')}</div>
+          <div class="small">${esc(item.category || '其他')}</div>
+        </div>
+      </div>
+      <div class="rankName">${money(item.price)}</div>
+    </div>
+  `).join('');
+}
 function renderStatsPage(){
   const map = getMonthMap();
   const keys = Object.keys(map).sort((a,b)=> b.localeCompare(a));
@@ -591,6 +580,7 @@ function renderStatsPage(){
     legend.innerHTML = `<div class="empty">未有數據。</div>`;
     renderBars(categoryBars, [], r => r.key);
     drawDonut([]);
+    renderRanking();
     return;
   }
   const values = keys.map((key, idx)=>({key, value: map[key].total, count: map[key].count, color: DONUT_COLORS[idx % DONUT_COLORS.length]}));
@@ -610,37 +600,29 @@ function renderStatsPage(){
     </div>
   `).join('');
   drawDonut(values);
-
   const catMap = {};
-  items.filter(x => x.status !== '願望清單').forEach(item=>{
+  ownedItems().forEach(item=>{
     const cat = item.category || '其他';
     if(!catMap[cat]) catMap[cat] = 0;
     catMap[cat] += Number(item.price || 0);
   });
   const catRows = Object.entries(catMap).map(([key,value])=>({key,value})).sort((a,b)=> b.value-a.value);
   renderBars(categoryBars, catRows, r=>r.key);
+  renderRanking();
 }
-function render(){
-  refreshSelectors();
-  renderCollectionView();
-  renderTopStats();
-  renderList();
-  renderStatsPage();
-}
-modeButtons.forEach(btn => btn.addEventListener('click', ()=>{
-  displayMode = btn.dataset.mode;
-  saveMode();
-  renderList();
-}));
-searchInput.addEventListener('input', renderList);
 
-function detectPlatform(text){
-  const t = text.toLowerCase();
-  if(t.includes('taobao') || t.includes('淘寶') || t.includes('e.tb.cn') || t.includes('tb.cn')) return '淘寶';
-  if(t.includes('amazon')) return 'Amazon';
-  if(t.includes('1688')) return '1688';
-  if(t.includes('mercari')) return 'Mercari';
-  return '其他';
+function detectPlatform(raw){
+  const text = raw.toLowerCase();
+  let platform = '其他';
+  let brand = '';
+  if(text.includes('e.tb.cn') || text.includes('tb.cn') || text.includes('taobao') || text.includes('淘寶')){ platform='淘寶'; brand='淘寶'; }
+  else if(text.includes('amazon')){ platform='Amazon'; brand='Amazon'; }
+  else if(text.includes('1688')){ platform='1688'; brand='1688'; }
+  else if(text.includes('mercari')){ platform='Mercari'; brand='Mercari'; }
+  else if(text.includes('tamashiiweb.com') || text.includes('tamashii web')){ platform='Tamashii Web'; brand='Tamashii Nations'; }
+  else if(text.includes('p-bandai') || text.includes('premiumbandai') || text.includes('p-bandai.jp')){ platform='Premium Bandai'; brand='Bandai'; }
+  else if(text.includes('bandai')){ platform='Bandai'; brand='Bandai'; }
+  return {platform, brand};
 }
 function extractLink(text){
   const match = text.match(/https?:\/\/[^\s]+|e\.tb\.cn\/[^\s]+|tb\.cn\/[^\s]+/i);
@@ -649,55 +631,86 @@ function extractLink(text){
   if(!link.startsWith('http')) link = 'https://' + link;
   return link;
 }
-function extractTitle(text){
-  let cleaned = text.replace(/https?:\/\/[^\s]+/g,' ')
-                    .replace(/e\.tb\.cn\/[^\s]+/g,' ')
-                    .replace(/tb\.cn\/[^\s]+/g,' ')
-                    .replace(/tk=[^\s]+/gi,' ')
-                    .replace(/[【】\[\]]/g,' ')
-                    .replace(/点击链接.*$/gmi,' ')
-                    .replace(/或者.*$/gmi,' ')
-                    .replace(/复制.*$/gmi,' ')
-                    .replace(/打开.*$/gmi,' ')
-                    .replace(/￥\s*\d+(\.\d+)?/g,' ')
-                    .replace(/\s+/g,' ')
-                    .trim();
-  if(!cleaned) return '';
-  if(cleaned.length > 80) cleaned = cleaned.slice(0,80).trim();
-  return cleaned;
+function extractDomain(url){
+  try{
+    const u = new URL(url);
+    return u.hostname.replace(/^www\./,'');
+  }catch(e){
+    return '';
+  }
+}
+function extractTitle(raw, link){
+  let cleaned = raw.replace(/https?:\/\/[^\s]+/g,' ')
+                   .replace(/e\.tb\.cn\/[^\s]+/g,' ')
+                   .replace(/tb\.cn\/[^\s]+/g,' ')
+                   .replace(/tk=[^\s]+/gi,' ')
+                   .replace(/[【】\[\]]/g,' ')
+                   .replace(/点击链接.*$/gmi,' ')
+                   .replace(/或者.*$/gmi,' ')
+                   .replace(/复制.*$/gmi,' ')
+                   .replace(/打开.*$/gmi,' ')
+                   .replace(/￥\s*\d+(\.\d+)?/g,' ')
+                   .replace(/\s+/g,' ')
+                   .trim();
+
+  if(cleaned && cleaned.length > 80) cleaned = cleaned.slice(0,80).trim();
+  if(cleaned) return {title: cleaned, hint: ''};
+
+  if(link){
+    try{
+      const u = new URL(link);
+      const segments = u.pathname.split('/').filter(Boolean);
+      const last = segments[segments.length - 1] || '';
+      const hasReadableSlug = /[a-zA-Z]{3,}/.test(last) && !/^\d+$/.test(last);
+      if(hasReadableSlug){
+        const slug = decodeURIComponent(last).replace(/[-_]/g,' ').replace(/\.[a-z0-9]+$/i,'').trim();
+        return {title: slug, hint: '已從網址路徑估計名稱，建議你再確認。'};
+      }
+      if(/^\d+$/.test(last) || u.search){
+        return {title: '', hint: '已識別平台，但網址主要係編號／參數，請手動補商品名。'};
+      }
+    }catch(e){}
+  }
+  return {title:'', hint:'未能自動分析，建議手動填寫商品名。'};
 }
 function extractPrice(text){
   const m = text.match(/(?:HKD|hkd|\$|¥|￥)\s*(\d+(?:\.\d+)?)/);
   return m ? m[1] : '';
 }
-function inferCategory(title){
-  const t = (title || '').toLowerCase();
+function inferCategory(title, platform, brand){
+  const t = `${title || ''} ${platform || ''} ${brand || ''}`.toLowerCase();
   if(t.includes('gundam') || t.includes('高達') || t.includes('鋼彈')) return '高達';
   if(t.includes('chiikawa')) return 'Chiikawa';
-  if(t.includes('幪面超人') || t.includes('kamen rider')) return '幪面超人';
+  if(t.includes('幪面超人') || t.includes('kamen rider') || t.includes('shf')) return '幪面超人';
   return '其他';
 }
 function analyzeText(){
   const raw = sourceText.value.trim();
   if(!raw){
     analysisResult.innerHTML = '<div class="analysisTag">請先貼上產品分享文案或網址。</div>';
-    analysisState = null;
-    return;
+    analysisState = null; return;
   }
   const link = extractLink(raw);
-  const title = extractTitle(raw);
-  const platform = detectPlatform(raw);
+  const {platform, brand} = detectPlatform(raw + ' ' + link);
+  const domain = link ? extractDomain(link) : '';
+  const titleInfo = extractTitle(raw, link);
   const price = extractPrice(raw);
-  const category = inferCategory(title);
-
-  analysisState = {raw, link, title, platform, price, category};
+  const category = inferCategory(titleInfo.title, platform, brand);
+  analysisState = {
+    raw, link, platform, brand, domain,
+    title: titleInfo.title,
+    titleHint: titleInfo.hint,
+    price, category
+  };
   analysisResult.innerHTML = `
     <div><strong>平台：</strong> ${esc(platform)}</div>
-    <div><strong>分析名稱：</strong> ${esc(title || '未能自動分析，建議手動填寫')}</div>
+    <div><strong>網站：</strong> ${esc(domain || '未識別')}</div>
+    <div><strong>品牌建議：</strong> ${esc(brand || '未識別')}</div>
+    <div><strong>分析名稱：</strong> ${esc(titleInfo.title || '請手動補商品名')}</div>
     <div><strong>分析價格：</strong> ${esc(price ? 'HKD ' + price : '未找到')}</div>
     <div><strong>建議分類：</strong> ${esc(category)}</div>
     <div><strong>來源連結：</strong> ${link ? `<span style="word-break:break-all">${esc(link)}</span>` : '未找到'}</div>
-    <div class="analysisTag">這是半自動分析，建議你確認後再儲存。</div>
+    <div class="helperText">${esc(titleInfo.hint || '這是半自動分析，建議你確認後再儲存。')}</div>
   `;
 }
 function applyAnalysis(){
@@ -705,6 +718,7 @@ function applyAnalysis(){
   if(analysisState.title) document.getElementById('name').value = analysisState.title;
   if(analysisState.price) document.getElementById('price').value = analysisState.price;
   if(analysisState.link) document.getElementById('sourceLink').value = analysisState.link;
+  if(analysisState.brand) document.getElementById('brand').value = analysisState.brand;
   document.getElementById('note').value = analysisState.raw;
   if(allCategories().includes(analysisState.category)) categorySelect.value = analysisState.category;
 }
@@ -769,17 +783,11 @@ window.editItem = function(id){
 }
 window.moveToWishlist = function(id){
   items = items.map(x => x.id === id ? {...x, status:'願望清單'} : x);
-  save();
-  collectionView = 'wishlist';
-  saveCollectionView();
-  render();
+  save(); collectionView = 'wishlist'; saveCollectionView(); render();
 }
 window.moveToOwned = function(id){
   items = items.map(x => x.id === id ? {...x, status:(x.status === '願望清單' ? '未開封' : x.status)} : x);
-  save();
-  collectionView = 'owned';
-  saveCollectionView();
-  render();
+  save(); collectionView = 'owned'; saveCollectionView(); render();
 }
 
 if(items.length === 0){
@@ -796,6 +804,6 @@ render();
 </html>
 """
 
-path = Path("/mnt/data/My_Figure_Collection_排序篩選版.html")
+path = Path("/mnt/data/My_Figure_Collection_v4_1_網址強化分析版.html")
 path.write_text(html, encoding="utf-8")
 print(f"Created: {path}")
