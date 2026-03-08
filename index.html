@@ -2195,4 +2195,192 @@
   attachAuthWatcher();
 })();
 </script>
+
+<script>
+(function () {
+  function $(id) {
+    return document.getElementById(id);
+  }
+
+  function createAdminPanelIfNeeded() {
+    if ($("globalAdminPanel")) return;
+
+    const profilePage = $("pageProfile");
+    if (!profilePage) return;
+
+    const panel = document.createElement("div");
+    panel.id = "globalAdminPanel";
+    panel.className = "hidden kv-surface rounded-xl bg-white border border-slate-100 shadow-sm p-5";
+
+    panel.innerHTML = `
+      <div class="flex items-center justify-between mb-4">
+        <div>
+          <h3 class="text-lg font-bold">Admin Settings</h3>
+          <p class="text-xs text-slate-500 uppercase tracking-widest mt-1">Global Defaults</p>
+        </div>
+        <span class="material-symbols-outlined text-primary text-3xl">admin_panel_settings</span>
+      </div>
+
+      <div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
+        <div>
+          <label class="text-xs font-bold tracking-widest uppercase text-slate-500 mb-2 block">Default Theme</label>
+          <select id="adminDefaultTheme" class="w-full rounded-xl border border-primary/10 bg-white/60 px-4 py-3 text-sm">
+            <option value="pure">Pure / 和風</option>
+            <option value="blackgold">Black Gold / 黑金</option>
+          </select>
+        </div>
+
+        <div>
+          <label class="text-xs font-bold tracking-widest uppercase text-slate-500 mb-2 block">Default View</label>
+          <select id="adminDefaultView" class="w-full rounded-xl border border-primary/10 bg-white/60 px-4 py-3 text-sm">
+            <option value="list">列表</option>
+            <option value="grid">網格</option>
+            <option value="compact">卡片</option>
+            <option value="wall">收藏牆</option>
+          </select>
+        </div>
+      </div>
+
+      <button id="saveGlobalDefaultsBtn" class="mt-4 w-full rounded-xl bg-primary px-4 py-3 text-sm font-bold text-white">
+        儲存全站預設
+      </button>
+
+      <div id="globalDefaultsStatus" class="mt-3 text-xs text-slate-500">未讀取</div>
+    `;
+
+    profilePage.appendChild(panel);
+  }
+
+  async function isCurrentUserAdmin() {
+    const fb = window.kuraFirebase;
+    const uid = fb?.auth?.currentUser?.uid;
+    if (!fb || !uid) return false;
+
+    try {
+      const snap = await fb.getDoc(fb.doc(fb.db, "admins", uid));
+      return snap.exists();
+    } catch (err) {
+      console.error("Admin check failed:", err);
+      return false;
+    }
+  }
+
+  async function loadGlobalDefaults() {
+    const fb = window.kuraFirebase;
+    if (!fb) return;
+
+    try {
+      const snap = await fb.getDoc(fb.doc(fb.db, "appConfig", "public"));
+      const data = snap.exists() ? snap.data() : {};
+
+      if ($("adminDefaultTheme")) {
+        $("adminDefaultTheme").value = data.defaultTheme || "pure";
+      }
+      if ($("adminDefaultView")) {
+        $("adminDefaultView").value = data.defaultView || "list";
+      }
+      if ($("globalDefaultsStatus")) {
+        $("globalDefaultsStatus").textContent = "已讀取目前全站預設";
+      }
+
+      // 只在本機未有主題設定時，先套用全站預設主題
+      const themeKey = "kyoto_vault_visual_theme";
+      if (!localStorage.getItem(themeKey) && data.defaultTheme) {
+        localStorage.setItem(themeKey, data.defaultTheme);
+        if (typeof applyVisualTheme === "function") applyVisualTheme();
+      }
+    } catch (err) {
+      console.error("Load appConfig failed:", err);
+      if ($("globalDefaultsStatus")) {
+        $("globalDefaultsStatus").textContent = "讀取失敗";
+      }
+    }
+  }
+
+  async function saveGlobalDefaults() {
+    const fb = window.kuraFirebase;
+    const uid = fb?.auth?.currentUser?.uid;
+    if (!fb || !uid) {
+      alert("請先登入");
+      return;
+    }
+
+    const ok = await isCurrentUserAdmin();
+    if (!ok) {
+      alert("你唔係 admin，不能修改全站預設");
+      return;
+    }
+
+    const payload = {
+      defaultTheme: $("adminDefaultTheme")?.value || "pure",
+      defaultView: $("adminDefaultView")?.value || "list",
+      updatedAt: Date.now(),
+      updatedBy: uid
+    };
+
+    try {
+      await fb.setDoc(fb.doc(fb.db, "appConfig", "public"), payload, { merge: true });
+
+      if ($("globalDefaultsStatus")) {
+        $("globalDefaultsStatus").textContent = "已儲存全站預設";
+      }
+
+      alert("全站預設已更新");
+    } catch (err) {
+      console.error("Save appConfig failed:", err);
+      alert(err.message || "儲存失敗");
+    }
+  }
+
+  async function refreshAdminPanel() {
+    createAdminPanelIfNeeded();
+
+    const panel = $("globalAdminPanel");
+    if (!panel) return;
+
+    const user = window.kuraFirebase?.auth?.currentUser || null;
+    if (!user) {
+      panel.classList.add("hidden");
+      return;
+    }
+
+    const admin = await isCurrentUserAdmin();
+    if (!admin) {
+      panel.classList.add("hidden");
+      return;
+    }
+
+    panel.classList.remove("hidden");
+    await loadGlobalDefaults();
+
+    const saveBtn = $("saveGlobalDefaultsBtn");
+    if (saveBtn && !saveBtn.dataset.bound) {
+      saveBtn.dataset.bound = "1";
+      saveBtn.addEventListener("click", saveGlobalDefaults);
+    }
+  }
+
+  function bootAdminPanel() {
+    refreshAdminPanel();
+
+    document.addEventListener("click", function (e) {
+      if (e.target.closest("#navProfile")) {
+        setTimeout(refreshAdminPanel, 300);
+      }
+    });
+
+    const timer = setInterval(() => {
+      refreshAdminPanel();
+    }, 2000);
+
+    setTimeout(() => clearInterval(timer), 15000);
+  }
+
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", bootAdminPanel);
+  } else {
+    bootAdminPanel();
+  }
+})();
+</script>
 </html>
