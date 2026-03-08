@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8" />
     <meta content="width=device-width, initial-scale=1.0" name="viewport" />
-    <title>Kura Archive | Private Collection</title>
+    <title>Kura Archive | Member Edition Clean</title>
 
     <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
     <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@200..800&display=swap" rel="stylesheet" />
@@ -205,7 +205,7 @@
                 <span class="material-symbols-outlined text-primary text-2xl">account_balance</span>
                 <div>
                     <h1 class="text-xl font-bold tracking-tight uppercase">Kura Archive</h1>
-                    <p class="text-[10px] text-slate-500 uppercase tracking-[0.18em]">Private Collection • V8.8</p>
+                    <p class="text-[10px] text-slate-500 uppercase tracking-[0.18em]">Member Edition Clean • V8.8</p>
                 </div>
             </div>
             <div class="flex items-center gap-2">
@@ -559,7 +559,7 @@
                     <span class="text-[10px] font-bold uppercase tracking-widest">Archive</span>
                 </button>
 
-                <button id="navWish List" class="flex flex-col items-center gap-1 text-slate-400">
+                <button id="navWishlist" class="flex flex-col items-center gap-1 text-slate-400">
                     <span class="material-symbols-outlined">explore</span>
                     <span class="text-[10px] font-bold uppercase tracking-widest">Wish List</span>
                 </button>
@@ -666,6 +666,7 @@
                 series: raw.series || "",
                 seriesLogo: raw.seriesLogo || "",
                 itemCode: raw.itemCode || raw.item_code || "",
+                ownerUid: raw.ownerUid || "",
                 price: raw.price || "",
                 date: raw.date || "",
                 status: raw.status || "未開封",
@@ -821,7 +822,7 @@
         function setActiveNav(key) {
             const ids = {
                 collection: "navCollection",
-                wishlist: "navWish List",
+                wishlist: "navWishlist",
                 stats: "navStats",
                 profile: "navProfile"
             };
@@ -1572,8 +1573,19 @@
         }
 
         function renderProfilePage() {
-            document.getElementById("profileDisplayName").textContent = fakeUser?.name || "Guest Collector";
-            document.getElementById("profileDisplayEmail").textContent = fakeUser?.email || "Not signed in";
+            const fbUser = window.kuraFirebase?.auth?.currentUser || null;
+            const logoutBtn = document.getElementById("googleLogoutBtn");
+
+            if (fbUser) {
+                document.getElementById("profileDisplayName").textContent = fbUser.displayName || "Collector";
+                document.getElementById("profileDisplayEmail").textContent = fbUser.email || "";
+                if (logoutBtn) logoutBtn.style.display = "inline-flex";
+            } else {
+                document.getElementById("profileDisplayName").textContent = fakeUser?.name || "Guest Collector";
+                document.getElementById("profileDisplayEmail").textContent = fakeUser?.email || "Not signed in";
+                if (logoutBtn) logoutBtn.style.display = "none";
+            }
+
             document.getElementById("profileOwnedCount").textContent = ownedItems().length;
             document.getElementById("profileWishCount").textContent = items.filter(item => item.status === "願望清單").length;
         }
@@ -1669,7 +1681,7 @@
             render();
         };
 
-        document.getElementById("navWish List").onclick = function() {
+        document.getElementById("navWishlist").onclick = function() {
             view = "wishlist";
             showPage("pageCollection");
             setActiveNav("wishlist");
@@ -1735,7 +1747,7 @@
         };
         document.getElementById("clearBtn").onclick = function() {
             if (!confirm("確定清空全部收藏資料同 Logo 庫？")) return;
-            items = [];
+            window.__kuraState.setItems([]);
             brandLibrary = [...BRAND_DEFAULTS];
             seriesLibrary = [...SERIES_DEFAULTS];
             currentCategory = "";
@@ -1781,746 +1793,471 @@
         applyVisualTheme();
         setActiveNav("collection");
     </script>
-</body>
-</html>
-<script type="module">
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-app.js";
-  import {
-    getAuth,
-    GoogleAuthProvider,
-    signInWithPopup,
-    onAuthStateChanged,
-    signOut
-  } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-auth.js";
-  import {
-    getFirestore,
-    doc,
-    setDoc,
-    getDoc,
-    collection,
-    getDocs,
-    deleteDoc
-  } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-firestore.js";
 
-  const firebaseConfig = {
-    apiKey: "AIzaSyBcfXAKbsysChltrsepGlYSsBhp5NRpQrg",
-    authDomain: "kura-archive3019.firebaseapp.com",
-    projectId: "kura-archive3019",
-    storageBucket: "kura-archive3019.firebasestorage.app",
-    messagingSenderId: "7620724666",
-    appId: "1:7620724666:web:0e06048e72281df8bf7f83",
-    measurementId: "G-94TRB4BQGE"
-  };
-
-  const app = initializeApp(firebaseConfig);
-  const auth = getAuth(app);
-  const db = getFirestore(app);
-  const provider = new GoogleAuthProvider();
-
-  window.kuraFirebase = {
-    auth,
-    db,
-    provider,
-    doc,
-    setDoc,
-    getDoc,
-    collection,
-    getDocs,
-    deleteDoc
-  };
-
-  function $(id) {
-    return document.getElementById(id);
-  }
-
-  function ensureGoogleButtons() {
-    const loginBtn = $("fakeLoginBtn");
-    const registerBtn = $("fakeRegisterBtn");
-
-    if (loginBtn && !$("googleLoginBtn")) {
-      const googleBtn = document.createElement("button");
-      googleBtn.id = "googleLoginBtn";
-      googleBtn.className = "w-full rounded-xl bg-black px-4 py-3 text-sm font-bold text-white mt-3";
-      googleBtn.textContent = "Google 登入";
-      loginBtn.insertAdjacentElement("afterend", googleBtn);
-    }
-
-    if (registerBtn && !$("googleRegisterHint")) {
-      const hint = document.createElement("div");
-      hint.id = "googleRegisterHint";
-      hint.className = "mt-3 text-xs text-slate-500";
-      hint.textContent = "朋友可直接用 Google 登入，唔使另外註冊密碼。";
-      registerBtn.insertAdjacentElement("afterend", hint);
-    }
-
-    const profileEmail = $("profileDisplayEmail");
-    if (profileEmail && !$("googleLogoutBtn")) {
-      const logoutBtn = document.createElement("button");
-      logoutBtn.id = "googleLogoutBtn";
-      logoutBtn.className = "mt-3 rounded-xl bg-black/5 px-4 py-2 text-sm font-bold";
-      logoutBtn.textContent = "登出";
-      profileEmail.insertAdjacentElement("afterend", logoutBtn);
-    }
-  }
-
-  async function upsertUserProfile(user) {
-    const profileRef = doc(db, "users", user.uid, "settings", "profile");
-    const snap = await getDoc(profileRef);
-
-    const payload = {
-      displayName: user.displayName || "Collector",
-      email: user.email || "",
-      photoURL: user.photoURL || "",
-      lastLoginAt: Date.now()
+    <script>
+    window.__kuraState = {
+      getItems() {
+        try { return Array.isArray(items) ? items : (window.items || []); } catch (e) { return window.items || []; }
+      },
+      setItems(next) {
+        try { items = next; } catch (e) {}
+        window.items = next;
+      }
     };
+    </script>
 
-    if (!snap.exists()) payload.createdAt = Date.now();
+    <script type="module">
+      import { initializeApp } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-app.js";
+      import {
+        getAuth,
+        GoogleAuthProvider,
+        signInWithPopup,
+        onAuthStateChanged,
+        signOut
+      } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-auth.js";
+      import {
+        getFirestore,
+        doc,
+        setDoc,
+        getDoc,
+        collection,
+        getDocs,
+        deleteDoc
+      } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-firestore.js";
 
-    await setDoc(profileRef, payload, { merge: true });
-  }
+      const firebaseConfig = {
+        apiKey: "AIzaSyBcfXAKbsysChltrsepGlYSsBhp5NRpQrg",
+        authDomain: "kura-archive3019.firebaseapp.com",
+        projectId: "kura-archive3019",
+        storageBucket: "kura-archive3019.firebasestorage.app",
+        messagingSenderId: "7620724666",
+        appId: "1:7620724666:web:0e06048e72281df8bf7f83",
+        measurementId: "G-94TRB4BQGE"
+      };
 
-  async function handleGoogleLogin() {
-    try {
-      const result = await signInWithPopup(auth, provider);
-      await upsertUserProfile(result.user);
-      alert("Google 登入成功");
-    } catch (err) {
-      console.error(err);
-      alert(err.message || "Google 登入失敗");
-    }
-  }
+      const app = initializeApp(firebaseConfig);
+      const auth = getAuth(app);
+      const db = getFirestore(app);
+      const provider = new GoogleAuthProvider();
 
-  async function handleLogout() {
-    try {
-      await signOut(auth);
-      alert("已登出");
-    } catch (err) {
-      console.error(err);
-      alert(err.message || "登出失敗");
-    }
-  }
+      window.kuraFirebase = {
+        auth,
+        db,
+        provider,
+        doc,
+        setDoc,
+        getDoc,
+        collection,
+        getDocs,
+        deleteDoc,
+        signOut
+      };
 
-  function bindButtons() {
-    ensureGoogleButtons();
-
-    const googleLoginBtn = $("googleLoginBtn");
-    const googleLogoutBtn = $("googleLogoutBtn");
-
-    if (googleLoginBtn && !googleLoginBtn.dataset.bound) {
-      googleLoginBtn.dataset.bound = "1";
-      googleLoginBtn.addEventListener("click", handleGoogleLogin);
-    }
-
-    if (googleLogoutBtn && !googleLogoutBtn.dataset.bound) {
-      googleLogoutBtn.dataset.bound = "1";
-      googleLogoutBtn.addEventListener("click", handleLogout);
-    }
-  }
-
-  onAuthStateChanged(auth, async (user) => {
-    bindButtons();
-
-    const nameEl = $("profileDisplayName");
-    const emailEl = $("profileDisplayEmail");
-    const logoutBtn = $("googleLogoutBtn");
-
-    if (user) {
-      try {
-        await upsertUserProfile(user);
-      } catch (err) {
-        console.error(err);
+      function $(id) {
+        return document.getElementById(id);
       }
 
-      if (nameEl) nameEl.textContent = user.displayName || "Collector";
-      if (emailEl) emailEl.textContent = user.email || "";
-      if (logoutBtn) logoutBtn.style.display = "inline-flex";
-    } else {
-      if (nameEl) nameEl.textContent = "Guest Collector";
-      if (emailEl) emailEl.textContent = "Not signed in";
-      if (logoutBtn) logoutBtn.style.display = "none";
-    }
-  });
+      function ensureGoogleButtons() {
+        const loginBtn = $("fakeLoginBtn");
+        const registerBtn = $("fakeRegisterBtn");
 
-  if (document.readyState === "loading") {
-    document.addEventListener("DOMContentLoaded", bindButtons);
-  } else {
-    bindButtons();
-  }
-</script>
+        if (loginBtn && !$("googleLoginBtn")) {
+          const googleBtn = document.createElement("button");
+          googleBtn.id = "googleLoginBtn";
+          googleBtn.className = "w-full rounded-xl bg-black px-4 py-3 text-sm font-bold text-white mt-3";
+          googleBtn.textContent = "Google 登入";
+          loginBtn.insertAdjacentElement("afterend", googleBtn);
+        }
 
-<script>
-(function () {
-  function syncFirebaseProfileUI() {
-    const fbUser = window.kuraFirebase?.auth?.currentUser || null;
+        if (registerBtn && !$("googleRegisterHint")) {
+          const hint = document.createElement("div");
+          hint.id = "googleRegisterHint";
+          hint.className = "mt-3 text-xs text-slate-500";
+          hint.textContent = "朋友可直接用 Google 登入，唔使另外註冊密碼。";
+          registerBtn.insertAdjacentElement("afterend", hint);
+        }
 
-    const nameEl = document.getElementById("profileDisplayName");
-    const emailEl = document.getElementById("profileDisplayEmail");
-    const logoutBtn = document.getElementById("googleLogoutBtn");
-
-    if (!nameEl || !emailEl) return;
-
-    if (fbUser) {
-      nameEl.textContent = fbUser.displayName || "Collector";
-      emailEl.textContent = fbUser.email || "";
-      if (logoutBtn) logoutBtn.style.display = "inline-flex";
-    } else {
-      nameEl.textContent = "Guest Collector";
-      emailEl.textContent = "Not signed in";
-      if (logoutBtn) logoutBtn.style.display = "none";
-    }
-  }
-
-  // 如果原本有 renderProfilePage，就包一層
-  const oldRenderProfilePage = window.renderProfilePage;
-  window.renderProfilePage = function () {
-    if (typeof oldRenderProfilePage === "function") {
-      oldRenderProfilePage.apply(this, arguments);
-    }
-    syncFirebaseProfileUI();
-  };
-
-  // 開頁先跑一次
-  document.addEventListener("DOMContentLoaded", function () {
-    setTimeout(syncFirebaseProfileUI, 300);
-  });
-
-  // 撳 Profile tab 後再同步一次
-  document.addEventListener("click", function (e) {
-    if (e.target.closest("#navProfile")) {
-      setTimeout(syncFirebaseProfileUI, 100);
-      setTimeout(syncFirebaseProfileUI, 500);
-    }
-  });
-
-  // Google 登入 / 登出後補同步
-  document.addEventListener("click", function (e) {
-    if (e.target.closest("#googleLoginBtn") || e.target.closest("#googleLogoutBtn")) {
-      setTimeout(syncFirebaseProfileUI, 800);
-      setTimeout(syncFirebaseProfileUI, 1500);
-    }
-  });
-
-  // 保險起見，定時檢查幾次
-  let count = 0;
-  const timer = setInterval(function () {
-    syncFirebaseProfileUI();
-    count += 1;
-    if (count > 12) clearInterval(timer);
-  }, 1000);
-})();
-</script>
-
-<script>
-(function () {
-  function getFb() {
-    return window.kuraFirebase || null;
-  }
-
-  function currentUid() {
-    return getFb()?.auth?.currentUser?.uid || null;
-  }
-
-  function itemsCol(uid) {
-    const fb = getFb();
-    return fb.collection(fb.db, "users", uid, "items");
-  }
-
-  function itemDoc(uid, id) {
-    const fb = getFb();
-    return fb.doc(fb.db, "users", uid, "items", id);
-  }
-
-  async function loadItemsFromCloud(uid) {
-    const fb = getFb();
-    if (!fb || !uid) return;
-
-    const snap = await fb.getDocs(itemsCol(uid));
-    items = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-
-    if (typeof render === "function") render();
-    if (typeof renderProfilePage === "function") renderProfilePage();
-  }
-
-  async function uploadAllLocalItems(uid) {
-    const fb = getFb();
-    if (!fb || !uid || !Array.isArray(items)) return;
-
-    for (const item of items) {
-      const id = item.id || crypto.randomUUID();
-      item.id = id;
-      await fb.setDoc(itemDoc(uid, id), { ...item }, { merge: true });
-    }
-  }
-
-  async function maybeMigrateLocalItems(uid) {
-    const fb = getFb();
-    if (!fb || !uid) return;
-
-    const snap = await fb.getDocs(itemsCol(uid));
-    const cloudEmpty = snap.empty;
-    const localHasItems = Array.isArray(items) && items.length > 0;
-
-    if (cloudEmpty && localHasItems) {
-      const ok = confirm("呢個帳戶雲端收藏暫時係空。要唔要把你而家本機收藏搬上雲端？");
-      if (ok) {
-        await uploadAllLocalItems(uid);
-      }
-    }
-  }
-
-  async function syncSingleItemToCloud(item) {
-    const fb = getFb();
-    const uid = currentUid();
-    if (!fb || !uid || !item) return;
-
-    const id = item.id || crypto.randomUUID();
-    item.id = id;
-    await fb.setDoc(itemDoc(uid, id), { ...item }, { merge: true });
-  }
-
-  async function deleteSingleItemFromCloud(id) {
-    const fb = getFb();
-    const uid = currentUid();
-    if (!fb || !uid || !id) return;
-
-    await fb.deleteDoc(itemDoc(uid, id));
-  }
-
-  async function syncProfileCounts() {
-    if (typeof renderProfilePage === "function") renderProfilePage();
-  }
-
-  function newestItemGuess(beforeIds) {
-    if (!Array.isArray(items) || !items.length) return null;
-    for (const item of items) {
-      if (!beforeIds.has(item.id)) return item;
-    }
-    return items[0] || null;
-  }
-
-  const oldSaveRecord = typeof saveRecord === "function" ? saveRecord : null;
-  if (oldSaveRecord) {
-    window.saveRecord = async function () {
-      const beforeIds = new Set((items || []).map(i => i.id));
-
-      await oldSaveRecord.apply(this, arguments);
-
-      const uid = currentUid();
-      if (!uid) return;
-
-      const savedItem = newestItemGuess(beforeIds);
-      if (savedItem) {
-        await syncSingleItemToCloud(savedItem);
-      } else if (Array.isArray(items) && items.length) {
-        await syncSingleItemToCloud(items[0]);
-      }
-
-      await syncProfileCounts();
-    };
-
-    const saveBtn = document.getElementById("saveBtn");
-    if (saveBtn) {
-      saveBtn.onclick = window.saveRecord;
-    }
-  }
-
-  const oldDeleteItem = window.deleteItem;
-  if (typeof oldDeleteItem === "function") {
-    window.deleteItem = async function (id) {
-      await oldDeleteItem(id);
-
-      const uid = currentUid();
-      if (uid && id) {
-        try {
-          await deleteSingleItemFromCloud(id);
-        } catch (err) {
-          console.error("Cloud delete failed:", err);
+        const profileEmail = $("profileDisplayEmail");
+        if (profileEmail && !$("googleLogoutBtn")) {
+          const logoutBtn = document.createElement("button");
+          logoutBtn.id = "googleLogoutBtn";
+          logoutBtn.className = "mt-3 rounded-xl bg-black/5 px-4 py-2 text-sm font-bold";
+          logoutBtn.textContent = "登出";
+          profileEmail.insertAdjacentElement("afterend", logoutBtn);
         }
       }
 
-      await syncProfileCounts();
-    };
-  }
+      async function upsertUserProfile(user) {
+        const profileRef = doc(db, "users", user.uid, "settings", "profile");
+        const snap = await getDoc(profileRef);
+        const payload = {
+          displayName: user.displayName || "Collector",
+          email: user.email || "",
+          photoURL: user.photoURL || "",
+          lastLoginAt: Date.now()
+        };
+        if (!snap.exists()) payload.createdAt = Date.now();
+        await setDoc(profileRef, payload, { merge: true });
+      }
 
-  function waitForFirebaseThenBind() {
-    const timer = setInterval(async () => {
-      const fb = getFb();
-      if (!fb || !fb.auth) return;
+      async function uploadAllLocalItems(uid) {
+        const localItems = window.__kuraState.getItems();
+        if (!Array.isArray(localItems) || !localItems.length) return;
+        for (const raw of localItems) {
+          const record = {
+            ...raw,
+            id: raw.id || (crypto.randomUUID ? crypto.randomUUID() : String(Date.now() + Math.random())),
+            ownerUid: uid
+          };
+          await setDoc(doc(db, "users", uid, "items", record.id), record, { merge: true });
+        }
+      }
 
-      clearInterval(timer);
+      async function maybeMigrateLocalItems(uid) {
+        const snap = await getDocs(collection(db, "users", uid, "items"));
+        const cloudEmpty = snap.empty;
+        const localHasItems = Array.isArray(window.__kuraState.getItems()) && window.__kuraState.getItems().length > 0;
+        if (cloudEmpty && localHasItems) {
+          const ok = confirm("呢個帳戶雲端收藏暫時係空。要唔要把你而家本機收藏搬上雲端？");
+          if (ok) await uploadAllLocalItems(uid);
+        }
+      }
 
-      let lastUid = null;
+      async function loadItemsFromCloud(uid) {
+        const snap = await getDocs(collection(db, "users", uid, "items"));
+        window.__kuraState.setItems(snap.docs.map(d => ({ id: d.id, ...d.data() })));
+        if (typeof window.render === "function") window.render();
+        if (typeof window.renderProfilePage === "function") window.renderProfilePage();
+      }
 
-      fb.auth.onAuthStateChanged?.(async () => {});
-      if (fb.auth && typeof fb.auth.onAuthStateChanged === "function") return;
+      async function handleGoogleLogin() {
+        try {
+          const result = await signInWithPopup(auth, provider);
+          await upsertUserProfile(result.user);
+          alert("Google 登入成功");
+        } catch (err) {
+          console.error(err);
+          alert(err.message || "Google 登入失敗");
+        }
+      }
 
-      fb.auth._dummy = true;
-    }, 300);
-  }
+      async function handleLogout() {
+        try {
+          await signOut(auth);
+          alert("已登出");
+        } catch (err) {
+          console.error(err);
+          alert(err.message || "登出失敗");
+        }
+      }
 
-  function attachAuthWatcher() {
-    const timer = setInterval(() => {
-      const fb = getFb();
-      if (!fb || !fb.auth) return;
+      function bindButtons() {
+        ensureGoogleButtons();
+        const googleLoginBtn = $("googleLoginBtn");
+        const googleLogoutBtn = $("googleLogoutBtn");
+        if (googleLoginBtn && !googleLoginBtn.dataset.bound) {
+          googleLoginBtn.dataset.bound = "1";
+          googleLoginBtn.addEventListener("click", handleGoogleLogin);
+        }
+        if (googleLogoutBtn && !googleLogoutBtn.dataset.bound) {
+          googleLogoutBtn.dataset.bound = "1";
+          googleLogoutBtn.addEventListener("click", handleLogout);
+        }
+      }
 
-      clearInterval(timer);
+      onAuthStateChanged(auth, async (user) => {
+        bindButtons();
+        if (user) {
+          try {
+            await upsertUserProfile(user);
+            await maybeMigrateLocalItems(user.uid);
+            await loadItemsFromCloud(user.uid);
+          } catch (err) {
+            console.error(err);
+          }
+        } else {
+          window.__kuraState.setItems([]);
+          if (typeof window.render === "function") window.render();
+          if (typeof window.renderProfilePage === "function") window.renderProfilePage();
+        }
+        setTimeout(() => window.refreshAdminPanel?.(), 50);
+      });
 
-      let lastUid = null;
+      if (document.readyState === "loading") {
+        document.addEventListener("DOMContentLoaded", bindButtons);
+      } else {
+        bindButtons();
+      }
+    </script>
 
-      const unsubscribe = fb.auth.onAuthStateChanged
-        ? fb.auth.onAuthStateChanged(async () => {})
-        : null;
+    <script>
+    (function () {
+      function currentFbUser() {
+        return window.kuraFirebase?.auth?.currentUser || null;
+      }
 
-      if (unsubscribe) unsubscribe();
+      function syncFirebaseProfileUI() {
+        const fbUser = currentFbUser();
+        const nameEl = document.getElementById("profileDisplayName");
+        const emailEl = document.getElementById("profileDisplayEmail");
+        const logoutBtn = document.getElementById("googleLogoutBtn");
+        if (!nameEl || !emailEl) return;
 
-      import("https://www.gstatic.com/firebasejs/12.10.0/firebase-auth.js").then(({ onAuthStateChanged }) => {
-        onAuthStateChanged(fb.auth, async (user) => {
-          const uid = user?.uid || null;
+        if (fbUser) {
+          nameEl.textContent = fbUser.displayName || "Collector";
+          emailEl.textContent = fbUser.email || "";
+          if (logoutBtn) logoutBtn.style.display = "inline-flex";
+        } else {
+          nameEl.textContent = "Guest Collector";
+          emailEl.textContent = "Not signed in";
+          if (logoutBtn) logoutBtn.style.display = "none";
+        }
+      }
 
-          if (!uid) {
-            lastUid = null;
-            return;
+      const oldRenderProfilePage = window.renderProfilePage;
+      window.renderProfilePage = function () {
+        if (typeof oldRenderProfilePage === "function") oldRenderProfilePage.apply(this, arguments);
+        syncFirebaseProfileUI();
+      };
+
+      async function currentUserIsAdmin() {
+        const fb = window.kuraFirebase;
+        const uid = fb?.auth?.currentUser?.uid;
+        if (!fb || !uid) return false;
+        try {
+          const snap = await fb.getDoc(fb.doc(fb.db, "admins", uid));
+          return snap.exists();
+        } catch (err) {
+          console.error("Admin check failed:", err);
+          return false;
+        }
+      }
+
+      function updateModeButtons() {
+        document.querySelectorAll(".modeBtn").forEach(btn => {
+          btn.classList.toggle("mode-active", btn.dataset.mode === mode);
+        });
+      }
+
+      function createAdminPanelIfNeeded() {
+        if (document.getElementById("globalAdminPanel")) return;
+        const profilePage = document.getElementById("pageProfile");
+        if (!profilePage) return;
+
+        const panel = document.createElement("div");
+        panel.id = "globalAdminPanel";
+        panel.className = "hidden kv-surface rounded-xl bg-white border border-slate-100 shadow-sm p-5";
+        panel.innerHTML = `
+          <div class="flex items-center justify-between mb-4">
+            <div>
+              <h3 class="text-lg font-bold">Admin Settings</h3>
+              <p class="text-xs text-slate-500 uppercase tracking-widest mt-1">Global Defaults</p>
+            </div>
+            <span class="material-symbols-outlined text-primary text-3xl">admin_panel_settings</span>
+          </div>
+          <div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
+            <div>
+              <label class="text-xs font-bold tracking-widest uppercase text-slate-500 mb-2 block">Default Theme</label>
+              <select id="adminDefaultTheme" class="w-full rounded-xl border border-primary/10 bg-white/60 px-4 py-3 text-sm">
+                <option value="pure">Pure / 和風</option>
+                <option value="blackgold">Black Gold / 黑金</option>
+              </select>
+            </div>
+            <div>
+              <label class="text-xs font-bold tracking-widest uppercase text-slate-500 mb-2 block">Default View</label>
+              <select id="adminDefaultView" class="w-full rounded-xl border border-primary/10 bg-white/60 px-4 py-3 text-sm">
+                <option value="list">列表</option>
+                <option value="grid">網格</option>
+                <option value="compact">卡片</option>
+                <option value="wall">收藏牆</option>
+              </select>
+            </div>
+          </div>
+          <button id="saveGlobalDefaultsBtn" class="mt-4 w-full rounded-xl bg-primary px-4 py-3 text-sm font-bold text-white">儲存全站預設</button>
+          <div id="globalDefaultsStatus" class="mt-3 text-xs text-slate-500">未讀取</div>
+        `;
+        profilePage.appendChild(panel);
+      }
+
+      async function loadGlobalDefaults() {
+        const fb = window.kuraFirebase;
+        if (!fb) return;
+        try {
+          const snap = await fb.getDoc(fb.doc(fb.db, "appConfig", "public"));
+          const data = snap.exists() ? snap.data() : {};
+          if (document.getElementById("adminDefaultTheme")) {
+            document.getElementById("adminDefaultTheme").value = data.defaultTheme || "pure";
+          }
+          if (document.getElementById("adminDefaultView")) {
+            document.getElementById("adminDefaultView").value = data.defaultView || "list";
+          }
+          document.getElementById("globalDefaultsStatus").textContent = "已讀取目前全站預設";
+
+          const themeKey = "kyoto_vault_visual_theme";
+          if (!localStorage.getItem(themeKey) && data.defaultTheme) {
+            localStorage.setItem(themeKey, data.defaultTheme);
+            if (typeof applyVisualTheme === "function") applyVisualTheme();
           }
 
-          if (uid !== lastUid) {
-            lastUid = uid;
-            await maybeMigrateLocalItems(uid);
-            await loadItemsFromCloud(uid);
+          if (!sessionStorage.getItem("kura_default_view_applied") && data.defaultView) {
+            mode = data.defaultView;
+            sessionStorage.setItem("kura_default_view_applied", "1");
+            updateModeButtons();
+            if (typeof renderList === "function") renderList();
+          }
+        } catch (err) {
+          console.error("Load appConfig failed:", err);
+          const el = document.getElementById("globalDefaultsStatus");
+          if (el) el.textContent = "讀取失敗";
+        }
+      }
+
+      async function saveGlobalDefaults() {
+        const fb = window.kuraFirebase;
+        const uid = fb?.auth?.currentUser?.uid;
+        if (!fb || !uid) {
+          alert("請先登入");
+          return;
+        }
+        const ok = await currentUserIsAdmin();
+        if (!ok) {
+          alert("你唔係 admin，不能修改全站預設");
+          return;
+        }
+
+        const payload = {
+          defaultTheme: document.getElementById("adminDefaultTheme")?.value || "pure",
+          defaultView: document.getElementById("adminDefaultView")?.value || "list",
+          updatedAt: Date.now(),
+          updatedBy: uid
+        };
+
+        try {
+          await fb.setDoc(fb.doc(fb.db, "appConfig", "public"), payload, { merge: true });
+          document.getElementById("globalDefaultsStatus").textContent = "已儲存全站預設";
+          localStorage.setItem("kyoto_vault_visual_theme", payload.defaultTheme);
+          if (typeof applyVisualTheme === "function") applyVisualTheme();
+          mode = payload.defaultView;
+          updateModeButtons();
+          if (typeof renderList === "function") renderList();
+          alert("全站預設已更新");
+        } catch (err) {
+          console.error("Save appConfig failed:", err);
+          alert(err.message || "儲存失敗");
+        }
+      }
+
+      window.refreshAdminPanel = async function refreshAdminPanel() {
+        createAdminPanelIfNeeded();
+        const panel = document.getElementById("globalAdminPanel");
+        if (!panel) return;
+
+        const admin = await currentUserIsAdmin();
+        if (!admin) {
+          panel.classList.add("hidden");
+          await loadGlobalDefaults();
+          return;
+        }
+
+        panel.classList.remove("hidden");
+        await loadGlobalDefaults();
+
+        const saveBtn = document.getElementById("saveGlobalDefaultsBtn");
+        if (saveBtn && !saveBtn.dataset.bound) {
+          saveBtn.dataset.bound = "1";
+          saveBtn.addEventListener("click", saveGlobalDefaults);
+        }
+      }
+
+      const oldSaveRecord = window.saveRecord;
+      if (typeof oldSaveRecord === "function") {
+        window.saveRecord = async function () {
+          const saveBtn = document.getElementById("saveBtn");
+          const editingId = saveBtn?.dataset?.editing || null;
+          const beforeIds = new Set((items || []).map(i => i.id));
+
+          await oldSaveRecord.apply(this, arguments);
+
+          const uid = window.kuraFirebase?.auth?.currentUser?.uid || "";
+          if (!uid || !window.kuraFirebase) return;
+
+          let savedItem = null;
+          if (editingId) {
+            savedItem = (items || []).find(i => i.id === editingId) || null;
+          } else {
+            savedItem = (items || []).find(i => !beforeIds.has(i.id)) || (items || [])[0] || null;
+          }
+          if (!savedItem) return;
+
+          savedItem.ownerUid = uid;
+          await window.kuraFirebase.setDoc(
+            window.kuraFirebase.doc(window.kuraFirebase.db, "users", uid, "items", savedItem.id),
+            { ...savedItem },
+            { merge: true }
+          );
+          if (typeof window.renderProfilePage === "function") window.renderProfilePage();
+        };
+
+        const saveBtn = document.getElementById("saveBtn");
+        if (saveBtn) saveBtn.onclick = window.saveRecord;
+      }
+
+      window.deleteItem = async function (id) {
+        const item = (items || []).find(x => x.id === id);
+        if (!item) {
+          alert("找不到這件展品");
+          return;
+        }
+
+        const currentUid = window.kuraFirebase?.auth?.currentUser?.uid || "";
+        const isAdmin = await currentUserIsAdmin();
+        const ownerUid = item.ownerUid || currentUid;
+
+        if (!isAdmin && ownerUid && ownerUid !== currentUid) {
+          alert("你不能刪除其他人的展品");
+          return;
+        }
+
+        if (!confirm("確定刪除呢件展品？")) return;
+
+        try {
+          if (window.kuraFirebase && ownerUid) {
+            await window.kuraFirebase.deleteDoc(
+              window.kuraFirebase.doc(window.kuraFirebase.db, "users", ownerUid, "items", id)
+            );
+          }
+          items = (items || []).filter(x => x.id !== id);
+          save();
+          if (typeof window.render === "function") window.render();
+          if (typeof window.renderProfilePage === "function") window.renderProfilePage();
+          alert("已刪除展品");
+        } catch (err) {
+          console.error("Delete failed:", err);
+          alert(err.message || "刪除失敗");
+        }
+      };
+
+      function bootCleanMemberEdition() {
+        loadGlobalDefaults();
+        syncFirebaseProfileUI();
+        window.refreshAdminPanel();
+        document.addEventListener("click", function (e) {
+          if (e.target.closest("#navProfile") || e.target.closest("#googleLoginBtn") || e.target.closest("#googleLogoutBtn")) {
+            setTimeout(() => {
+              syncFirebaseProfileUI();
+              window.refreshAdminPanel();
+            }, 300);
           }
         });
-      });
-    }, 300);
-  }
-
-  attachAuthWatcher();
-})();
-</script>
-
-<script>
-(function () {
-  function $(id) {
-    return document.getElementById(id);
-  }
-
-  function createAdminPanelIfNeeded() {
-    if ($("globalAdminPanel")) return;
-
-    const profilePage = $("pageProfile");
-    if (!profilePage) return;
-
-    const panel = document.createElement("div");
-    panel.id = "globalAdminPanel";
-    panel.className = "hidden kv-surface rounded-xl bg-white border border-slate-100 shadow-sm p-5";
-
-    panel.innerHTML = `
-      <div class="flex items-center justify-between mb-4">
-        <div>
-          <h3 class="text-lg font-bold">Admin Settings</h3>
-          <p class="text-xs text-slate-500 uppercase tracking-widest mt-1">Global Defaults</p>
-        </div>
-        <span class="material-symbols-outlined text-primary text-3xl">admin_panel_settings</span>
-      </div>
-
-      <div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
-        <div>
-          <label class="text-xs font-bold tracking-widest uppercase text-slate-500 mb-2 block">Default Theme</label>
-          <select id="adminDefaultTheme" class="w-full rounded-xl border border-primary/10 bg-white/60 px-4 py-3 text-sm">
-            <option value="pure">Pure / 和風</option>
-            <option value="blackgold">Black Gold / 黑金</option>
-          </select>
-        </div>
-
-        <div>
-          <label class="text-xs font-bold tracking-widest uppercase text-slate-500 mb-2 block">Default View</label>
-          <select id="adminDefaultView" class="w-full rounded-xl border border-primary/10 bg-white/60 px-4 py-3 text-sm">
-            <option value="list">列表</option>
-            <option value="grid">網格</option>
-            <option value="compact">卡片</option>
-            <option value="wall">收藏牆</option>
-          </select>
-        </div>
-      </div>
-
-      <button id="saveGlobalDefaultsBtn" class="mt-4 w-full rounded-xl bg-primary px-4 py-3 text-sm font-bold text-white">
-        儲存全站預設
-      </button>
-
-      <div id="globalDefaultsStatus" class="mt-3 text-xs text-slate-500">未讀取</div>
-    `;
-
-    profilePage.appendChild(panel);
-  }
-
-  async function isCurrentUserAdmin() {
-    const fb = window.kuraFirebase;
-    const uid = fb?.auth?.currentUser?.uid;
-    if (!fb || !uid) return false;
-
-    try {
-      const snap = await fb.getDoc(fb.doc(fb.db, "admins", uid));
-      return snap.exists();
-    } catch (err) {
-      console.error("Admin check failed:", err);
-      return false;
-    }
-  }
-
-  async function loadGlobalDefaults() {
-    const fb = window.kuraFirebase;
-    if (!fb) return;
-
-    try {
-      const snap = await fb.getDoc(fb.doc(fb.db, "appConfig", "public"));
-      const data = snap.exists() ? snap.data() : {};
-
-      if ($("adminDefaultTheme")) {
-        $("adminDefaultTheme").value = data.defaultTheme || "pure";
-      }
-      if ($("adminDefaultView")) {
-        $("adminDefaultView").value = data.defaultView || "list";
-      }
-      if ($("globalDefaultsStatus")) {
-        $("globalDefaultsStatus").textContent = "已讀取目前全站預設";
       }
 
-      // 只在本機未有主題設定時，先套用全站預設主題
-      const themeKey = "kyoto_vault_visual_theme";
-      if (!localStorage.getItem(themeKey) && data.defaultTheme) {
-        localStorage.setItem(themeKey, data.defaultTheme);
-        if (typeof applyVisualTheme === "function") applyVisualTheme();
+      if (document.readyState === "loading") {
+        document.addEventListener("DOMContentLoaded", bootCleanMemberEdition);
+      } else {
+        bootCleanMemberEdition();
       }
-    } catch (err) {
-      console.error("Load appConfig failed:", err);
-      if ($("globalDefaultsStatus")) {
-        $("globalDefaultsStatus").textContent = "讀取失敗";
-      }
-    }
-  }
+    })();
+    </script>
 
-  async function saveGlobalDefaults() {
-    const fb = window.kuraFirebase;
-    const uid = fb?.auth?.currentUser?.uid;
-    if (!fb || !uid) {
-      alert("請先登入");
-      return;
-    }
-
-    const ok = await isCurrentUserAdmin();
-    if (!ok) {
-      alert("你唔係 admin，不能修改全站預設");
-      return;
-    }
-
-    const payload = {
-      defaultTheme: $("adminDefaultTheme")?.value || "pure",
-      defaultView: $("adminDefaultView")?.value || "list",
-      updatedAt: Date.now(),
-      updatedBy: uid
-    };
-
-    try {
-      await fb.setDoc(fb.doc(fb.db, "appConfig", "public"), payload, { merge: true });
-
-      if ($("globalDefaultsStatus")) {
-        $("globalDefaultsStatus").textContent = "已儲存全站預設";
-      }
-
-      alert("全站預設已更新");
-    } catch (err) {
-      console.error("Save appConfig failed:", err);
-      alert(err.message || "儲存失敗");
-    }
-  }
-
-  async function refreshAdminPanel() {
-    createAdminPanelIfNeeded();
-
-    const panel = $("globalAdminPanel");
-    if (!panel) return;
-
-    const user = window.kuraFirebase?.auth?.currentUser || null;
-    if (!user) {
-      panel.classList.add("hidden");
-      return;
-    }
-
-    const admin = await isCurrentUserAdmin();
-    if (!admin) {
-      panel.classList.add("hidden");
-      return;
-    }
-
-    panel.classList.remove("hidden");
-    await loadGlobalDefaults();
-
-    const saveBtn = $("saveGlobalDefaultsBtn");
-    if (saveBtn && !saveBtn.dataset.bound) {
-      saveBtn.dataset.bound = "1";
-      saveBtn.addEventListener("click", saveGlobalDefaults);
-    }
-  }
-
-  function bootAdminPanel() {
-    refreshAdminPanel();
-
-    document.addEventListener("click", function (e) {
-      if (e.target.closest("#navProfile")) {
-        setTimeout(refreshAdminPanel, 300);
-      }
-    });
-
-    const timer = setInterval(() => {
-      refreshAdminPanel();
-    }, 2000);
-
-    setTimeout(() => clearInterval(timer), 15000);
-  }
-
-  if (document.readyState === "loading") {
-    document.addEventListener("DOMContentLoaded", bootAdminPanel);
-  } else {
-    bootAdminPanel();
-  }
-})();
-</script>
-
-<script>
-(function () {
-  async function currentUserIsAdmin() {
-    const fb = window.kuraFirebase;
-    const uid = fb?.auth?.currentUser?.uid;
-    if (!fb || !uid) return false;
-
-    try {
-      const snap = await fb.getDoc(fb.doc(fb.db, "admins", uid));
-      return snap.exists();
-    } catch (err) {
-      console.error("Admin check failed:", err);
-      return false;
-    }
-  }
-
-  const oldDeleteItem = window.deleteItem;
-
-  window.deleteItem = async function (id) {
-    const item = (window.items || []).find(x => x.id === id);
-    if (!item) return;
-
-    const isAdmin = await currentUserIsAdmin();
-    const currentUid = window.kuraFirebase?.auth?.currentUser?.uid || null;
-
-    // 非 admin 只可刪自己
-    if (!isAdmin && item.ownerUid && item.ownerUid !== currentUid) {
-      alert("你不能刪除其他人的展品");
-      return;
-    }
-
-    if (!confirm("確定刪除呢件展品？")) return;
-
-    try {
-      // 先刪雲端
-      if (item.ownerUid) {
-        await window.kuraFirebase.deleteDoc(
-          window.kuraFirebase.doc(
-            window.kuraFirebase.db,
-            "users",
-            item.ownerUid,
-            "items",
-            item.id
-          )
-        );
-      }
-
-      // 再刪本地畫面資料
-      window.items = (window.items || []).filter(x => x.id !== id);
-
-      if (typeof render === "function") render();
-      if (typeof renderProfilePage === "function") renderProfilePage();
-
-      alert("已刪除展品");
-    } catch (err) {
-      console.error("Delete failed:", err);
-      alert(err.message || "刪除失敗");
-    }
-  };
-})();
-</script>
-
-<script>
-(function () {
-  function readItems() {
-    try {
-      if (Array.isArray(items)) return items;
-    } catch (e) {}
-    return Array.isArray(window.items) ? window.items : [];
-  }
-
-  function writeItems(next) {
-    try {
-      items = next;
-    } catch (e) {}
-    window.items = next;
-  }
-
-  async function currentUserIsAdmin() {
-    const fb = window.kuraFirebase;
-    const uid = fb?.auth?.currentUser?.uid;
-    if (!fb || !uid) return false;
-
-    try {
-      const snap = await fb.getDoc(fb.doc(fb.db, "admins", uid));
-      return snap.exists();
-    } catch (err) {
-      console.error("Admin check failed:", err);
-      return false;
-    }
-  }
-
-  window.deleteItem = async function (id) {
-    const list = readItems();
-    const item = list.find(x => x.id === id);
-
-    if (!item) {
-      alert("找不到這件展品");
-      return;
-    }
-
-    const currentUid = window.kuraFirebase?.auth?.currentUser?.uid || "";
-    const isAdmin = await currentUserIsAdmin();
-    const ownerUid = item.ownerUid || currentUid;
-
-    if (!isAdmin && ownerUid && ownerUid !== currentUid) {
-      alert("你不能刪除其他人的展品");
-      return;
-    }
-
-    if (!confirm("確定刪除呢件展品？")) return;
-
-    try {
-      if (window.kuraFirebase && ownerUid) {
-        await window.kuraFirebase.deleteDoc(
-          window.kuraFirebase.doc(
-            window.kuraFirebase.db,
-            "users",
-            ownerUid,
-            "items",
-            id
-          )
-        );
-      }
-
-      const next = list.filter(x => x.id !== id);
-      writeItems(next);
-
-      if (typeof render === "function") render();
-      if (typeof renderProfilePage === "function") renderProfilePage();
-
-      alert("已刪除展品");
-    } catch (err) {
-      console.error("Delete failed:", err);
-      alert(err.message || "刪除失敗");
-    }
-  };
-})();
-</script>
+</body>
 </html>
