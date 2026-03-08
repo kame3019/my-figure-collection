@@ -2260,4 +2260,324 @@
     </script>
 
 </body>
+
+    <script>
+(function () {
+  function fb() {
+    return window.kuraFirebase || null;
+  }
+
+  function $(id) {
+    return document.getElementById(id);
+  }
+
+  async function currentUserIsAdmin() {
+    const api = fb();
+    const uid = api?.auth?.currentUser?.uid;
+    if (!api || !uid) return false;
+
+    try {
+      const snap = await api.getDoc(api.doc(api.db, "admins", uid));
+      return snap.exists();
+    } catch (err) {
+      console.error("Admin check failed:", err);
+      return false;
+    }
+  }
+
+  function normalizeLogoEntry(docSnap) {
+    const data = docSnap.data() || {};
+    return {
+      id: docSnap.id,
+      name: data.name || "",
+      logo: data.logo || "",
+      createdAt: data.createdAt || 0,
+      updatedAt: data.updatedAt || 0
+    };
+  }
+
+  async function loadCloudLogoLibraries() {
+    const api = fb();
+    if (!api) return;
+
+    try {
+      const [brandSnap, seriesSnap] = await Promise.all([
+        api.getDocs(api.collection(api.db, "appConfig", "public", "brandLogos")),
+        api.getDocs(api.collection(api.db, "appConfig", "public", "seriesLogos"))
+      ]);
+
+      brandLibrary = brandSnap.docs.map(normalizeLogoEntry).sort((a, b) => (a.name || "").localeCompare(b.name || ""));
+      seriesLibrary = seriesSnap.docs.map(normalizeLogoEntry).sort((a, b) => (a.name || "").localeCompare(b.name || ""));
+
+      if (typeof save === "function") save();
+      if (typeof renderPresetPickers === "function") renderPresetPickers();
+      if (typeof renderLogoManagers === "function") renderLogoManagers();
+
+      updateLogoAdminHint();
+    } catch (err) {
+      console.error("Load cloud logo library failed:", err);
+    }
+  }
+
+  async function migrateLocalLogosIfNeeded() {
+    const api = fb();
+    if (!api) return;
+
+    const isAdmin = await currentUserIsAdmin();
+    if (!isAdmin) return;
+
+    const sessionKey = "kura_logo_cloud_migrate_checked";
+    if (sessionStorage.getItem(sessionKey) === "1") return;
+    sessionStorage.setItem(sessionKey, "1");
+
+    const [brandSnap, seriesSnap] = await Promise.all([
+      api.getDocs(api.collection(api.db, "appConfig", "public", "brandLogos")),
+      api.getDocs(api.collection(api.db, "appConfig", "public", "seriesLogos"))
+    ]);
+
+    const needBrandMigrate = brandSnap.empty && Array.isArray(brandLibrary) && brandLibrary.length > 0;
+    const needSeriesMigrate = seriesSnap.empty && Array.isArray(seriesLibrary) && seriesLibrary.length > 0;
+
+    if (!needBrandMigrate && !needSeriesMigrate) return;
+
+    const ok = confirm("雲端 Logo Library 目前係空，要唔要把你而家本機已有的 Logos 搬上雲端？");
+    if (!ok) return;
+
+    try {
+      const writes = [];
+
+      if (needBrandMigrate) {
+        for (const item of brandLibrary) {
+          const id = crypto.randomUUID();
+          writes.push(
+            api.setDoc(api.doc(api.db, "appConfig", "public", "brandLogos", id), {
+              name: item.name || "",
+              logo: item.logo || "",
+              createdAt: Date.now(),
+              updatedAt: Date.now()
+            })
+          );
+        }
+      }
+
+      if (needSeriesMigrate) {
+        for (const item of seriesLibrary) {
+          const id = crypto.randomUUID();
+          writes.push(
+            api.setDoc(api.doc(api.db, "appConfig", "public", "seriesLogos", id), {
+              name: item.name || "",
+              logo: item.logo || "",
+              createdAt: Date.now(),
+              updatedAt: Date.now()
+            })
+          );
+        }
+      }
+
+      await Promise.all(writes);
+      await loadCloudLogoLibraries();
+      alert("本機 Logo 已搬上雲端");
+    } catch (err) {
+      console.error("Logo migration failed:", err);
+      alert(err.message || "搬移 Logo 失敗");
+    }
+  }
+
+  async function saveBrandLogoToCloud() {
+    const api = fb();
+    if (!api) return;
+
+    const isAdmin = await currentUserIsAdmin();
+    if (!isAdmin) {
+      alert("只有 admin 可以修改全站 Brand Logo Library");
+      return;
+    }
+
+    const name = $("brand")?.value.trim() || "";
+    const url = $("brandLogoUrl")?.value.trim() || "";
+    const file = $("brandLogoFile")?.files?.[0] || null;
+
+    if (!name || (!url && !file)) {
+      alert("先填品牌名稱同 logo");
+      return;
+    }
+
+    try {
+      const logo = file ? await fileToDataURL(file) : url;
+      const id = crypto.randomUUID();
+
+      await api.setDoc(api.doc(api.db, "appConfig", "public", "brandLogos", id), {
+        name,
+        logo,
+        createdAt: Date.now(),
+        updatedAt: Date.now()
+      });
+
+      $("brandLogoUrl").value = "";
+      if ($("brandLogoFile")) $("brandLogoFile").value = "";
+
+      await loadCloudLogoLibraries();
+      if ($("backupStatus")) $("backupStatus").textContent = "已加入全站 Brand Logo";
+    } catch (err) {
+      console.error("Save brand logo failed:", err);
+      alert(err.message || "加入 Brand Logo 失敗");
+    }
+  }
+
+  async function saveSeriesLogoToCloud() {
+    const api = fb();
+    if (!api) return;
+
+    const isAdmin = await currentUserIsAdmin();
+    if (!isAdmin) {
+      alert("只有 admin 可以修改全站 Series Logo Library");
+      return;
+    }
+
+    const name = $("series")?.value.trim() || "";
+    const url = $("seriesLogoUrl")?.value.trim() || "";
+    const file = $("seriesLogoFile")?.files?.[0] || null;
+
+    if (!name || (!url && !file)) {
+      alert("先填系列名稱同 logo");
+      return;
+    }
+
+    try {
+      const logo = file ? await fileToDataURL(file) : url;
+      const id = crypto.randomUUID();
+
+      await api.setDoc(api.doc(api.db, "appConfig", "public", "seriesLogos", id), {
+        name,
+        logo,
+        createdAt: Date.now(),
+        updatedAt: Date.now()
+      });
+
+      $("seriesLogoUrl").value = "";
+      if ($("seriesLogoFile")) $("seriesLogoFile").value = "";
+
+      await loadCloudLogoLibraries();
+      if ($("backupStatus")) $("backupStatus").textContent = "已加入全站 Series Logo";
+    } catch (err) {
+      console.error("Save series logo failed:", err);
+      alert(err.message || "加入 Series Logo 失敗");
+    }
+  }
+
+  window.deleteBrandLogo = async function (index) {
+    const api = fb();
+    if (!api) return;
+
+    const isAdmin = await currentUserIsAdmin();
+    if (!isAdmin) {
+      alert("只有 admin 可以刪除全站 Brand Logo");
+      return;
+    }
+
+    const item = brandLibrary[index];
+    if (!item) return;
+
+    if (!confirm("確定刪除 Brand Logo：" + item.name + "？")) return;
+
+    try {
+      await api.deleteDoc(api.doc(api.db, "appConfig", "public", "brandLogos", item.id));
+      await loadCloudLogoLibraries();
+      if ($("backupStatus")) $("backupStatus").textContent = "已刪除全站 Brand Logo";
+    } catch (err) {
+      console.error("Delete brand logo failed:", err);
+      alert(err.message || "刪除 Brand Logo 失敗");
+    }
+  };
+
+  window.deleteSeriesLogo = async function (index) {
+    const api = fb();
+    if (!api) return;
+
+    const isAdmin = await currentUserIsAdmin();
+    if (!isAdmin) {
+      alert("只有 admin 可以刪除全站 Series Logo");
+      return;
+    }
+
+    const item = seriesLibrary[index];
+    if (!item) return;
+
+    if (!confirm("確定刪除 Series Logo：" + item.name + "？")) return;
+
+    try {
+      await api.deleteDoc(api.doc(api.db, "appConfig", "public", "seriesLogos", item.id));
+      await loadCloudLogoLibraries();
+      if ($("backupStatus")) $("backupStatus").textContent = "已刪除全站 Series Logo";
+    } catch (err) {
+      console.error("Delete series logo failed:", err);
+      alert(err.message || "刪除 Series Logo 失敗");
+    }
+  };
+
+  async function updateLogoAdminHint() {
+    const isAdmin = await currentUserIsAdmin();
+    const saveBrandBtn = $("saveBrandLibBtn");
+    const saveSeriesBtn = $("saveSeriesLibBtn");
+
+    if (saveBrandBtn) {
+      saveBrandBtn.textContent = isAdmin ? "加入全站 Brand Logo" : "只有 admin 可新增 Brand Logo";
+      saveBrandBtn.disabled = !isAdmin;
+      saveBrandBtn.classList.toggle("opacity-60", !isAdmin);
+    }
+
+    if (saveSeriesBtn) {
+      saveSeriesBtn.textContent = isAdmin ? "加入全站 Series Logo" : "只有 admin 可新增 Series Logo";
+      saveSeriesBtn.disabled = !isAdmin;
+      saveSeriesBtn.classList.toggle("opacity-60", !isAdmin);
+    }
+  }
+
+  function bindCloudLogoButtons() {
+    const saveBrandBtn = $("saveBrandLibBtn");
+    const saveSeriesBtn = $("saveSeriesLibBtn");
+
+    if (saveBrandBtn && !saveBrandBtn.dataset.cloudBound) {
+      saveBrandBtn.dataset.cloudBound = "1";
+      saveBrandBtn.onclick = saveBrandLogoToCloud;
+    }
+
+    if (saveSeriesBtn && !saveSeriesBtn.dataset.cloudBound) {
+      saveSeriesBtn.dataset.cloudBound = "1";
+      saveSeriesBtn.onclick = saveSeriesLogoToCloud;
+    }
+  }
+
+  async function bootGlobalLogoLibrary() {
+    bindCloudLogoButtons();
+    await loadCloudLogoLibraries();
+    await migrateLocalLogosIfNeeded();
+    await updateLogoAdminHint();
+
+    document.addEventListener("click", function (e) {
+      if (e.target.closest("#navAddCenter") || e.target.closest("#navProfile")) {
+        setTimeout(async () => {
+          bindCloudLogoButtons();
+          await loadCloudLogoLibraries();
+          await updateLogoAdminHint();
+        }, 300);
+      }
+    });
+
+    let count = 0;
+    const timer = setInterval(async () => {
+      count += 1;
+      bindCloudLogoButtons();
+      await updateLogoAdminHint();
+      if (count >= 8) clearInterval(timer);
+    }, 1500);
+  }
+
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", bootGlobalLogoLibrary);
+  } else {
+    bootGlobalLogoLibrary();
+  }
+})();
+</script>
 </html>
