@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8" />
     <meta content="width=device-width, initial-scale=1.0" name="viewport" />
-    <title>Kyoto Vault V8.8 Pure Final</title>
+    <title>Kyoto Vault V8.8 Dual Theme Fixed</title>
 
     <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
     <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@200..800&display=swap" rel="stylesheet" />
@@ -86,6 +86,113 @@
             backdrop-filter: blur(8px);
         }
 
+        .theme-pill-active {
+            background: #e6392d !important;
+            color: #fff !important;
+            border-color: rgba(230,57,45,.35) !important;
+        }
+
+        body.theme-blackgold,
+        body.theme-blackgold.washi-texture {
+            background-color: #0f0c0a !important;
+            background-image:
+                radial-gradient(circle at 20% 20%, rgba(212,175,55,.08), transparent 24%),
+                radial-gradient(circle at 80% 0%, rgba(212,175,55,.05), transparent 18%),
+                linear-gradient(180deg, #19140f 0%, #0d0a08 100%) !important;
+            color: #f5efe3 !important;
+        }
+
+        body.theme-blackgold header,
+        body.theme-blackgold nav {
+            background: rgba(17,13,10,.9) !important;
+            border-color: rgba(212,175,55,.16) !important;
+        }
+
+        body.theme-blackgold .kv-surface {
+            background: linear-gradient(180deg, rgba(31,25,21,.96), rgba(18,15,12,.96)) !important;
+            border-color: rgba(212,175,55,.16) !important;
+            box-shadow: 0 14px 28px rgba(0,0,0,.26) !important;
+        }
+
+        body.theme-blackgold .kv-input,
+        body.theme-blackgold input,
+        body.theme-blackgold select,
+        body.theme-blackgold textarea {
+            background: rgba(24,19,15,.92) !important;
+            color: #f5efe3 !important;
+            border-color: rgba(212,175,55,.16) !important;
+        }
+
+        body.theme-blackgold input::placeholder,
+        body.theme-blackgold textarea::placeholder {
+            color: #b7aa96 !important;
+        }
+
+        body.theme-blackgold .kv-artframe {
+            background-color: #18130f !important;
+            border-color: rgba(212,175,55,.18) !important;
+        }
+
+        body.theme-blackgold .text-slate-900,
+        body.theme-blackgold .text-slate-800 {
+            color: #f5efe3 !important;
+        }
+
+        body.theme-blackgold .text-slate-500,
+        body.theme-blackgold .text-slate-400 {
+            color: #b7aa96 !important;
+        }
+
+        body.theme-blackgold .text-primary {
+            color: #d4af37 !important;
+        }
+
+        body.theme-blackgold .text-gold {
+            color: #f0ca56 !important;
+        }
+
+        body.theme-blackgold .bg-primary {
+            background-color: #d4af37 !important;
+            color: #16120d !important;
+        }
+
+        body.theme-blackgold [class*="bg-primary/10"] {
+            background-color: rgba(212,175,55,.12) !important;
+            color: #d4af37 !important;
+        }
+
+        body.theme-blackgold [class*="border-primary/10"] {
+            border-color: rgba(212,175,55,.16) !important;
+        }
+
+        body.theme-blackgold [class*="bg-gold/10"] {
+            background-color: rgba(212,175,55,.12) !important;
+        }
+
+        body.theme-blackgold [class*="text-emerald-600"] {
+            color: #83d28d !important;
+        }
+
+        body.theme-blackgold .chip-active,
+        body.theme-blackgold .mode-active,
+        body.theme-blackgold .theme-pill-active {
+            background: #d4af37 !important;
+            color: #16120d !important;
+            border-color: rgba(212,175,55,.3) !important;
+        }
+
+        body.theme-blackgold .nav-active {
+            color: #d4af37 !important;
+        }
+
+        body.theme-blackgold .bg-black\/5 {
+            background-color: rgba(255,255,255,.07) !important;
+        }
+
+        body.theme-blackgold .shadow-primary\/40 {
+            box-shadow: 0 12px 28px rgba(212,175,55,.22) !important;
+        }
+
         body {
             min-height: max(884px, 100dvh);
         }
@@ -98,12 +205,17 @@
                 <span class="material-symbols-outlined text-primary text-2xl">account_balance</span>
                 <div>
                     <h1 class="text-xl font-bold tracking-tight uppercase">Kyoto Vault</h1>
-                    <p class="text-[10px] text-slate-500 uppercase tracking-[0.18em]">Pure Final • V8.8</p>
+                    <p class="text-[10px] text-slate-500 uppercase tracking-[0.18em]">Dual Theme • V8.8</p>
                 </div>
             </div>
-            <button id="headerSearchBtn" class="size-10 flex items-center justify-center rounded-full bg-primary/10 text-primary">
-                <span class="material-symbols-outlined">search</span>
-            </button>
+            <div class="flex items-center gap-2">
+                <button id="themeToggleBtn" class="size-10 flex items-center justify-center rounded-full bg-primary/10 text-primary">
+                    <span class="material-symbols-outlined">palette</span>
+                </button>
+                <button id="headerSearchBtn" class="size-10 flex items-center justify-center rounded-full bg-primary/10 text-primary">
+                    <span class="material-symbols-outlined">search</span>
+                </button>
+            </div>
         </header>
 
         <main class="flex-1 overflow-y-auto no-scrollbar">
@@ -179,7 +291,7 @@
 
             <!-- Add / Manage -->
             <section id="pageAdd" class="page px-6 py-6 space-y-5">
-                <div class="rounded-xl p-5 border border-primary/10 bg-white/55 shadow-sm">
+                <div class="kv-surface rounded-xl p-5 border border-primary/10 bg-white/55 shadow-sm">
                     <div class="flex items-center justify-between mb-4">
                         <div>
                             <h2 class="text-lg font-bold">Archive Entry</h2>
@@ -189,8 +301,8 @@
                     </div>
 
                     <div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
-                        <input id="name" class="rounded-xl border border-primary/10 bg-background-light/80 px-4 py-3 text-sm placeholder:text-slate-400 focus:border-primary focus:ring-primary" placeholder="模型名稱" />
-                        <input id="brand" class="rounded-xl border border-primary/10 bg-background-light/80 px-4 py-3 text-sm placeholder:text-slate-400 focus:border-primary focus:ring-primary" placeholder="品牌 / 廠商" />
+                        <input id="name" class="kv-input rounded-xl border border-primary/10 bg-background-light/80 px-4 py-3 text-sm placeholder:text-slate-400 focus:border-primary focus:ring-primary" placeholder="模型名稱" />
+                        <input id="brand" class="kv-input rounded-xl border border-primary/10 bg-background-light/80 px-4 py-3 text-sm placeholder:text-slate-400 focus:border-primary focus:ring-primary" placeholder="品牌 / 廠商" />
                     </div>
 
                     <div class="mt-4">
@@ -199,15 +311,15 @@
                     </div>
 
                     <div class="grid grid-cols-1 gap-3 sm:grid-cols-2 mt-3">
-                        <input id="brandLogoUrl" class="rounded-xl border border-primary/10 bg-background-light/80 px-4 py-3 text-sm placeholder:text-slate-400 focus:border-primary focus:ring-primary" placeholder="品牌 logo 網址" />
-                        <input id="brandLogoFile" class="rounded-xl border border-primary/10 bg-background-light/80 px-4 py-3 text-sm file:mr-3 file:rounded-lg file:border-0 file:bg-primary file:px-3 file:py-2 file:text-sm file:font-semibold file:text-white" type="file" accept="image/*" />
+                        <input id="brandLogoUrl" class="kv-input rounded-xl border border-primary/10 bg-background-light/80 px-4 py-3 text-sm placeholder:text-slate-400 focus:border-primary focus:ring-primary" placeholder="品牌 logo 網址" />
+                        <input id="brandLogoFile" class="kv-input rounded-xl border border-primary/10 bg-background-light/80 px-4 py-3 text-sm file:mr-3 file:rounded-lg file:border-0 file:bg-primary file:px-3 file:py-2 file:text-sm file:font-semibold file:text-white" type="file" accept="image/*" />
                     </div>
 
                     <button id="saveBrandLibBtn" class="mt-3 w-full rounded-xl bg-primary px-4 py-3 text-sm font-bold text-white">加入品牌 Logo 庫</button>
 
                     <div class="grid grid-cols-1 gap-3 sm:grid-cols-2 mt-5">
-                        <input id="series" class="rounded-xl border border-primary/10 bg-background-light/80 px-4 py-3 text-sm placeholder:text-slate-400 focus:border-primary focus:ring-primary" placeholder="系列 / 作品" />
-                        <input id="itemCode" class="rounded-xl border border-primary/10 bg-background-light/80 px-4 py-3 text-sm placeholder:text-slate-400 focus:border-primary focus:ring-primary" placeholder="商品編號 / 條碼" />
+                        <input id="series" class="kv-input rounded-xl border border-primary/10 bg-background-light/80 px-4 py-3 text-sm placeholder:text-slate-400 focus:border-primary focus:ring-primary" placeholder="系列 / 作品" />
+                        <input id="itemCode" class="kv-input rounded-xl border border-primary/10 bg-background-light/80 px-4 py-3 text-sm placeholder:text-slate-400 focus:border-primary focus:ring-primary" placeholder="商品編號 / 條碼" />
                     </div>
 
                     <div class="mt-4">
@@ -216,24 +328,24 @@
                     </div>
 
                     <div class="grid grid-cols-1 gap-3 sm:grid-cols-2 mt-3">
-                        <input id="seriesLogoUrl" class="rounded-xl border border-primary/10 bg-background-light/80 px-4 py-3 text-sm placeholder:text-slate-400 focus:border-primary focus:ring-primary" placeholder="系列 logo 網址" />
-                        <input id="seriesLogoFile" class="rounded-xl border border-primary/10 bg-background-light/80 px-4 py-3 text-sm file:mr-3 file:rounded-lg file:border-0 file:bg-primary file:px-3 file:py-2 file:text-sm file:font-semibold file:text-white" type="file" accept="image/*" />
+                        <input id="seriesLogoUrl" class="kv-input rounded-xl border border-primary/10 bg-background-light/80 px-4 py-3 text-sm placeholder:text-slate-400 focus:border-primary focus:ring-primary" placeholder="系列 logo 網址" />
+                        <input id="seriesLogoFile" class="kv-input rounded-xl border border-primary/10 bg-background-light/80 px-4 py-3 text-sm file:mr-3 file:rounded-lg file:border-0 file:bg-primary file:px-3 file:py-2 file:text-sm file:font-semibold file:text-white" type="file" accept="image/*" />
                     </div>
 
                     <button id="saveSeriesLibBtn" class="mt-3 w-full rounded-xl bg-primary px-4 py-3 text-sm font-bold text-white">加入系列 Logo 庫</button>
 
                     <div class="grid grid-cols-1 gap-3 sm:grid-cols-2 mt-5">
-                        <input id="price" class="rounded-xl border border-primary/10 bg-background-light/80 px-4 py-3 text-sm placeholder:text-slate-400 focus:border-primary focus:ring-primary" type="number" placeholder="購入價 HKD" />
-                        <input id="date" class="rounded-xl border border-primary/10 bg-background-light/80 px-4 py-3 text-sm focus:border-primary focus:ring-primary" type="date" />
+                        <input id="price" class="kv-input rounded-xl border border-primary/10 bg-background-light/80 px-4 py-3 text-sm placeholder:text-slate-400 focus:border-primary focus:ring-primary" type="number" placeholder="購入價 HKD" />
+                        <input id="date" class="kv-input rounded-xl border border-primary/10 bg-background-light/80 px-4 py-3 text-sm focus:border-primary focus:ring-primary" type="date" />
                     </div>
 
                     <div class="grid grid-cols-1 gap-3 sm:grid-cols-2 mt-3">
-                        <input id="category" class="rounded-xl border border-primary/10 bg-background-light/80 px-4 py-3 text-sm placeholder:text-slate-400 focus:border-primary focus:ring-primary" placeholder="分類" />
-                        <input id="location" class="rounded-xl border border-primary/10 bg-background-light/80 px-4 py-3 text-sm placeholder:text-slate-400 focus:border-primary focus:ring-primary" placeholder="擺放位置 / 展示櫃" />
+                        <input id="category" class="kv-input rounded-xl border border-primary/10 bg-background-light/80 px-4 py-3 text-sm placeholder:text-slate-400 focus:border-primary focus:ring-primary" placeholder="分類" />
+                        <input id="location" class="kv-input rounded-xl border border-primary/10 bg-background-light/80 px-4 py-3 text-sm placeholder:text-slate-400 focus:border-primary focus:ring-primary" placeholder="擺放位置 / 展示櫃" />
                     </div>
 
                     <div class="grid grid-cols-1 gap-3 sm:grid-cols-2 mt-3">
-                        <select id="status" class="rounded-xl border border-primary/10 bg-background-light/80 px-4 py-3 text-sm focus:border-primary focus:ring-primary">
+                        <select id="status" class="kv-input rounded-xl border border-primary/10 bg-background-light/80 px-4 py-3 text-sm focus:border-primary focus:ring-primary">
                             <option>未開封</option>
                             <option>已開封</option>
                             <option>展示中</option>
@@ -241,17 +353,17 @@
                             <option>願望清單</option>
                         </select>
 
-                        <input id="sourceLink" class="rounded-xl border border-primary/10 bg-background-light/80 px-4 py-3 text-sm placeholder:text-slate-400 focus:border-primary focus:ring-primary" placeholder="產品來源連結" />
+                        <input id="sourceLink" class="kv-input rounded-xl border border-primary/10 bg-background-light/80 px-4 py-3 text-sm placeholder:text-slate-400 focus:border-primary focus:ring-primary" placeholder="產品來源連結" />
                     </div>
 
                     <div class="grid grid-cols-1 gap-3 sm:grid-cols-2 mt-3">
-                        <input id="photo" class="rounded-xl border border-primary/10 bg-background-light/80 px-4 py-3 text-sm file:mr-3 file:rounded-lg file:border-0 file:bg-primary file:px-3 file:py-2 file:text-sm file:font-semibold file:text-white" type="file" accept="image/*" capture="environment" />
-                        <input id="photoLibrary" class="rounded-xl border border-primary/10 bg-background-light/80 px-4 py-3 text-sm file:mr-3 file:rounded-lg file:border-0 file:bg-primary file:px-3 file:py-2 file:text-sm file:font-semibold file:text-white" type="file" accept="image/*" />
+                        <input id="photo" class="kv-input rounded-xl border border-primary/10 bg-background-light/80 px-4 py-3 text-sm file:mr-3 file:rounded-lg file:border-0 file:bg-primary file:px-3 file:py-2 file:text-sm file:font-semibold file:text-white" type="file" accept="image/*" capture="environment" />
+                        <input id="photoLibrary" class="kv-input rounded-xl border border-primary/10 bg-background-light/80 px-4 py-3 text-sm file:mr-3 file:rounded-lg file:border-0 file:bg-primary file:px-3 file:py-2 file:text-sm file:font-semibold file:text-white" type="file" accept="image/*" />
                     </div>
 
                     <div class="grid grid-cols-1 gap-3 sm:grid-cols-2 mt-3">
-                        <input id="cornerLabel" class="rounded-xl border border-primary/10 bg-background-light/80 px-4 py-3 text-sm placeholder:text-slate-400 focus:border-primary focus:ring-primary" placeholder="圖片左上角標籤，例如 LIMITED EDITION" />
-                        <select id="cornerLabelColor" class="rounded-xl border border-primary/10 bg-background-light/80 px-4 py-3 text-sm focus:border-primary focus:ring-primary">
+                        <input id="cornerLabel" class="kv-input rounded-xl border border-primary/10 bg-background-light/80 px-4 py-3 text-sm placeholder:text-slate-400 focus:border-primary focus:ring-primary" placeholder="圖片左上角標籤，例如 LIMITED EDITION" />
+                        <select id="cornerLabelColor" class="kv-input rounded-xl border border-primary/10 bg-background-light/80 px-4 py-3 text-sm focus:border-primary focus:ring-primary">
                             <option value="auto">標籤顏色：自動</option>
                             <option value="red">紅</option>
                             <option value="black">黑</option>
@@ -259,12 +371,12 @@
                         </select>
                     </div>
 
-                    <textarea id="note" class="mt-3 rounded-xl border border-primary/10 bg-background-light/80 px-4 py-3 text-sm placeholder:text-slate-400 focus:border-primary focus:ring-primary" placeholder="備註"></textarea>
+                    <textarea id="note" class="kv-input mt-3 rounded-xl border border-primary/10 bg-background-light/80 px-4 py-3 text-sm placeholder:text-slate-400 focus:border-primary focus:ring-primary" placeholder="備註"></textarea>
 
                     <button id="saveBtn" class="mt-5 w-full rounded-xl bg-primary px-4 py-3 text-sm font-bold text-white">儲存收藏</button>
                 </div>
 
-                <div class="rounded-xl p-5 border border-primary/10 bg-white/55 shadow-sm">
+                <div class="kv-surface rounded-xl p-5 border border-primary/10 bg-white/55 shadow-sm">
                     <div class="flex items-center justify-between">
                         <div>
                             <h3 class="text-lg font-bold">Curator Library</h3>
@@ -286,7 +398,7 @@
                     <div id="seriesLibraryManager" class="mt-3 space-y-2"></div>
                 </div>
 
-                <div class="rounded-xl p-5 border border-primary/10 bg-white/55 shadow-sm">
+                <div class="kv-surface rounded-xl p-5 border border-primary/10 bg-white/55 shadow-sm">
                     <div class="flex items-center justify-between">
                         <div>
                             <h3 class="text-lg font-bold">Archive Tools</h3>
@@ -313,13 +425,13 @@
                 <h3 class="text-lg font-bold mb-4">Market Insights</h3>
 
                 <div class="mb-4">
-                    <select id="statsYearFilter" class="w-full rounded-xl border border-primary/10 bg-white px-4 py-3 text-sm focus:border-primary focus:ring-primary"></select>
+                    <select id="statsYearFilter" class="kv-input w-full rounded-xl border border-primary/10 bg-white px-4 py-3 text-sm focus:border-primary focus:ring-primary"></select>
                 </div>
 
                 <div id="statsOverview" class="grid grid-cols-2 gap-3 mb-6"></div>
 
                 <div class="space-y-4">
-                    <div class="rounded-xl bg-white border border-slate-100 shadow-sm p-4">
+                    <div class="kv-surface rounded-xl bg-white border border-slate-100 shadow-sm p-4">
                         <div class="flex items-center justify-between mb-3">
                             <h4 class="font-bold">Top Archive Ranking</h4>
                             <span class="material-symbols-outlined text-gold">workspace_premium</span>
@@ -327,7 +439,7 @@
                         <div id="topRanking"></div>
                     </div>
 
-                    <div class="rounded-xl bg-white border border-slate-100 shadow-sm p-4">
+                    <div class="kv-surface rounded-xl bg-white border border-slate-100 shadow-sm p-4">
                         <div class="flex items-center justify-between mb-3">
                             <h4 class="font-bold">Brand Distribution</h4>
                             <span class="material-symbols-outlined text-primary">donut_large</span>
@@ -335,7 +447,7 @@
                         <div id="brandBreakdown"></div>
                     </div>
 
-                    <div class="rounded-xl bg-white border border-slate-100 shadow-sm p-4">
+                    <div class="kv-surface rounded-xl bg-white border border-slate-100 shadow-sm p-4">
                         <div class="flex items-center justify-between mb-3">
                             <h4 class="font-bold">Series Distribution</h4>
                             <span class="material-symbols-outlined text-gold">stacked_bar_chart</span>
@@ -343,7 +455,7 @@
                         <div id="seriesBreakdown"></div>
                     </div>
 
-                    <div class="rounded-xl bg-white border border-slate-100 shadow-sm p-4">
+                    <div class="kv-surface rounded-xl bg-white border border-slate-100 shadow-sm p-4">
                         <div class="flex items-center justify-between mb-3">
                             <h4 class="font-bold">Monthly Chronicle</h4>
                             <span class="material-symbols-outlined text-gold">calendar_month</span>
@@ -355,7 +467,7 @@
 
             <!-- Profile -->
             <section id="pageProfile" class="page px-6 py-8 space-y-4">
-                <div class="rounded-xl bg-white border border-slate-100 shadow-sm p-5">
+                <div class="kv-surface rounded-xl bg-white border border-slate-100 shadow-sm p-5">
                     <div class="flex items-center gap-4">
                         <div class="size-16 rounded-full bg-primary/10 border border-primary/20 flex items-center justify-center">
                             <span class="material-symbols-outlined text-primary text-3xl">person</span>
@@ -379,7 +491,30 @@
                     </div>
                 </div>
 
-                <div class="rounded-xl bg-white border border-slate-100 shadow-sm p-5">
+                <div class="kv-surface rounded-xl bg-white border border-slate-100 shadow-sm p-5">
+                    <div class="flex items-center justify-between mb-4">
+                        <div>
+                            <h3 class="text-lg font-bold">Theme Studio</h3>
+                            <p class="text-xs text-slate-500 uppercase tracking-widest mt-1">雙主題切換</p>
+                        </div>
+                        <span class="material-symbols-outlined text-gold text-3xl">palette</span>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-3">
+                        <button id="themePureBtn" class="theme-pill rounded-xl border border-primary/10 bg-white/60 px-4 py-4 text-sm font-bold">
+                            和風純淨
+                        </button>
+                        <button id="themeBlackGoldBtn" class="theme-pill rounded-xl border border-primary/10 bg-white/60 px-4 py-4 text-sm font-bold">
+                            黑金收藏家
+                        </button>
+                    </div>
+
+                    <p class="mt-3 text-xs text-slate-500 leading-6">
+                        兩個主題共用同一份收藏資料、統計、Logo Library、角標設定。
+                    </p>
+                </div>
+
+                <div class="kv-surface rounded-xl bg-white border border-slate-100 shadow-sm p-5">
                     <div class="flex items-center justify-between mb-4">
                         <div>
                             <h3 class="text-lg font-bold">Sign In</h3>
@@ -389,13 +524,13 @@
                     </div>
 
                     <div class="space-y-3">
-                        <input id="loginEmail" class="rounded-xl border border-primary/10 bg-background-light/80 px-4 py-3 text-sm placeholder:text-slate-400 focus:border-primary focus:ring-primary" placeholder="Email address" type="email" />
-                        <input id="loginPassword" class="rounded-xl border border-primary/10 bg-background-light/80 px-4 py-3 text-sm placeholder:text-slate-400 focus:border-primary focus:ring-primary" placeholder="Password" type="password" />
+                        <input id="loginEmail" class="kv-input rounded-xl border border-primary/10 bg-background-light/80 px-4 py-3 text-sm placeholder:text-slate-400 focus:border-primary focus:ring-primary" placeholder="Email address" type="email" />
+                        <input id="loginPassword" class="kv-input rounded-xl border border-primary/10 bg-background-light/80 px-4 py-3 text-sm placeholder:text-slate-400 focus:border-primary focus:ring-primary" placeholder="Password" type="password" />
                         <button id="fakeLoginBtn" class="w-full rounded-xl bg-primary px-4 py-3 text-sm font-bold text-white">登入（示範 UI）</button>
                     </div>
                 </div>
 
-                <div class="rounded-xl bg-white border border-slate-100 shadow-sm p-5">
+                <div class="kv-surface rounded-xl bg-white border border-slate-100 shadow-sm p-5">
                     <div class="flex items-center justify-between mb-4">
                         <div>
                             <h3 class="text-lg font-bold">Create Account</h3>
@@ -405,9 +540,9 @@
                     </div>
 
                     <div class="space-y-3">
-                        <input id="registerName" class="rounded-xl border border-primary/10 bg-background-light/80 px-4 py-3 text-sm placeholder:text-slate-400 focus:border-primary focus:ring-primary" placeholder="Display name" />
-                        <input id="registerEmail" class="rounded-xl border border-primary/10 bg-background-light/80 px-4 py-3 text-sm placeholder:text-slate-400 focus:border-primary focus:ring-primary" placeholder="Email address" type="email" />
-                        <input id="registerPassword" class="rounded-xl border border-primary/10 bg-background-light/80 px-4 py-3 text-sm placeholder:text-slate-400 focus:border-primary focus:ring-primary" placeholder="Password" type="password" />
+                        <input id="registerName" class="kv-input rounded-xl border border-primary/10 bg-background-light/80 px-4 py-3 text-sm placeholder:text-slate-400 focus:border-primary focus:ring-primary" placeholder="Display name" />
+                        <input id="registerEmail" class="kv-input rounded-xl border border-primary/10 bg-background-light/80 px-4 py-3 text-sm placeholder:text-slate-400 focus:border-primary focus:ring-primary" placeholder="Email address" type="email" />
+                        <input id="registerPassword" class="kv-input rounded-xl border border-primary/10 bg-background-light/80 px-4 py-3 text-sm placeholder:text-slate-400 focus:border-primary focus:ring-primary" placeholder="Password" type="password" />
                         <button id="fakeRegisterBtn" class="w-full rounded-xl bg-primary px-4 py-3 text-sm font-bold text-white">註冊（示範 UI）</button>
                     </div>
                 </div>
@@ -450,6 +585,7 @@
         const BRAND_LIB_KEY = "kyoto_vault_v88_pure_final_brand_lib";
         const SERIES_LIB_KEY = "kyoto_vault_v88_pure_final_series_lib";
         const FAKE_USER_KEY = "kyoto_vault_fake_user_pure_final";
+        const VISUAL_THEME_KEY = "kyoto_vault_visual_theme";
 
         const LEGACY_KEYS = [
             "kyoto_vault_v88_member_prep_items",
@@ -604,6 +740,42 @@
             }
         }
 
+        function getVisualTheme() {
+            return localStorage.getItem(VISUAL_THEME_KEY) || "pure";
+        }
+
+        function applyVisualTheme() {
+            const theme = getVisualTheme();
+
+            if (theme === "blackgold") {
+                document.body.classList.add("theme-blackgold");
+            } else {
+                document.body.classList.remove("theme-blackgold");
+            }
+
+            syncThemeButtons();
+        }
+
+        function setVisualTheme(theme) {
+            localStorage.setItem(VISUAL_THEME_KEY, theme);
+            applyVisualTheme();
+        }
+
+        function syncThemeButtons() {
+            const pureBtn = document.getElementById("themePureBtn");
+            const blackBtn = document.getElementById("themeBlackGoldBtn");
+            if (!pureBtn || !blackBtn) return;
+
+            pureBtn.classList.remove("theme-pill-active");
+            blackBtn.classList.remove("theme-pill-active");
+
+            if (getVisualTheme() === "blackgold") {
+                blackBtn.classList.add("theme-pill-active");
+            } else {
+                pureBtn.classList.add("theme-pill-active");
+            }
+        }
+
         function makeDefaultImage(label) {
             const safe = (label || "Figure").replace(/[<>&]/g, "");
             const svg = `
@@ -663,6 +835,30 @@
             if (color === "gold") classes = "bg-gold text-white";
 
             return { text, classes };
+        }
+
+        function logoChip(name, logo, mode = "normal") {
+            if (!name && !logo) return "";
+
+            const sizeClass = mode === "small" ? "h-5 w-5" : "h-6 w-6";
+            const textClass = mode === "small" ? "text-[10px]" : "text-[11px]";
+            const padClass = mode === "small" ? "px-2 py-1" : "px-2.5 py-1.5";
+
+            return `
+                <span class="inline-flex items-center gap-1.5 rounded-full border border-primary/10 bg-white/80 ${padClass} ${textClass} font-semibold text-slate-700 max-w-full">
+                    ${logo ? `<span class="${sizeClass} rounded-full overflow-hidden bg-white border border-primary/10 shrink-0"><img class="h-full w-full object-contain" src="${logo}" alt=""></span>` : ""}
+                    <span class="truncate">${name || ""}</span>
+                </span>
+            `;
+        }
+
+        function renderItemLogos(item, mode = "normal") {
+            const brand = logoChip(item.brand, item.brandLogo, mode);
+            const series = logoChip(item.series, item.seriesLogo, mode);
+            const content = [brand, series].filter(Boolean).join("");
+
+            if (!content) return "";
+            return `<div class="mt-2 flex flex-wrap gap-2">${content}</div>`;
         }
 
         function ownedItems() {
@@ -779,11 +975,12 @@
                         <div class="absolute top-4 left-4 z-20 ${label.classes} text-[10px] font-bold py-3 px-1 vertical-text tracking-widest uppercase">
                             ${label.text}
                         </div>
-                        <div class="aspect-[3/4] rounded-xl overflow-hidden shadow-xl border-4 border-white bg-white bg-center bg-cover" style="background-image:url('${item.image || makeDefaultImage(item.name || "Figure")}')"></div>
+                        <div class="kv-artframe aspect-[3/4] rounded-xl overflow-hidden shadow-xl border-4 border-white bg-white bg-center bg-cover" style="background-image:url('${item.image || makeDefaultImage(item.name || "Figure")}')"></div>
                         <div class="mt-4 flex justify-between items-start gap-3">
-                            <div class="min-w-0">
+                            <div class="min-w-0 flex-1">
                                 <h4 class="font-bold text-lg leading-tight">${item.name || "Untitled"}</h4>
                                 <p class="text-sm text-slate-500 truncate">${item.brand || "未填品牌"} • ${item.series || "未填系列"}</p>
+                                ${renderItemLogos(item)}
                             </div>
                             <div class="bg-gold/10 px-2 py-1 rounded shrink-0">
                                 <span class="text-gold font-bold text-sm">${money(item.price)}</span>
@@ -832,8 +1029,8 @@
             const label = labelConfig(item, index);
 
             return `
-                <div class="flex gap-4 p-3 rounded-xl bg-white border border-slate-100 shadow-sm">
-                    <div class="relative w-24 h-24 rounded-lg overflow-hidden shrink-0 bg-white bg-center bg-cover" style="background-image:url('${item.image || makeDefaultImage(item.name || "Figure")}')">
+                <div class="kv-surface flex gap-4 p-3 rounded-xl bg-white border border-slate-100 shadow-sm">
+                    <div class="relative w-24 h-24 rounded-lg overflow-hidden shrink-0 kv-artframe bg-white bg-center bg-cover" style="background-image:url('${item.image || makeDefaultImage(item.name || "Figure")}')">
                         ${item.cornerLabel ? `<div class="absolute top-1 left-1 ${label.classes} text-[8px] font-bold py-1 px-[3px] vertical-text tracking-widest uppercase rounded-sm">${label.text}</div>` : ""}
                     </div>
 
@@ -841,6 +1038,7 @@
                         <div>
                             <h3 class="font-bold text-base leading-tight">${item.name || "未命名收藏"}</h3>
                             <p class="text-slate-500 text-xs mt-1 truncate">${item.brand || "未填品牌"} • ${item.series || "未填系列"}</p>
+                            ${renderItemLogos(item, "small")}
                             <p class="text-slate-400 text-[11px] mt-1 truncate">${item.category || "其他"} ${item.date ? "• " + item.date : ""}</p>
                         </div>
 
@@ -867,7 +1065,7 @@
 
             if (!arr.length) {
                 list.innerHTML = `
-                    <div class="rounded-xl border border-primary/10 bg-white/50 p-6 text-center text-slate-400">
+                    <div class="kv-surface rounded-xl border border-primary/10 bg-white/50 p-6 text-center text-slate-400">
                         ${view === "wishlist" ? "暫時未有願望清單" : "暫時未有收藏"}
                     </div>
                 `;
@@ -879,13 +1077,14 @@
                 list.innerHTML = arr.map((item, index) => {
                     const label = labelConfig(item, index);
                     return `
-                        <div class="rounded-xl bg-white border border-slate-100 shadow-sm overflow-hidden">
-                            <div class="aspect-square w-full bg-white bg-center bg-cover relative" style="background-image:url('${item.image || makeDefaultImage(item.name || "Figure")}')">
+                        <div class="kv-surface rounded-xl bg-white border border-slate-100 shadow-sm overflow-hidden">
+                            <div class="kv-artframe aspect-square w-full bg-white bg-center bg-cover relative" style="background-image:url('${item.image || makeDefaultImage(item.name || "Figure")}')">
                                 <div class="absolute top-3 left-3 ${label.classes} text-[10px] font-bold py-2 px-1 vertical-text uppercase tracking-widest rounded-sm">${label.text}</div>
                             </div>
                             <div class="p-4">
                                 <h3 class="font-bold text-base leading-tight">${item.name || "未命名收藏"}</h3>
                                 <p class="text-slate-500 text-xs mt-1">${item.brand || "未填品牌"} • ${item.series || "未填系列"}</p>
+                                ${renderItemLogos(item, "small")}
                                 <div class="mt-3 flex items-center justify-between">
                                     <span class="text-lg font-bold text-primary">${money(item.price)}</span>
                                     <span class="text-xs text-slate-400">${item.date || ""}</span>
@@ -904,11 +1103,12 @@
             if (mode === "compact") {
                 list.className = "space-y-3";
                 list.innerHTML = arr.map(item => `
-                    <div class="flex items-center gap-3 p-3 rounded-xl bg-white border border-slate-100 shadow-sm">
-                        <div class="h-20 w-20 rounded-lg bg-white bg-center bg-cover shrink-0" style="background-image:url('${item.image || makeDefaultImage(item.name || "Figure")}')"></div>
+                    <div class="kv-surface flex items-center gap-3 p-3 rounded-xl bg-white border border-slate-100 shadow-sm">
+                        <div class="h-20 w-20 rounded-lg kv-artframe bg-white bg-center bg-cover shrink-0" style="background-image:url('${item.image || makeDefaultImage(item.name || "Figure")}')"></div>
                         <div class="flex-1 min-w-0">
                             <div class="font-bold truncate">${item.name || "未命名收藏"}</div>
                             <div class="text-xs text-slate-500 mt-1 truncate">${item.brand || "未填品牌"} • ${item.series || "未填系列"}</div>
+                            ${renderItemLogos(item, "small")}
                             <div class="text-primary font-bold mt-2">${money(item.price)}</div>
                         </div>
                         <button class="rounded-lg bg-black/5 px-3 py-2 text-xs font-semibold" onclick="editItem('${item.id}')">修改</button>
@@ -922,12 +1122,13 @@
                 list.innerHTML = arr.map((item, index) => {
                     const label = labelConfig(item, index);
                     return `
-                        <div class="rounded-xl overflow-hidden bg-white border border-slate-100 shadow-sm">
-                            <div class="h-32 bg-white bg-center bg-cover relative" style="background-image:url('${item.image || makeDefaultImage(item.name || "Figure")}')">
+                        <div class="kv-surface rounded-xl overflow-hidden bg-white border border-slate-100 shadow-sm">
+                            <div class="h-32 kv-artframe bg-white bg-center bg-cover relative" style="background-image:url('${item.image || makeDefaultImage(item.name || "Figure")}')">
                                 <div class="absolute top-2 left-2 ${label.classes} text-[8px] font-bold py-1 px-[3px] vertical-text tracking-widest uppercase rounded-sm">${label.text}</div>
                             </div>
                             <div class="p-3">
                                 <div class="text-sm font-bold leading-tight">${item.name || "未命名收藏"}</div>
+                                ${renderItemLogos(item, "small")}
                                 <div class="text-primary text-xs font-bold mt-1">${money(item.price)}</div>
                             </div>
                         </div>
@@ -1276,7 +1477,7 @@
                 monthMap[month].count += 1;
             });
 
-            renderBarSection(brandMap, "brandBreakdown", "trending_up", "bg-primary/5 text-primary");
+            renderBarSection(brandMap, "brandBreakdown", "inventory_2", "bg-primary/5 text-primary");
             renderBarSection(seriesMap, "seriesBreakdown", "diamond", "bg-gold/10 text-gold");
 
             const monthRows = Object.entries(monthMap).sort((a, b) => b[0].localeCompare(a[0]));
@@ -1351,6 +1552,27 @@
             renderLogoManagers();
             renderStats();
             renderProfilePage();
+        }
+
+        const themeToggleBtn = document.getElementById("themeToggleBtn");
+        if (themeToggleBtn) {
+            themeToggleBtn.onclick = function() {
+                setVisualTheme(getVisualTheme() === "blackgold" ? "pure" : "blackgold");
+            };
+        }
+
+        const themePureBtn = document.getElementById("themePureBtn");
+        if (themePureBtn) {
+            themePureBtn.onclick = function() {
+                setVisualTheme("pure");
+            };
+        }
+
+        const themeBlackGoldBtn = document.getElementById("themeBlackGoldBtn");
+        if (themeBlackGoldBtn) {
+            themeBlackGoldBtn.onclick = function() {
+                setVisualTheme("blackgold");
+            };
         }
 
         document.getElementById("headerSearchBtn").onclick = function() {
@@ -1471,6 +1693,7 @@
         loadData();
         loadFakeUser();
         render();
+        applyVisualTheme();
         setActiveNav("collection");
     </script>
 </body>
