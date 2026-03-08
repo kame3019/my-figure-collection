@@ -3,9 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Figure Collector V8.1</title>
+<title>Figure Collector V8.8 Ultimate</title>
 <meta name="theme-color" content="#0d0d0f">
-
 <style>
 :root{
     --bg:#0d0d0f;
@@ -32,12 +31,11 @@ body{
     margin:auto;
     padding:20px 16px 110px;
 }
-.hero,
-.card,
-.item{
+.hero,.card,.item{
     background:linear-gradient(180deg,rgba(29,30,35,.98),rgba(20,20,24,.98));
     border:1px solid rgba(212,175,55,.20);
     border-radius:var(--radius);
+    box-shadow:0 14px 32px rgba(0,0,0,.28);
 }
 .hero{
     padding:20px 16px;
@@ -58,23 +56,16 @@ h1{
     font-size:13px;
     line-height:1.6;
 }
-.page{
-    display:none;
-}
-.page.show{
-    display:block;
-}
+.page{display:none}
+.page.show{display:block}
+
 .topToggle{
     display:grid;
     grid-template-columns:1fr 1fr;
     gap:8px;
     margin:14px 0;
 }
-.toggleBtn,
-.modeBtn,
-.tabBtn,
-.smallBtn,
-.btn2{
+.toggleBtn,.modeBtn,.tabBtn,.smallBtn,.btn2,.chipBtn,.primaryBtn{
     border:none;
     border-radius:14px;
     padding:12px;
@@ -84,9 +75,12 @@ h1{
     color:var(--muted);
     border:1px solid rgba(212,175,55,.16);
 }
-.toggleBtn.active,
-.modeBtn.active,
-.tabBtn.active{
+.toggleBtn.active,.modeBtn.active,.tabBtn.active{
+    background:linear-gradient(180deg,rgba(212,175,55,.98),rgba(156,124,33,.98));
+    color:#111;
+}
+.primaryBtn{
+    width:100%;
     background:linear-gradient(180deg,rgba(212,175,55,.98),rgba(156,124,33,.98));
     color:#111;
 }
@@ -96,9 +90,7 @@ h1{
     gap:10px;
     margin-bottom:14px;
 }
-.stat{
-    padding:14px 12px;
-}
+.stat{padding:14px 12px}
 .k{
     font-size:11px;
     color:var(--gold);
@@ -108,8 +100,7 @@ h1{
     font-size:18px;
     font-weight:700;
 }
-.search,
-.field{
+.search,.field{
     width:100%;
     background:linear-gradient(180deg,rgba(27,27,31,.98),rgba(17,17,20,.98));
     border:1px solid rgba(212,175,55,.16);
@@ -118,9 +109,7 @@ h1{
     color:var(--text);
     margin-bottom:10px;
 }
-input,
-textarea,
-select{
+input,textarea,select{
     width:100%;
     background:transparent;
     border:none;
@@ -137,15 +126,20 @@ textarea{
     gap:10px;
     margin-bottom:10px;
 }
-.row > *{
-    flex:1;
-}
+.row > *{flex:1}
+
 .modes{
     display:grid;
-    grid-template-columns:repeat(4,1fr);
+    grid-template-columns:repeat(4,minmax(0,1fr));
     gap:8px;
     margin:12px 0;
 }
+.modeBtn{
+    padding:10px 6px;
+    font-size:13px;
+    white-space:nowrap;
+}
+
 .list{
     display:grid;
     gap:12px;
@@ -153,13 +147,13 @@ textarea{
 .list.grid{
     grid-template-columns:1fr 1fr;
 }
-.list.listview,
-.list.compact{
+.list.listview,.list.compact{
     grid-template-columns:1fr;
 }
-.item{
-    overflow:hidden;
+.list.wall{
+    grid-template-columns:1fr 1fr;
 }
+.item{overflow:hidden}
 .thumb{
     height:190px;
     background-color:#27231a;
@@ -172,6 +166,9 @@ textarea{
     color:#a89d85;
     position:relative;
 }
+.list.wall .thumb{
+    height:110px;
+}
 .status{
     position:absolute;
     right:12px;
@@ -183,9 +180,7 @@ textarea{
     background:rgba(17,17,19,.9);
     border:1px solid rgba(212,175,55,.16);
 }
-.body{
-    padding:14px;
-}
+.body{padding:14px}
 .name{
     font-size:20px;
     font-weight:800;
@@ -197,16 +192,13 @@ textarea{
     line-height:1.5;
     margin-bottom:10px;
 }
-.logoRow,
-.chips,
-.actions{
+.logoRow,.chips,.actions,.pickerRow{
     display:flex;
     flex-wrap:wrap;
     gap:8px;
     margin-bottom:10px;
 }
-.logoBadge,
-.chip{
+.logoBadge,.chip{
     display:flex;
     align-items:center;
     gap:6px;
@@ -308,32 +300,20 @@ textarea{
     border-top:1px solid rgba(212,175,55,.16);
 }
 @media (max-width:560px){
-    .stats{
-        grid-template-columns:repeat(2,1fr);
-    }
-    .list.grid{
-        grid-template-columns:1fr;
-    }
+    .stats{grid-template-columns:repeat(2,1fr)}
+    .list.grid{grid-template-columns:1fr}
 }
 @media (max-width:430px){
-    .row,
-    .modes{
-        display:grid;
-        grid-template-columns:1fr;
-    }
+    .row{display:grid;grid-template-columns:1fr}
 }
 </style>
 </head>
 <body>
-
 <div class="wrap">
-
     <div class="hero">
-        <div class="eyebrow">FIGURE COLLECTOR V8.1</div>
+        <div class="eyebrow">FIGURE COLLECTOR V8.8 ULTIMATE</div>
         <h1>My Figure Collection</h1>
-        <div class="sub">
-            以 V8 做底，再加返 Logo Library 管理。呢版係易睇易改版本，唔壓縮。
-        </div>
+        <div class="sub">V8 最終穩定版。固定一行四格模式、Logo 全部可刪、黑金 UI、備份還原、可讀版。</div>
     </div>
 
     <section id="pageCollection" class="page show">
@@ -343,22 +323,10 @@ textarea{
         </div>
 
         <div class="stats">
-            <div class="item stat">
-                <div class="k">收藏數量</div>
-                <div class="v" id="countAll">0</div>
-            </div>
-            <div class="item stat">
-                <div class="k">總花費</div>
-                <div class="v" id="sumPrice">$0</div>
-            </div>
-            <div class="item stat">
-                <div class="k">願望清單</div>
-                <div class="v" id="wishTop">0</div>
-            </div>
-            <div class="item stat">
-                <div class="k">本月花費</div>
-                <div class="v" id="monthSpend">$0</div>
-            </div>
+            <div class="item stat"><div class="k">收藏數量</div><div class="v" id="countAll">0</div></div>
+            <div class="item stat"><div class="k">總花費</div><div class="v" id="sumPrice">$0</div></div>
+            <div class="item stat"><div class="k">願望清單</div><div class="v" id="wishTop">0</div></div>
+            <div class="item stat"><div class="k">本月花費</div><div class="v" id="monthSpend">$0</div></div>
         </div>
 
         <input id="searchInput" class="search" placeholder="搜尋模型、品牌、系列、分類…">
@@ -367,7 +335,7 @@ textarea{
             <button class="modeBtn active" data-mode="grid">網格</button>
             <button class="modeBtn" data-mode="listview">列表</button>
             <button class="modeBtn" data-mode="compact">卡片</button>
-            <button class="modeBtn" data-mode="grid">收藏牆</button>
+            <button class="modeBtn" data-mode="wall">收藏牆</button>
         </div>
 
         <div class="row">
@@ -404,7 +372,7 @@ textarea{
             </div>
 
             <div class="panelTitle">品牌 Logo</div>
-            <div id="brandPresetPicker" class="logoRow"></div>
+            <div id="brandPresetPicker" class="pickerRow"></div>
             <div class="row">
                 <div class="field"><input id="brandLogoUrl" placeholder="品牌 logo 網址"></div>
                 <div class="field"><input id="brandLogoFile" type="file" accept="image/*"></div>
@@ -417,7 +385,7 @@ textarea{
             </div>
 
             <div class="panelTitle">系列 Logo</div>
-            <div id="seriesPresetPicker" class="logoRow"></div>
+            <div id="seriesPresetPicker" class="pickerRow"></div>
             <div class="row">
                 <div class="field"><input id="seriesLogoUrl" placeholder="系列 logo 網址"></div>
                 <div class="field"><input id="seriesLogoFile" type="file" accept="image/*"></div>
@@ -452,18 +420,14 @@ textarea{
                 <div class="field"><input id="photoLibrary" type="file" accept="image/*"></div>
             </div>
 
-            <div class="field">
-                <textarea id="note" placeholder="備註"></textarea>
-            </div>
+            <div class="field"><textarea id="note" placeholder="備註"></textarea></div>
 
             <button class="primaryBtn" id="saveBtn">儲存收藏</button>
         </div>
 
         <div class="card" style="padding:14px;margin-top:12px">
             <div class="panelTitle">Logo Library 管理</div>
-            <div class="notice">
-                可直接刪除已儲存的品牌 / 系列 Logo。刪除後，下次新增時就唔會再出現。
-            </div>
+            <div class="notice">預設 logo 同你自己新增嘅 logo，全部都可以直接刪除。</div>
 
             <div class="row" style="align-items:center">
                 <h3 style="margin:0;flex:1">品牌 Logos</h3>
@@ -480,9 +444,7 @@ textarea{
 
         <div class="card" style="padding:14px;margin-top:12px">
             <div class="panelTitle">備份 / 還原</div>
-            <div class="notice">
-                呢版會將收藏資料 + 品牌 Logo 庫 + 系列 Logo 庫 一齊備份。
-            </div>
+            <div class="notice">收藏資料 + Logo 庫 會一齊備份。</div>
 
             <div class="row">
                 <button class="smallBtn" id="exportBtn">⬇️ 匯出 JSON</button>
@@ -501,7 +463,6 @@ textarea{
             <div id="statsPanel" class="small">統計資料會顯示喺度</div>
         </div>
     </section>
-
 </div>
 
 <nav class="tabs">
@@ -511,29 +472,31 @@ textarea{
 </nav>
 
 <script>
-const STABLE_KEY = "figure_collector_v81_master";
-const BRAND_LIB_KEY = "figure_collector_v81_brand_library";
-const SERIES_LIB_KEY = "figure_collector_v81_series_library";
+const STABLE_KEY = "figure_collector_v88_master";
+const BRAND_LIB_KEY = "figure_collector_v88_brand_library";
+const SERIES_LIB_KEY = "figure_collector_v88_series_library";
+
+const BRAND_DEFAULTS = [
+    { name:"Bandai", logo:"https://upload.wikimedia.org/wikipedia/commons/thumb/7/7a/Bandai_Logo.svg/512px-Bandai_Logo.svg.png" },
+    { name:"Good Smile", logo:"https://upload.wikimedia.org/wikipedia/commons/thumb/d/da/Good_Smile_Company_logo.svg/512px-Good_Smile_Company_logo.svg.png" },
+    { name:"Kotobukiya", logo:"https://upload.wikimedia.org/wikipedia/commons/thumb/d/de/Kotobukiya_logo.svg/512px-Kotobukiya_logo.svg.png" }
+];
+
+const SERIES_DEFAULTS = [
+    { name:"Gundam", logo:"https://upload.wikimedia.org/wikipedia/commons/thumb/0/0b/Gundam_series_logo.svg/512px-Gundam_series_logo.svg.png" },
+    { name:"SHF", logo:"https://tamashiiweb.com/images/common/logo_tamashii.png" },
+    { name:"Chiikawa", logo:"https://upload.wikimedia.org/wikipedia/commons/thumb/c/c7/Chiikawa_logo.svg/512px-Chiikawa_logo.svg.png" }
+];
 
 const LEGACY_KEYS = [
+    "figure_collector_v82_master",
+    "figure_collector_v81_master",
     "figure_collector_v8_master",
     "figure_collector_v85_master",
     "figure_collector_v86_master",
     "figure_collector_v9_master",
     "figure_collector_pro_clean_v1"
 ];
-
-const BRAND_PRESETS = {
-    "Bandai":"https://upload.wikimedia.org/wikipedia/commons/thumb/7/7a/Bandai_Logo.svg/512px-Bandai_Logo.svg.png",
-    "Good Smile":"https://upload.wikimedia.org/wikipedia/commons/thumb/d/da/Good_Smile_Company_logo.svg/512px-Good_Smile_Company_logo.svg.png",
-    "Kotobukiya":"https://upload.wikimedia.org/wikipedia/commons/thumb/d/de/Kotobukiya_logo.svg/512px-Kotobukiya_logo.svg.png"
-};
-
-const SERIES_PRESETS = {
-    "Gundam":"https://upload.wikimedia.org/wikipedia/commons/thumb/0/0b/Gundam_series_logo.svg/512px-Gundam_series_logo.svg.png",
-    "SHF":"https://tamashiiweb.com/images/common/logo_tamashii.png",
-    "Chiikawa":"https://upload.wikimedia.org/wikipedia/commons/thumb/c/c7/Chiikawa_logo.svg/512px-Chiikawa_logo.svg.png"
-};
 
 let items = [];
 let brandLibrary = [];
@@ -576,24 +539,26 @@ function normalizeRecord(raw){
     };
 }
 
-function loadData(){
-    try{
-        brandLibrary = JSON.parse(localStorage.getItem(BRAND_LIB_KEY) || "[]");
-    }catch(e){
-        brandLibrary = [];
+function seedDefaultsIfNeeded(){
+    if(!brandLibrary.length){
+        brandLibrary = [...BRAND_DEFAULTS];
     }
+    if(!seriesLibrary.length){
+        seriesLibrary = [...SERIES_DEFAULTS];
+    }
+}
 
-    try{
-        seriesLibrary = JSON.parse(localStorage.getItem(SERIES_LIB_KEY) || "[]");
-    }catch(e){
-        seriesLibrary = [];
-    }
+function loadData(){
+    try{ brandLibrary = JSON.parse(localStorage.getItem(BRAND_LIB_KEY) || "[]"); }catch(e){ brandLibrary = []; }
+    try{ seriesLibrary = JSON.parse(localStorage.getItem(SERIES_LIB_KEY) || "[]"); }catch(e){ seriesLibrary = []; }
+
+    seedDefaultsIfNeeded();
 
     const stable = localStorage.getItem(STABLE_KEY);
-
     if(stable){
         try{
             items = JSON.parse(stable).map(normalizeRecord).filter(Boolean);
+            save();
             return;
         }catch(e){}
     }
@@ -601,7 +566,6 @@ function loadData(){
     for(const key of LEGACY_KEYS){
         const data = localStorage.getItem(key);
         if(!data) continue;
-
         try{
             const parsed = JSON.parse(data);
             if(Array.isArray(parsed) && parsed.length){
@@ -618,9 +582,9 @@ function loadData(){
             name:"RX-78-2 Gundam",
             category:"高達",
             series:"Gundam",
-            seriesLogo:SERIES_PRESETS["Gundam"],
+            seriesLogo:SERIES_DEFAULTS[0].logo,
             brand:"Bandai",
-            brandLogo:BRAND_PRESETS["Bandai"],
+            brandLogo:BRAND_DEFAULTS[0].logo,
             price:189,
             date:"2026-03-02",
             itemCode:"HG-RX78",
@@ -631,14 +595,12 @@ function loadData(){
             image:""
         }
     ];
-
     save();
 }
 
 function showPage(id){
     document.querySelectorAll(".page").forEach(page => page.classList.remove("show"));
     document.getElementById(id).classList.add("show");
-
     document.querySelectorAll(".tabBtn").forEach(btn => {
         btn.classList.toggle("active", btn.dataset.page === id);
     });
@@ -674,38 +636,11 @@ document.getElementById("searchInput").oninput = renderList;
 document.getElementById("sortSelect").onchange = renderList;
 document.getElementById("categoryFilter").onchange = renderList;
 
-function mergeLibraries(){
-    const presetBrands = Object.entries(BRAND_PRESETS).map(([name,logo]) => ({name,logo}));
-    const presetSeries = Object.entries(SERIES_PRESETS).map(([name,logo]) => ({name,logo}));
-
-    const brandMap = new Map();
-    const seriesMap = new Map();
-
-    [...presetBrands, ...brandLibrary].forEach(item => {
-        if(item && item.name && item.logo){
-            brandMap.set(item.name, item.logo);
-        }
-    });
-
-    [...presetSeries, ...seriesLibrary].forEach(item => {
-        if(item && item.name && item.logo){
-            seriesMap.set(item.name, item.logo);
-        }
-    });
-
-    return {
-        brands:[...brandMap.entries()].map(([name,logo]) => ({name,logo})),
-        series:[...seriesMap.entries()].map(([name,logo]) => ({name,logo}))
-    };
-}
-
 function renderPresetPickers(){
-    const merged = mergeLibraries();
-
     const brandWrap = document.getElementById("brandPresetPicker");
     const seriesWrap = document.getElementById("seriesPresetPicker");
 
-    brandWrap.innerHTML = merged.brands.map(item => `
+    brandWrap.innerHTML = brandLibrary.map(item => `
         <button class="chipBtn" type="button" onclick="applyBrandPreset('${escapeText(item.name)}','${escapeText(item.logo)}')">
             <span class="logoBadge">
                 <span class="logoBox"><img src="${item.logo}" alt=""></span>
@@ -714,7 +649,7 @@ function renderPresetPickers(){
         </button>
     `).join("");
 
-    seriesWrap.innerHTML = merged.series.map(item => `
+    seriesWrap.innerHTML = seriesLibrary.map(item => `
         <button class="chipBtn" type="button" onclick="applySeriesPreset('${escapeText(item.name)}','${escapeText(item.logo)}')">
             <span class="logoBadge">
                 <span class="logoBox"><img src="${item.logo}" alt=""></span>
@@ -741,7 +676,6 @@ window.applySeriesPreset = function(name, logo){
 function refreshCategories(){
     const categoryFilter = document.getElementById("categoryFilter");
     const set = new Set(["全部分類"]);
-
     items.forEach(item => set.add(item.category || "其他"));
 
     const current = categoryFilter.value;
@@ -751,9 +685,7 @@ function refreshCategories(){
         const option = document.createElement("option");
         option.value = value === "全部分類" ? "" : value;
         option.textContent = value;
-        if(option.value === current){
-            option.selected = true;
-        }
+        if(option.value === current) option.selected = true;
         categoryFilter.appendChild(option);
     });
 }
@@ -808,7 +740,6 @@ function itemHtml(item){
             <div class="body">
                 <div class="name">${item.name || ""}</div>
                 <div class="meta">${item.category || "其他"} · ${item.series || "未填系列"} · ${item.brand || "未填品牌"}</div>
-
                 <div class="logoRow">
                     ${logoBadge(item.brand, item.brandLogo)}
                     ${logoBadge(item.series, item.seriesLogo)}
@@ -840,9 +771,7 @@ function itemHtml(item){
 function renderList(){
     const list = document.getElementById("list");
     list.className = "list " + mode;
-
     const arr = filteredItems();
-
     document.getElementById("resultNote").textContent = arr.length + " 件";
 
     if(!arr.length){
@@ -903,17 +832,11 @@ async function saveRecord(){
     const brandLogoUrl = document.getElementById("brandLogoUrl").value.trim();
     const seriesLogoUrl = document.getElementById("seriesLogoUrl").value.trim();
 
-    if(brandLogoFile){
-        brandLogo = await fileToDataURL(brandLogoFile);
-    }else if(brandLogoUrl){
-        brandLogo = brandLogoUrl;
-    }
+    if(brandLogoFile) brandLogo = await fileToDataURL(brandLogoFile);
+    else if(brandLogoUrl) brandLogo = brandLogoUrl;
 
-    if(seriesLogoFile){
-        seriesLogo = await fileToDataURL(seriesLogoFile);
-    }else if(seriesLogoUrl){
-        seriesLogo = seriesLogoUrl;
-    }
+    if(seriesLogoFile) seriesLogo = await fileToDataURL(seriesLogoFile);
+    else if(seriesLogoUrl) seriesLogo = seriesLogoUrl;
 
     const record = {
         id:id,
@@ -933,15 +856,12 @@ async function saveRecord(){
         image:image
     };
 
-    if(old){
-        items = items.map(item => item.id === id ? record : item);
-    }else{
-        items.unshift(record);
-    }
+    if(old) items = items.map(item => item.id === id ? record : item);
+    else items.unshift(record);
 
     save();
     clearForm();
-    document.getElementById("backupStatus").textContent = "已儲存到 V8.1";
+    document.getElementById("backupStatus").textContent = "已儲存到 V8.8";
     render();
     showPage("pageCollection");
 }
@@ -955,7 +875,6 @@ function clearForm(){
         const el = document.getElementById(id);
         if(el) el.value = "";
     });
-
     document.getElementById("status").value = "未開封";
     delete document.getElementById("saveBtn").dataset.editing;
 }
@@ -978,7 +897,6 @@ window.editItem = function(id){
     document.getElementById("sourceLink").value = item.sourceLink || "";
     document.getElementById("note").value = item.note || "";
     document.getElementById("saveBtn").dataset.editing = id;
-
     showPage("pageAdd");
 };
 
@@ -1000,14 +918,11 @@ async function addBrandLibrary(){
     }
 
     const logo = file ? await fileToDataURL(file) : url;
-
     brandLibrary = brandLibrary.filter(item => item.name !== name);
     brandLibrary.unshift({name,logo});
-
     save();
     renderPresetPickers();
     renderLogoManagers();
-
     document.getElementById("backupStatus").textContent = "已加入品牌 Logo 庫";
 }
 
@@ -1022,14 +937,11 @@ async function addSeriesLibrary(){
     }
 
     const logo = file ? await fileToDataURL(file) : url;
-
     seriesLibrary = seriesLibrary.filter(item => item.name !== name);
     seriesLibrary.unshift({name,logo});
-
     save();
     renderPresetPickers();
     renderLogoManagers();
-
     document.getElementById("backupStatus").textContent = "已加入系列 Logo 庫";
 }
 
@@ -1041,7 +953,7 @@ function renderLogoManagers(){
     document.getElementById("seriesLibCount").textContent = seriesLibrary.length + " 個";
 
     if(!brandLibrary.length){
-        brandWrap.innerHTML = '<div class="empty">未有自訂品牌 Logo。</div>';
+        brandWrap.innerHTML = '<div class="empty">未有品牌 Logo。</div>';
     }else{
         brandWrap.innerHTML = brandLibrary.map((item,index) => `
             <div class="libraryItem">
@@ -1055,7 +967,7 @@ function renderLogoManagers(){
     }
 
     if(!seriesLibrary.length){
-        seriesWrap.innerHTML = '<div class="empty">未有自訂系列 Logo。</div>';
+        seriesWrap.innerHTML = '<div class="empty">未有系列 Logo。</div>';
     }else{
         seriesWrap.innerHTML = seriesLibrary.map((item,index) => `
             <div class="libraryItem">
@@ -1072,34 +984,28 @@ function renderLogoManagers(){
 window.deleteBrandLogo = function(index){
     const item = brandLibrary[index];
     if(!item) return;
-
     if(!confirm("確定刪除品牌 Logo：" + item.name + "？")) return;
-
     brandLibrary.splice(index,1);
     save();
     renderPresetPickers();
     renderLogoManagers();
-
     document.getElementById("backupStatus").textContent = "已刪除品牌 Logo";
 };
 
 window.deleteSeriesLogo = function(index){
     const item = seriesLibrary[index];
     if(!item) return;
-
     if(!confirm("確定刪除系列 Logo：" + item.name + "？")) return;
-
     seriesLibrary.splice(index,1);
     save();
     renderPresetPickers();
     renderLogoManagers();
-
     document.getElementById("backupStatus").textContent = "已刪除系列 Logo";
 };
 
 function exportBackup(){
     const payload = {
-        app:"Figure Collector V8.1",
+        app:"Figure Collector V8.8 Ultimate",
         version:1,
         exported_at:new Date().toISOString(),
         items:items,
@@ -1110,21 +1016,18 @@ function exportBackup(){
     const blob = new Blob([JSON.stringify(payload,null,2)], {type:"application/json"});
     const a = document.createElement("a");
     a.href = URL.createObjectURL(blob);
-    a.download = "figure_collector_v81_backup.json";
+    a.download = "figure_collector_v88_backup.json";
     a.click();
     URL.revokeObjectURL(a.href);
-
     document.getElementById("backupStatus").textContent = "已匯出 JSON（含 Logo 庫）";
 }
 
 function importBackup(file){
     const reader = new FileReader();
-
     reader.onload = function(){
         try{
             const parsed = JSON.parse(reader.result);
             const imported = Array.isArray(parsed) ? parsed : (parsed.items || []);
-
             if(!Array.isArray(imported)) throw new Error("invalid");
 
             items = imported.map(normalizeRecord).filter(Boolean);
@@ -1140,7 +1043,6 @@ function importBackup(file){
             document.getElementById("backupStatus").textContent = "匯入失敗：檔案格式不正確";
         }
     };
-
     reader.readAsText(file,"utf-8");
 }
 
@@ -1148,9 +1050,7 @@ document.getElementById("saveBtn").onclick = saveRecord;
 document.getElementById("saveBrandLibBtn").onclick = addBrandLibrary;
 document.getElementById("saveSeriesLibBtn").onclick = addSeriesLibrary;
 document.getElementById("exportBtn").onclick = exportBackup;
-document.getElementById("importBtn").onclick = function(){
-    document.getElementById("importFile").click();
-};
+document.getElementById("importBtn").onclick = function(){ document.getElementById("importFile").click(); };
 document.getElementById("importFile").onchange = function(e){
     const file = e.target.files[0];
     if(file) importBackup(file);
@@ -1158,8 +1058,8 @@ document.getElementById("importFile").onchange = function(e){
 document.getElementById("clearBtn").onclick = function(){
     if(!confirm("確定清空全部收藏資料同 Logo 庫？")) return;
     items = [];
-    brandLibrary = [];
-    seriesLibrary = [];
+    brandLibrary = [...BRAND_DEFAULTS];
+    seriesLibrary = [...SERIES_DEFAULTS];
     save();
     renderPresetPickers();
     render();
@@ -1177,6 +1077,5 @@ loadData();
 renderPresetPickers();
 render();
 </script>
-
 </body>
 </html>
