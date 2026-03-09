@@ -4941,165 +4941,137 @@
 </script>
 
 
-<style>
-#profileToolModal .tool-modal-title{font-size:16px !important;font-weight:700 !important;letter-spacing:.01em !important;line-height:1.2 !important}
-#profileToolModal .tool-modal-close{font-size:13px !important;font-weight:700 !important}
-</style>
 <script>
 (function(){
-  const STR = {
+  const I18N_FIX = {
     zh: {
-      navArchive:'收藏', navWish:'願望', navCategory:'分類', navProfile:'我的',
-      archiveTitle:'Archive Catalogue', wishTitle:'Wish List Catalogue',
-      managementTools:'管理工具',
-      toolArchive:'Archive History', toolTheme:'Theme', toolNotifications:'Notifications', toolLanguage:'Language',
-      toolLogo:'Logo Library', toolShare:'Share Cards', toolBackup:'Backup', toolCurrency:'Currency',
-      themeTitle:'主題', themeSub:'外觀設定', themePure:'和風純淨', themeBlackGold:'黑金收藏家',
-      notifTitle:'提醒通知', notifSub:'未取貨提醒', notifEnable:'啟用站內提醒', notifBefore:'提前提醒', notifSummary:'未取貨項目',
-      langTitle:'語言', langSub:'介面語言', curTitle:'貨幣', curSub:'顯示貨幣', curHint:'顯示貨幣設定會用於後續價格顯示。',
-      cancel:'取消',
-      modeList:'列表', modeGrid:'網格', modeCompact:'卡片', modeWall:'收藏牆',
-      categoryManage:'分類管理', customCategories:'自訂分類', fixedCategories:'固定分類', addFixed:'新增固定分類', addCategory:'新增分類', noCustom:'未有自訂分類',
-      days1:'1 日前', days3:'3 日前', days7:'7 日前'
+      navArchive:'Archive', navWishList:'Wish List', navCategory:'Category', navProfile:'Profile',
+      toolArchiveHistory:'Archive History', toolTheme:'Theme', toolNotifications:'Notifications', toolLanguage:'Language',
+      toolLogoLibrary:'Logo Library', toolShareCards:'Share Cards', toolBackup:'Backup', toolCurrency:'Currency',
+      themePanelTitle:'Theme', notificationsPanelTitle:'Notifications', languagePanelTitle:'Language', currencyPanelTitle:'Currency',
+      modalClose:'取消',
+      categoryHeader:'分類管理', categoryEnabled:'啟用中', categoryDisabled:'未啟用', categoryAdd:'新增分類',
+      profileTools:'Management Tools'
     },
     en: {
-      navArchive:'Archive', navWish:'Wishlist', navCategory:'Category', navProfile:'Profile',
-      archiveTitle:'Archive Catalogue', wishTitle:'Wishlist Catalogue',
-      managementTools:'Management Tools',
-      toolArchive:'Archive History', toolTheme:'Theme', toolNotifications:'Notifications', toolLanguage:'Language',
-      toolLogo:'Logo Library', toolShare:'Share Cards', toolBackup:'Backup', toolCurrency:'Currency',
-      themeTitle:'Theme', themeSub:'Appearance', themePure:'Pure Washi', themeBlackGold:'Black Gold',
-      notifTitle:'Notifications', notifSub:'Pickup reminders', notifEnable:'Enable in-app reminders', notifBefore:'Remind before', notifSummary:'Pending pickup items',
-      langTitle:'Language', langSub:'Interface language', curTitle:'Currency', curSub:'Display currency', curHint:'Display currency is used for price display.',
-      cancel:'Cancel',
-      modeList:'List', modeGrid:'Grid', modeCompact:'Card', modeWall:'Wall',
-      categoryManage:'Category Manager', customCategories:'Custom Categories', fixedCategories:'Fixed Categories', addFixed:'Add Fixed Category', addCategory:'Add Category', noCustom:'No custom categories yet',
-      days1:'1 day before', days3:'3 days before', days7:'7 days before'
+      navArchive:'Archive', navWishList:'Wish List', navCategory:'Category', navProfile:'Profile',
+      toolArchiveHistory:'Archive History', toolTheme:'Theme', toolNotifications:'Notifications', toolLanguage:'Language',
+      toolLogoLibrary:'Logo Library', toolShareCards:'Share Cards', toolBackup:'Backup', toolCurrency:'Currency',
+      themePanelTitle:'Theme', notificationsPanelTitle:'Notifications', languagePanelTitle:'Language', currencyPanelTitle:'Currency',
+      modalClose:'Close',
+      categoryHeader:'Category Manager', categoryEnabled:'Enabled', categoryDisabled:'Disabled', categoryAdd:'Add Category',
+      profileTools:'Management Tools'
     },
     ja: {
-      navArchive:'アーカイブ', navWish:'ほしい物', navCategory:'分類', navProfile:'プロフィール',
-      archiveTitle:'アーカイブ一覧', wishTitle:'ほしい物一覧',
-      managementTools:'管理ツール',
-      toolArchive:'履歴', toolTheme:'テーマ', toolNotifications:'通知', toolLanguage:'言語',
-      toolLogo:'ロゴ', toolShare:'共有カード', toolBackup:'バックアップ', toolCurrency:'通貨',
-      themeTitle:'テーマ', themeSub:'表示設定', themePure:'和風ピュア', themeBlackGold:'ブラックゴールド',
-      notifTitle:'通知', notifSub:'受取リマインダー', notifEnable:'アプリ内通知を有効化', notifBefore:'事前通知', notifSummary:'未受取アイテム',
-      langTitle:'言語', langSub:'表示言語', curTitle:'通貨', curSub:'表示通貨', curHint:'価格表示に使用する通貨です。',
-      cancel:'キャンセル',
-      modeList:'リスト', modeGrid:'グリッド', modeCompact:'カード', modeWall:'ウォール',
-      categoryManage:'分類管理', customCategories:'カスタム分類', fixedCategories:'固定分類', addFixed:'固定分類を追加', addCategory:'分類を追加', noCustom:'カスタム分類はまだありません',
-      days1:'1日前', days3:'3日前', days7:'7日前'
+      navArchive:'アーカイブ', navWishList:'ウィッシュ', navCategory:'カテゴリ', navProfile:'プロフィール',
+      toolArchiveHistory:'アーカイブ履歴', toolTheme:'テーマ', toolNotifications:'通知', toolLanguage:'言語',
+      toolLogoLibrary:'ロゴ管理', toolShareCards:'共有カード', toolBackup:'バックアップ', toolCurrency:'通貨',
+      themePanelTitle:'テーマ', notificationsPanelTitle:'通知', languagePanelTitle:'言語', currencyPanelTitle:'通貨',
+      modalClose:'閉じる',
+      categoryHeader:'カテゴリ管理', categoryEnabled:'有効', categoryDisabled:'無効', categoryAdd:'カテゴリ追加',
+      profileTools:'管理ツール'
     }
   };
-  function $(id){return document.getElementById(id)}
-  function lang(){return localStorage.getItem('kura_ui_lang')||'zh'}
-  function T(){return STR[lang()]||STR.zh}
-  function setText(sel, txt){ const el = typeof sel==='string' ? document.querySelector(sel) : sel; if(el && txt!=null) el.textContent = txt; }
-  function setAll(sel, fn){ document.querySelectorAll(sel).forEach(fn); }
+  function lang(){ return localStorage.getItem('kura_ui_lang') || 'zh'; }
+  function dict(){ return I18N_FIX[lang()] || I18N_FIX.zh; }
+  function setText(selector, value){
+    const el = document.querySelector(selector);
+    if(el && value) el.textContent = value;
+  }
   function syncNav(){
-    const s=T();
-    const map={navCollection:s.navArchive, navWishlist:s.navWish, navStats:s.navCategory, navProfile:s.navProfile};
-    Object.entries(map).forEach(([id,val])=>setText('#'+id+' span:last-child',val));
+    const d = dict();
+    setText('#navCollection span:last-child', d.navArchive);
+    setText('#navWishlist span:last-child', d.navWishList);
+    setText('#navStats span:last-child', d.navCategory);
+    setText('#navProfile span:last-child', d.navProfile);
   }
-  function syncProfileTools(){
-    const s=T();
-    const pairs=[['toolChronicle',s.toolArchive],['toolTheme',s.toolTheme],['toolNotifications',s.toolNotifications],['toolLanguage',s.toolLanguage],['toolLogo',s.toolLogo],['toolShare',s.toolShare],['toolExport',s.toolBackup],['toolCurrency',s.toolCurrency]];
-    pairs.forEach(([id,val])=>setText('#'+id+' span:last-child',val));
-    // section title
-    document.querySelectorAll('#pageProfile h3').forEach(h=>{
-      const txt=(h.textContent||'').trim().toLowerCase();
-      if(txt==='management tools' || txt==='管理工具' || txt==='管理ツール') h.textContent=s.managementTools;
-    });
-  }
-  function syncArchiveTitles(){
-    const s=T();
-    const archiveTitle=$('archiveTitle');
-    if(archiveTitle){ archiveTitle.textContent = (window.view==='wishlist' ? s.wishTitle : s.archiveTitle); }
-  }
-  function syncModes(){
-    const s=T();
-    const map={list:s.modeList,grid:s.modeGrid,compact:s.modeCompact,wall:s.modeWall};
-    setAll('.modeBtn', btn=>{ const m=btn.dataset.mode; if(map[m]) btn.textContent=map[m]; });
-  }
-  function syncCategoryPage(){
-    const s=T();
-    setAll('#pageStats p, #pageStats div, #pageStats button', el=>{
-      const txt=(el.textContent||'').trim();
-      if(txt==='分類管理' || txt==='Category Manager' || txt==='分類管理') el.textContent=s.categoryManage;
-      else if(txt==='自訂分類' || txt==='Custom Categories' || txt==='カスタム分類') el.textContent=s.customCategories;
-      else if(txt==='固定分類' || txt==='Fixed Categories' || txt==='固定分類') el.textContent=s.fixedCategories;
-      else if(txt==='新增固定分類' || txt==='Add Fixed Category' || txt==='固定分類を追加') el.textContent=s.addFixed;
-      else if(txt==='新增分類' || txt==='Add Category' || txt==='分類を追加') el.textContent=s.addCategory;
-      else if(txt==='未有自訂分類' || txt==='No custom categories yet' || txt==='カスタム分類はまだありません') el.textContent=s.noCustom;
-    });
-  }
-  function syncToolPanels(){
-    const s=T();
-    setText('#profileThemePanel [data-i18n="themePanelTitle"]', s.themeTitle);
-    setText('#profileThemePanel [data-i18n="themePanelSubtitle"]', s.themeSub);
-    setText('#themePureBtn', s.themePure);
-    setText('#themeBlackGoldBtn', s.themeBlackGold);
-
-    setText('#profileNotificationsPanel [data-i18n="notificationsPanelTitle"]', s.notifTitle);
-    setText('#profileNotificationsPanel [data-i18n="notificationsPanelSubtitle"]', s.notifSub);
-    setText('#profileNotificationsPanel [data-i18n="notificationsEnable"]', s.notifEnable);
-    setText('#profileNotificationsPanel [data-i18n="notificationsBefore"]', s.notifBefore);
-    setText('#profileNotificationsPanel [data-i18n="notificationsSummaryPrefix"]', s.notifSummary);
-    const days=$('notifDaysSelect');
-    if(days){
-      const val=days.value;
-      days.innerHTML='';
-      [['1',s.days1],['3',s.days3],['7',s.days7]].forEach(([v,t])=>{ const o=document.createElement('option'); o.value=v; o.textContent=t; days.appendChild(o); });
-      if([...'137'].includes(val)) days.value=val;
-    }
-
-    setText('#profileLanguagePanel [data-i18n="languagePanelTitle"]', s.langTitle);
-    setText('#profileLanguagePanel [data-i18n="languagePanelSubtitle"]', s.langSub);
-
-    setText('#profileCurrencyPanel [data-i18n="currencyPanelTitle"]', s.curTitle);
-    setText('#profileCurrencyPanel [data-i18n="currencyPanelSubtitle"]', s.curSub);
-    setText('#profileCurrencyPanel [data-i18n="currencyPanelHint"]', s.curHint);
-  }
-  function syncModalTitle(){
-    const modal=$('profileToolModal');
-    if(!modal || modal.classList.contains('hidden')) return;
-    const body=$('profileToolModalBody');
-    const title=$('profileToolModalTitle');
-    const close=$('profileToolModalClose');
-    if(close) close.textContent=T().cancel;
-    if(!body || !title) return;
-    const panel=body.firstElementChild; if(!panel) return;
-    const s=T();
-    const map={
-      profileThemePanel:s.themeTitle,
-      profileNotificationsPanel:s.notifTitle,
-      profileLanguagePanel:s.langTitle,
-      profileCurrencyPanel:s.curTitle
+  function syncTools(){
+    const d = dict();
+    const map = {
+      '#toolChronicle [data-i18n="toolArchiveHistory"]': d.toolArchiveHistory,
+      '#toolTheme [data-i18n="toolTheme"]': d.toolTheme,
+      '#toolNotifications [data-i18n="toolNotifications"]': d.toolNotifications,
+      '#toolLanguage [data-i18n="toolLanguage"]': d.toolLanguage,
+      '#toolLogo [data-i18n="toolLogoLibrary"]': d.toolLogoLibrary,
+      '#toolShare [data-i18n="toolShareCards"]': d.toolShareCards,
+      '#toolExport [data-i18n="toolBackup"]': d.toolBackup,
+      '#toolCurrency [data-i18n="toolCurrency"]': d.toolCurrency
     };
-    if(panel.id && map[panel.id]) title.textContent=map[panel.id];
-  }
-  function fullApply(){
-    syncNav();
-    syncProfileTools();
-    syncArchiveTitles();
-    syncModes();
-    syncCategoryPage();
-    syncToolPanels();
-    syncModalTitle();
-  }
-  function bindClicks(){
-    const ids=['toolTheme','toolNotifications','toolLanguage','toolCurrency','navCollection','navWishlist','navStats','navProfile'];
-    document.addEventListener('click', function(e){
-      if(ids.some(id=>e.target.closest('#'+id))){
-        requestAnimationFrame(()=>{ fullApply(); setTimeout(fullApply,80); setTimeout(fullApply,220); });
+    Object.entries(map).forEach(([sel, val]) => setText(sel, val));
+    document.querySelectorAll('#profilePage h3, #pageProfile h3').forEach((el)=>{
+      if((el.textContent||'').trim()==='Management Tools' || (el.textContent||'').trim()==='管理工具' || (el.textContent||'').trim()==='管理ツール') {
+        el.textContent = d.profileTools;
       }
-    }, true);
+    });
   }
-  function boot(){ fullApply(); bindClicks(); }
-  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded', boot); else boot();
-  const mo=new MutationObserver(()=>fullApply());
-  mo.observe(document.documentElement,{subtree:true,childList:true,characterData:true});
-  setInterval(fullApply, 700);
+  function syncCategoryWords(){
+    const d = dict();
+    document.querySelectorAll('#pageStats h1, #pageStats h2, #pageStats h3, #pageStats p, #pageStats span, #pageStats button').forEach(el=>{
+      const t = (el.textContent||'').trim();
+      if(t==='分類管理' || t==='Category Manager' || t==='カテゴリ管理') el.textContent = d.categoryHeader;
+      if(t==='啟用中' || t==='Enabled' || t==='有効') el.textContent = d.categoryEnabled;
+      if(t==='未啟用' || t==='Disabled' || t==='無効') el.textContent = d.categoryDisabled;
+      if(t==='新增分類' || t==='Add Category' || t==='カテゴリ追加') el.textContent = d.categoryAdd;
+    });
+  }
+  function syncModal(){
+    const d = dict();
+    const modal = document.getElementById('profileToolModal');
+    if(!modal) return;
+    const closeBtn = document.getElementById('profileToolModalClose');
+    if(closeBtn) closeBtn.textContent = d.modalClose;
+    const body = document.getElementById('profileToolModalBody');
+    const title = document.getElementById('profileToolModalTitle');
+    if(!body || !title) return;
+    const panel = body.firstElementChild;
+    if(!panel) return;
+    const panelMap = {
+      profileThemePanel: d.themePanelTitle,
+      profileNotificationsPanel: d.notificationsPanelTitle,
+      profileLanguagePanel: d.languagePanelTitle,
+      profileCurrencyPanel: d.currencyPanelTitle
+    };
+    const nextTitle = panelMap[panel.id];
+    if(nextTitle) title.textContent = nextTitle;
+    title.style.fontSize = '16px';
+    title.style.fontWeight = '700';
+    title.style.letterSpacing = '0.01em';
+  }
+  function hideHomeThemeHard(){
+    const roots = ['pageCollection','pageArchive','pageHome'];
+    roots.forEach(id=>{
+      const root = document.getElementById(id);
+      if(!root) return;
+      root.querySelectorAll('*').forEach(el=>{
+        const t = (el.textContent||'').replace(/\s+/g,' ').trim().toLowerCase();
+        if(t==='theme' || t==='theme studio' || t==='主題' || t==='主題工坊') {
+          const block = el.closest('.kv-surface, .rounded-2xl, .rounded-3xl, .grid, .flex, section, div');
+          if(block && !String(block.id||'').startsWith('profile')) {
+            block.style.display = 'none';
+            block.classList.add('hidden');
+          }
+        }
+      });
+    });
+  }
+  function syncAll(){
+    syncNav();
+    syncTools();
+    syncCategoryWords();
+    syncModal();
+    hideHomeThemeHard();
+  }
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded', syncAll);
+  else syncAll();
+  document.addEventListener('click', function(e){
+    if(e.target.closest('#navCollection, #navWishlist, #navStats, #navProfile, #toolTheme, #toolNotifications, #toolLanguage, #toolCurrency, #langZhBtn, #langEnBtn, #langJaBtn')){
+      setTimeout(syncAll, 50);
+      setTimeout(syncAll, 250);
+      setTimeout(syncAll, 800);
+    }
+  });
+  setInterval(syncAll, 1500);
 })();
 </script>
+
 </html>
