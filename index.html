@@ -21,13 +21,42 @@
                         washi: "#f2eee5"
                     },
                     fontFamily: {
-                        display: ["Manrope", "sans-serif"]
+                        display: ["Aptos", "Segoe UI", "Calibri", "Gill Sans", "Trebuchet MS", "Noto Sans TC", "Noto Sans JP", "PingFang TC", "Hiragino Sans", "Microsoft JhengHei", "sans-serif"]
                     }
                 }
             }
         };
     </script>
 <style>
+
+        :root {
+            --app-font: "Aptos", "Segoe UI", "Calibri", "Gill Sans", "Trebuchet MS",
+                        "Noto Sans TC", "Noto Sans JP", "PingFang TC", "Hiragino Sans",
+                        "Microsoft JhengHei", sans-serif;
+        }
+
+        html, body, button, input, select, textarea {
+            font-family: var(--app-font) !important;
+        }
+
+        .font-display,
+        [class*="font-display"] {
+            font-family: var(--app-font) !important;
+        }
+
+        .material-symbols-outlined {
+            font-family: 'Material Symbols Outlined' !important;
+            font-weight: normal !important;
+            font-style: normal !important;
+            line-height: 1 !important;
+            letter-spacing: normal !important;
+            text-transform: none !important;
+            display: inline-block !important;
+            white-space: nowrap !important;
+            word-wrap: normal !important;
+            direction: ltr !important;
+            -webkit-font-smoothing: antialiased !important;
+        }
         .vertical-text {
             writing-mode: vertical-rl;
             text-orientation: mixed;
