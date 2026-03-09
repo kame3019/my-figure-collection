@@ -236,7 +236,7 @@
                     <span class="material-symbols-outlined">palette</span>
                 </button>
                 <button id="headerSearchBtn" class="size-10 flex items-center justify-center rounded-full bg-primary/10 text-primary">
-                    <span class="material-symbols-outlined">search</span>
+                    <span class="material-symbols-outlined">tune</span>
                 </button>
             </div>
         </header>
@@ -244,35 +244,26 @@
         <main class="flex-1 overflow-y-auto no-scrollbar">
             <!-- Archive -->
             <section id="pageCollection" class="page show">
-                <section class="px-6 py-6">
-                    <div class="mb-4">
-                        <h2 id="overviewTitle" class="text-sm font-medium text-slate-500 uppercase tracking-widest">Archive Overview</h2>
-                    </div>
+                <section id="homeOverviewSection" class="hidden px-6 py-6">
                     <div id="overviewCards" class="grid grid-cols-2 gap-3"></div>
                 </section>
 
-                <section class="py-4">
-                    <div class="flex items-center justify-between px-6 mb-4">
-                        <h3 id="exhibitionTitle" class="text-lg font-bold">Special Display</h3>
-                        <button id="viewAllBtn" class="text-primary text-sm font-bold flex items-center gap-1">
-                            View All <span class="material-symbols-outlined text-sm">arrow_forward</span>
-                        </button>
-                    </div>
+                <section id="homeExhibitionSection" class="hidden pt-2 pb-4">
                     <div id="exhibitionRail" class="flex overflow-x-auto snap-x snap-mandatory px-6 gap-6 no-scrollbar"></div>
                 </section>
 
-                <section class="px-6 py-2">
+                <section id="homeSearchSection" class="hidden px-6 py-2">
                     <div class="relative">
                         <span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-slate-400">search</span>
                         <input id="searchInput" class="w-full kv-input rounded-xl border border-primary/10 bg-white/60 py-3 pl-12 pr-4 text-sm placeholder:text-slate-400 focus:border-primary focus:ring-primary" placeholder="搜尋模型、品牌、系列、分類..." />
                     </div>
                 </section>
 
-                <section class="px-6 py-2">
+                <section id="homeCategorySection" class="hidden px-6 py-2">
                     <div id="categoryChips" class="flex gap-2 overflow-x-auto no-scrollbar"></div>
                 </section>
 
-                <section class="px-6 py-2">
+                <section id="homeSortSection" class="hidden px-6 py-2">
                     <div class="grid grid-cols-2 gap-2">
                         <select id="sortSelect" class="w-full kv-input rounded-xl border border-primary/10 bg-white/60 px-3 py-3 text-sm focus:border-primary focus:ring-primary">
                             <option value="date_desc">最新加入</option>
@@ -295,7 +286,7 @@
                     </div>
                 </section>
 
-                <section class="px-6 py-2">
+                <section id="homeModeSection" class="hidden px-6 py-2">
                     <div class="grid grid-cols-4 gap-2">
                         <button class="modeBtn mode-active rounded-full border border-primary/10 bg-white/50 px-2 py-2 text-[12px] font-semibold" data-mode="list">列表</button>
                         <button class="modeBtn rounded-full border border-primary/10 bg-white/50 px-2 py-2 text-[12px] font-semibold" data-mode="grid">網格</button>
@@ -630,7 +621,7 @@
                     </div>
 
                     <div id="detailImageWrap" class="mt-4 rounded-[1.5rem] overflow-hidden border border-primary/10 bg-white/70">
-                        <div id="detailImage" class="aspect-[4/5] w-full bg-center bg-cover"></div>
+                        <div id="detailImage" class="aspect-[4/5] w-full bg-center bg-no-repeat bg-contain"></div>
                     </div>
 
                     <div class="mt-4 grid grid-cols-2 gap-3 text-sm">
@@ -1058,6 +1049,20 @@
             return `<div class="mt-2 flex flex-wrap gap-2">${content}</div>`;
         }
 
+        function statusClass(item) {
+            return item.status === "展示中" ? "bg-emerald-500/20 text-emerald-600 border border-emerald-500/30" :
+                item.status === "未開封" ? "bg-blue-500/20 text-blue-500 border border-blue-500/30" :
+                item.status === "未取貨" ? "bg-amber-500/20 text-amber-600 border border-amber-500/30" :
+                item.status === "願望清單" ? "bg-pink-500/20 text-pink-500 border border-pink-500/30" :
+                item.status === "已售出" ? "bg-slate-500/20 text-slate-400 border border-slate-500/30" :
+                "bg-orange-500/20 text-orange-500 border border-orange-500/30";
+        }
+
+        function statusBadge(item, extraClass = "") {
+            if (!item.status) return "";
+            return `<span class="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase ${statusClass(item)} ${extraClass}">${item.status}</span>`;
+        }
+
         function ownedItems() {
             return items.filter(item => item.status !== "願望清單");
         }
@@ -1096,8 +1101,6 @@
             const total = owned.reduce((sum, item) => sum + Number(item.price || 0), 0);
             const wishCount = items.filter(item => item.status === "願望清單").length;
             const avg = owned.length ? total / owned.length : 0;
-
-            document.getElementById("overviewTitle").textContent = view === "wishlist" ? "Wish List Overview" : "Archive Overview";
 
             if (view === "wishlist") {
                 const topWish = items
@@ -1157,8 +1160,6 @@
 
         function renderExhibitionRail() {
             const base = filteredItems().slice(0, 6);
-            document.getElementById("exhibitionTitle").textContent = view === "wishlist" ? "Wish List Display" : "Special Display";
-
             if (!base.length) {
                 document.getElementById("exhibitionRail").innerHTML = `
                     <div class="snap-start flex-none w-[280px] kv-surface kv-surface rounded-xl border border-primary/10 bg-white/50 p-6 text-center text-slate-400">
@@ -1175,7 +1176,9 @@
                         <div class="absolute top-4 left-4 z-20 ${label.classes} text-[10px] font-bold py-3 px-1 vertical-text tracking-widest uppercase">
                             ${label.text}
                         </div>
-                        <div class="aspect-[3/4] rounded-xl overflow-hidden shadow-xl border-4 border-white kv-artframe bg-white bg-center bg-cover" style="background-image:url('${item.image || makeDefaultImage(item.name || "Figure")}')"></div>
+                        <div class="aspect-[3/4] rounded-xl overflow-hidden shadow-xl border-4 border-white kv-artframe bg-white bg-center bg-no-repeat bg-contain relative" style="background-image:url('${item.image || makeDefaultImage(item.name || "Figure")}')">
+                            <div class="absolute right-3 bottom-3">${statusBadge(item)}</div>
+                        </div>
                         <div class="mt-4 flex justify-between items-start gap-3">
                             <div class="min-w-0 flex-1">
                                 <h4 class="font-bold text-lg leading-tight">${item.name || "Untitled"}</h4>
@@ -1219,19 +1222,11 @@
         }
 
         function listItemCard(item, index) {
-            const statusClass =
-                item.status === "展示中" ? "bg-emerald-500/20 text-emerald-600 border border-emerald-500/30" :
-                item.status === "未開封" ? "bg-blue-500/20 text-blue-500 border border-blue-500/30" :
-                item.status === "未取貨" ? "bg-amber-500/20 text-amber-600 border border-amber-500/30" :
-                item.status === "願望清單" ? "bg-pink-500/20 text-pink-500 border border-pink-500/30" :
-                item.status === "已售出" ? "bg-slate-500/20 text-slate-400 border border-slate-500/30" :
-                "bg-orange-500/20 text-orange-500 border border-orange-500/30";
-
             const label = labelConfig(item, index);
 
             return `
                 <div class="flex gap-4 p-3 kv-surface rounded-xl bg-white border border-slate-100 shadow-sm cursor-pointer transition hover:border-primary/20" data-detail-open="1" data-item-id="${item.id}">
-                    <div class="relative w-24 h-24 rounded-lg overflow-hidden shrink-0 kv-artframe bg-white bg-center bg-cover" style="background-image:url('${item.image || makeDefaultImage(item.name || "Figure")}')">
+                    <div class="relative w-24 h-24 rounded-lg overflow-hidden shrink-0 kv-artframe bg-white bg-center bg-no-repeat bg-contain" style="background-image:url('${item.image || makeDefaultImage(item.name || "Figure")}')">
                         ${item.cornerLabel ? `<div class="absolute top-1 left-1 ${label.classes} text-[8px] font-bold py-1 px-[3px] vertical-text tracking-widest uppercase rounded-sm">${label.text}</div>` : ""}
                     </div>
 
@@ -1245,7 +1240,7 @@
 
                         <div class="flex items-center justify-between mt-2 gap-2">
                             <span class="text-lg font-bold text-primary">${money(item.price)}</span>
-                            <span class="px-2 py-0.5 rounded text-[10px] font-bold uppercase ${statusClass}">${item.status}</span>
+                            ${statusBadge(item)}
                         </div>
 
                         <div class="mt-2 flex gap-2">
@@ -1279,8 +1274,9 @@
                     const label = labelConfig(item, index);
                     return `
                         <div class="kv-surface rounded-xl bg-white border border-slate-100 shadow-sm overflow-hidden cursor-pointer transition hover:border-primary/20" data-detail-open="1" data-item-id="${item.id}">
-                            <div class="aspect-square w-full kv-artframe kv-artframe bg-white bg-center bg-cover relative" style="background-image:url('${item.image || makeDefaultImage(item.name || "Figure")}')">
+                            <div class="aspect-square w-full kv-artframe kv-artframe bg-white bg-center bg-no-repeat bg-contain relative" style="background-image:url('${item.image || makeDefaultImage(item.name || "Figure")}')">
                                 <div class="absolute top-3 left-3 ${label.classes} text-[10px] font-bold py-2 px-1 vertical-text uppercase tracking-widest rounded-sm">${label.text}</div>
+                                <div class="absolute right-3 bottom-3">${statusBadge(item)}</div>
                             </div>
                             <div class="p-4">
                                 <h3 class="font-bold text-base leading-tight">${item.name || "未命名收藏"}</h3>
@@ -1305,12 +1301,12 @@
                 list.className = "space-y-3";
                 list.innerHTML = arr.map(item => `
                     <div class="flex items-center gap-3 p-3 kv-surface rounded-xl bg-white border border-slate-100 shadow-sm cursor-pointer transition hover:border-primary/20" data-detail-open="1" data-item-id="${item.id}">
-                        <div class="h-20 w-20 rounded-lg kv-artframe bg-white bg-center bg-cover shrink-0" style="background-image:url('${item.image || makeDefaultImage(item.name || "Figure")}')"></div>
+                        <div class="h-20 w-20 rounded-lg kv-artframe bg-white bg-center bg-no-repeat bg-contain shrink-0" style="background-image:url('${item.image || makeDefaultImage(item.name || "Figure")}')"></div>
                         <div class="flex-1 min-w-0">
                             <div class="font-bold truncate">${item.name || "未命名收藏"}</div>
                             <div class="text-xs text-slate-500 mt-1 truncate">${item.brand || "未填品牌"} • ${item.series || "未填系列"}</div>
                             ${renderItemLogos(item, "small")}
-                            <div class="text-primary font-bold mt-2">${money(item.price)}</div>
+                            <div class="mt-2 flex flex-wrap items-center gap-2"><div class="text-primary font-bold">${money(item.price)}</div>${statusBadge(item)}</div>
                         </div>
                         <button class="rounded-lg bg-black/5 px-3 py-2 text-xs font-semibold" onclick="event.stopPropagation(); editItem('${item.id}')">修改</button>
                     </div>
@@ -1324,8 +1320,9 @@
                     const label = labelConfig(item, index);
                     return `
                         <div class="rounded-xl overflow-hidden bg-white border border-slate-100 shadow-sm cursor-pointer transition hover:border-primary/20" data-detail-open="1" data-item-id="${item.id}">
-                            <div class="h-28 sm:h-32 kv-artframe kv-artframe bg-white bg-center bg-cover relative" style="background-image:url('${item.image || makeDefaultImage(item.name || "Figure")}')">
+                            <div class="h-28 sm:h-32 kv-artframe kv-artframe bg-white bg-center bg-no-repeat bg-contain relative" style="background-image:url('${item.image || makeDefaultImage(item.name || "Figure")}')">
                                 <div class="absolute top-2 left-2 ${label.classes} text-[8px] font-bold py-1 px-[3px] vertical-text tracking-widest uppercase rounded-sm">${label.text}</div>
+                                <div class="absolute right-2 bottom-2">${statusBadge(item, "text-[9px]")}</div>
                             </div>
                             <div class="p-3">
                                 <div class="text-[12px] font-bold leading-tight line-clamp-2">${item.name || "未命名收藏"}</div>
@@ -1737,7 +1734,7 @@
 
             document.getElementById("monthDetailList").innerHTML = monthlyItems.length ? monthlyItems.map(item => `
                 <div class="flex gap-3 rounded-xl border border-primary/10 bg-background-light/70 p-3">
-                    <div class="h-20 w-20 rounded-lg overflow-hidden kv-artframe bg-white bg-center bg-cover shrink-0" style="background-image:url('${item.image || makeDefaultImage(item.name || "Figure")}')"></div>
+                    <div class="h-20 w-20 rounded-lg overflow-hidden kv-artframe bg-white bg-center bg-no-repeat bg-contain shrink-0" style="background-image:url('${item.image || makeDefaultImage(item.name || "Figure")}')"></div>
                     <div class="min-w-0 flex-1">
                         <div class="font-bold leading-tight">${item.name || "未命名收藏"}</div>
                         <div class="mt-1 text-xs text-slate-500 truncate">${item.brand || "未填品牌"} • ${item.series || "未填系列"}</div>
@@ -3804,4 +3801,17 @@
 </script>
 
 </body>
+
+<script>
+(function(){
+  function enforceHomeClean(){
+    ["homeOverviewSection","homeExhibitionSection","homeSearchSection","homeCategorySection","homeSortSection","homeModeSection"].forEach(function(id){
+      var el=document.getElementById(id);
+      if(el){ el.style.display='none'; el.classList.add('hidden'); }
+    });
+  }
+  if(document.readyState==='loading'){document.addEventListener('DOMContentLoaded',enforceHomeClean);} else {enforceHomeClean();}
+  document.addEventListener('click', function(e){ if(e.target.closest('#navCollection')){ setTimeout(enforceHomeClean,200); } });
+})();
+</script>
 </html>
