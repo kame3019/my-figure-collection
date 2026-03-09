@@ -4292,6 +4292,138 @@
   document.addEventListener('click', function(e){ if(e.target.closest('#navProfile')) setTimeout(boot,200); });
 })();
 </script>
+
+<script>
+(function(){
+  const LANG_KEY='kura_ui_lang';
+  const CUR_KEY='kura_display_currency';
+  const FX={HKD:1, JPY:19.6, USD:0.128};
+  const LOCALE={HKD:'en-HK', JPY:'ja-JP', USD:'en-US'};
+  const SYMBOL={HKD:'HK$', JPY:'¥', USD:'US$'};
+  const STRINGS={
+    zh:{
+      archive:'Archive Catalogue', wishlist:'Wish List Catalogue', countSuffix:'件', noArchive:'暫時未有收藏', noWish:'暫時未有願望清單',
+      newEntry:'New Archive Entry', addSubtitle:'新增 / 修改收藏', name:'產品名稱', price:'購入價', category:'分類', status:'狀態', source:'購買地方', location:'擺放位置', note:'備註',
+      list:'列表', grid:'網格', compact:'卡片', wall:'收藏牆',
+      sort_new:'最新加入', sort_old:'最舊加入', sort_price_desc:'價錢高到低', sort_price_asc:'價錢低到高', sort_name_asc:'名稱 A-Z', sort_name_desc:'名稱 Z-A',
+      allStatus:'全部狀態', pending:'未取貨', display:'展示中', unopened:'未開封', opened:'已開封', sold:'已售出', wishes:'願望清單',
+      navArchive:'Archive', navWish:'Wish List', navCategory:'Category', navProfile:'Profile',
+      toolArchive:'Archive History', toolTheme:'Theme', toolNotifications:'Notifications', toolLanguage:'Language', toolLogo:'Logo Library', toolShare:'Share Cards', toolBackup:'Backup', toolCurrency:'Currency'
+    },
+    en:{
+      archive:'Archive Catalogue', wishlist:'Wish List Catalogue', countSuffix:' items', noArchive:'No archive yet', noWish:'No wishlist items yet',
+      newEntry:'New Archive Entry', addSubtitle:'Create / Edit Archive', name:'Product Name', price:'Purchase Price', category:'Category', status:'Status', source:'Purchase Place', location:'Location', note:'Notes',
+      list:'List', grid:'Grid', compact:'Cards', wall:'Wall',
+      sort_new:'Newest First', sort_old:'Oldest First', sort_price_desc:'Price High-Low', sort_price_asc:'Price Low-High', sort_name_asc:'Name A-Z', sort_name_desc:'Name Z-A',
+      allStatus:'All Status', pending:'Pending Pickup', display:'On Display', unopened:'Sealed', opened:'Opened', sold:'Sold', wishes:'Wish List',
+      navArchive:'Archive', navWish:'Wish List', navCategory:'Category', navProfile:'Profile',
+      toolArchive:'Archive History', toolTheme:'Theme', toolNotifications:'Notifications', toolLanguage:'Language', toolLogo:'Logo Library', toolShare:'Share Cards', toolBackup:'Backup', toolCurrency:'Currency'
+    },
+    ja:{
+      archive:'アーカイブ', wishlist:'ウィッシュリスト', countSuffix:'件', noArchive:'まだコレクションがありません', noWish:'まだウィッシュリストがありません',
+      newEntry:'新規アーカイブ', addSubtitle:'追加 / 編集', name:'商品名', price:'購入価格', category:'分類', status:'状態', source:'購入場所', location:'保管場所', note:'メモ',
+      list:'リスト', grid:'グリッド', compact:'カード', wall:'ウォール',
+      sort_new:'新しい順', sort_old:'古い順', sort_price_desc:'価格 高→低', sort_price_asc:'価格 低→高', sort_name_asc:'名前 A-Z', sort_name_desc:'名前 Z-A',
+      allStatus:'すべての状態', pending:'未受取', display:'展示中', unopened:'未開封', opened:'開封済み', sold:'売却済み', wishes:'ウィッシュ',
+      navArchive:'Archive', navWish:'Wish List', navCategory:'Category', navProfile:'Profile',
+      toolArchive:'Archive History', toolTheme:'Theme', toolNotifications:'Notifications', toolLanguage:'Language', toolLogo:'Logo Library', toolShare:'Share Cards', toolBackup:'Backup', toolCurrency:'Currency'
+    }
+  };
+  function $(id){return document.getElementById(id);}
+  function getLang(){return localStorage.getItem(LANG_KEY)||'zh';}
+  function getCur(){return localStorage.getItem(CUR_KEY)||'HKD';}
+  function currentStrings(){return STRINGS[getLang()]||STRINGS.zh;}
+  function enhancedMoney(v){
+    const cur=getCur();
+    const hkd=Number(v||0);
+    const amount=hkd*(FX[cur]||1);
+    return new Intl.NumberFormat(LOCALE[cur]||'en-HK',{style:'currency',currency:cur,maximumFractionDigits:cur==='JPY'?0:2}).format(amount).replace(/^HK\$/,'HK$').replace(/^US\$/,'US$');
+  }
+  window.money=enhancedMoney;
+  function setLanguage(lang){localStorage.setItem(LANG_KEY,lang); applyLanguageAndCurrency();}
+  function setCurrency(cur){localStorage.setItem(CUR_KEY,cur); applyLanguageAndCurrency();}
+  function patchButtons(){
+    [['langZhBtn','zh'],['langEnBtn','en'],['langJaBtn','ja']].forEach(([id,val])=>{const b=$(id); if(b){b.onclick=()=>setLanguage(val); b.classList.toggle('bg-primary',getLang()===val); b.classList.toggle('text-white',getLang()===val); b.classList.toggle('bg-white/60',getLang()!==val);}});
+    [['currencyHKDBtn','HKD'],['currencyJPYBtn','JPY'],['currencyUSDBtn','USD']].forEach(([id,val])=>{const b=$(id); if(b){b.onclick=()=>setCurrency(val); b.classList.toggle('bg-primary',getCur()===val); b.classList.toggle('text-white',getCur()===val); b.classList.toggle('bg-white/60',getCur()!==val);}});
+  }
+  function removeHomeThemeCompletely(){
+    const toggle=$('themeToggleBtn'); if(toggle) toggle.remove();
+    ['homeThemeSection','homeThemeStudioSection','themeQuickToggle','themeStudioBtn','homeThemeTools','topThemeTools','topThemePanel','homeTopThemeSection'].forEach(id=>{const el=$(id); if(el) el.remove();});
+    const root=$('pageCollection');
+    if(root){
+      root.querySelectorAll('*').forEach(el=>{
+        const txt=(el.textContent||'').replace(/\s+/g,' ').trim().toLowerCase();
+        if(!txt) return;
+        if((txt==='theme'||txt==='theme studio'||txt==='主題'||txt==='主題工坊') && el.children.length<6){
+          const box=el.closest('.kv-surface,.rounded-2xl,.rounded-xl,section,div')||el;
+          if(box && box.closest('#pageCollection')){box.remove();}
+        }
+      });
+    }
+  }
+  function updateStaticUI(){
+    const s=currentStrings();
+    // nav
+    const navMap={navCollection:s.navArchive, navWishlist:s.navWish, navStats:s.navCategory, navProfile:s.navProfile};
+    Object.entries(navMap).forEach(([id,val])=>{const span=document.querySelector('#'+id+' span:last-child'); if(span) span.textContent=val;});
+    // tool labels
+    const i18nMap={toolArchiveHistory:s.toolArchive,toolTheme:s.toolTheme,toolNotifications:s.toolNotifications,toolLanguage:s.toolLanguage,toolLogoLibrary:s.toolLogo,toolShareCards:s.toolShare,toolBackup:s.toolBackup,toolCurrency:s.toolCurrency};
+    document.querySelectorAll('[data-i18n]').forEach(el=>{const key=el.getAttribute('data-i18n'); if(i18nMap[key]) el.textContent=i18nMap[key];});
+    // archive/add labels
+    const archiveTitle=$('archiveTitle'); if(archiveTitle) archiveTitle.textContent=(window.view==='wishlist'?s.wishlist:s.archive);
+    const addTitle=document.querySelector('#pageAdd h2'); if(addTitle) addTitle.textContent=s.newEntry;
+    const addSub=document.querySelector('#pageAdd p'); if(addSub) addSub.textContent=s.addSubtitle;
+    const name=$('name'); if(name) name.placeholder=s.name;
+    const price=$('price'); if(price) price.placeholder=s.price+' '+getCur();
+    const category=$('category'); if(category) category.placeholder=s.category;
+    const source=$('sourceLink'); if(source) source.placeholder=s.source;
+    const location=$('location'); if(location) location.placeholder=s.location;
+    const note=$('note'); if(note) note.placeholder=s.note;
+    const result=$('resultNote'); if(result && result.textContent.trim().match(/^\d+/)){ const num=result.textContent.trim().match(/^\d+/)[0]; result.textContent=num+s.countSuffix; }
+    // mode buttons
+    const modeLabels={list:s.list,grid:s.grid,compact:s.compact,wall:s.wall};
+    document.querySelectorAll('.modeBtn').forEach(btn=>{const m=btn.dataset.mode; if(modeLabels[m]) btn.textContent=modeLabels[m];});
+    // sort & status options
+    const sort=$('sortSelect'); if(sort){
+      const val=sort.value;
+      sort.innerHTML=`<option value="date_desc">${s.sort_new}</option><option value="date_asc">${s.sort_old}</option><option value="price_desc">${s.sort_price_desc}</option><option value="price_asc">${s.sort_price_asc}</option><option value="name_asc">${s.sort_name_asc}</option><option value="name_desc">${s.sort_name_desc}</option>`;
+      sort.value=val;
+    }
+    const sf=$('statusFilter'); if(sf){
+      const val=sf.value;
+      sf.innerHTML=`<option value="">${s.allStatus}</option><option value="未開封">${s.unopened}</option><option value="已開封">${s.opened}</option><option value="展示中">${s.display}</option><option value="未取貨">${s.pending}</option><option value="已售出">${s.sold}</option><option value="願望清單">${s.wishes}</option>`;
+      sf.value=val;
+    }
+    // modal title smaller
+    const title=$('profileToolModalTitle'); if(title){ title.style.fontSize='1rem'; title.style.fontWeight='700'; }
+    document.documentElement.lang=getLang()==='ja'?'ja':(getLang()==='en'?'en':'zh-Hant');
+  }
+  function rerenderSafe(){
+    try { if(typeof render==='function') render(); }
+    catch(e){ console.error(e); }
+    try { if(typeof renderProfilePage==='function') renderProfilePage(); }
+    catch(e){}
+  }
+  function applyLanguageAndCurrency(){
+    removeHomeThemeCompletely();
+    updateStaticUI();
+    patchButtons();
+    rerenderSafe();
+    // after render, patch text again because render may reset labels
+    setTimeout(()=>{ updateStaticUI(); patchButtons(); removeHomeThemeCompletely(); }, 80);
+  }
+  function boot(){ applyLanguageAndCurrency(); }
+  if(document.readyState==='loading'){ document.addEventListener('DOMContentLoaded', boot); } else { boot(); }
+  document.addEventListener('click', function(e){
+    if(e.target.closest('#navCollection')||e.target.closest('#navWishlist')||e.target.closest('#navProfile')||e.target.closest('#toolLanguage')||e.target.closest('#toolCurrency')){
+      setTimeout(applyLanguageAndCurrency, 180);
+    }
+  });
+  const obs=new MutationObserver(()=>{ removeHomeThemeCompletely(); });
+  if(document.body){ obs.observe(document.body,{childList:true,subtree:true}); }
+})();
+</script>
+
 </body>
 <script>
 (function(){
