@@ -1,22 +1,21 @@
 <!DOCTYPE html>
+
 <html lang="ja">
 <head>
-    <meta charset="utf-8" />
-    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
-    <title>Kura Archive | Member Edition Clean</title>
-
-    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@200..800&display=swap" rel="stylesheet" />
-    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet" />
-
-    <script>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Kura Archive | Member Edition Clean</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@200..800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script>
         tailwind.config = {
             darkMode: "class",
             theme: {
                 extend: {
                     colors: {
                         primary: "#e6392d",
-                        "background-light": "#f8f6f6",
+                        "background-light": "#fdfcf0",
                         "background-dark": "#211211",
                         gold: "#d4af37",
                         washi: "#f2eee5"
@@ -28,8 +27,7 @@
             }
         };
     </script>
-
-    <style>
+<style>
         .vertical-text {
             writing-mode: vertical-rl;
             text-orientation: mixed;
@@ -197,9 +195,8 @@
             min-height: max(884px, 100dvh);
         }
     </style>
-    <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
-
-    <style>
+<script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+<style>
         .detail-backdrop {
             backdrop-filter: blur(10px);
         }
@@ -222,555 +219,494 @@
             padding-top: max(4.75rem, env(safe-area-inset-top) + 4.75rem);
         }
     </style>
-
 </head>
 <body class="bg-background-light font-display text-slate-900 washi-texture">
-    <div class="relative flex min-h-screen flex-col overflow-x-hidden pb-24">
-        <header class="sticky top-0 z-30 flex items-center justify-between px-6 py-4 bg-background-light/80 backdrop-blur-md border-b border-primary/10">
-            <div class="flex items-center gap-2">
-                <span class="material-symbols-outlined text-primary text-2xl">account_balance</span>
-                <div>
-                    <h1 class="text-xl font-bold tracking-tight uppercase">Kura Archive</h1>
-                    <p class="text-[10px] text-slate-500 uppercase tracking-[0.18em]">Member Edition Clean • V8.8</p>
-                </div>
-            </div>
-            <div class="flex items-center gap-2">
-                <button id="themeToggleBtn" class="size-10 flex items-center justify-center rounded-full bg-primary/10 text-primary">
-                    <span class="material-symbols-outlined">palette</span>
-                </button>
-                <button id="headerSearchBtn" class="size-10 flex items-center justify-center rounded-full bg-primary/10 text-primary">
-                    <span class="material-symbols-outlined">tune</span>
-                </button>
-            </div>
-        </header>
-
-        <main class="flex-1 overflow-y-auto no-scrollbar">
-            <!-- Archive -->
-            <section id="pageCollection" class="page show">
-                <section id="homeOverviewSection" class="hidden px-6 py-6">
-                    <div id="overviewCards" class="grid grid-cols-2 gap-3"></div>
-                </section>
-
-                <section id="homeExhibitionSection" class="hidden pt-2 pb-4">
-                    <div id="exhibitionRail" class="flex overflow-x-auto snap-x snap-mandatory px-6 gap-6 no-scrollbar"></div>
-                </section>
-
-                <section id="homeSearchSection" class="hidden px-6 py-2">
-                    <div class="relative">
-                        <span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-slate-400">search</span>
-                        <input id="searchInput" class="w-full kv-input rounded-xl border border-primary/10 bg-white/60 py-3 pl-12 pr-4 text-sm placeholder:text-slate-400 focus:border-primary focus:ring-primary" placeholder="搜尋模型、品牌、系列、分類..." />
-                    </div>
-                </section>
-
-                <section id="homeCategorySection" class="hidden px-6 py-2">
-                    <div id="categoryChips" class="flex gap-2 overflow-x-auto no-scrollbar"></div>
-                </section>
-
-                <section id="homeSortSection" class="hidden px-6 py-2">
-                    <div class="grid grid-cols-2 gap-2">
-                        <select id="sortSelect" class="w-full kv-input rounded-xl border border-primary/10 bg-white/60 px-3 py-3 text-sm focus:border-primary focus:ring-primary">
-                            <option value="date_desc">最新加入</option>
-                            <option value="date_asc">最舊加入</option>
-                            <option value="price_desc">價錢高到低</option>
-                            <option value="price_asc">價錢低到高</option>
-                            <option value="name_asc">名稱 A-Z</option>
-                            <option value="name_desc">名稱 Z-A</option>
-                        </select>
-
-                        <select id="statusFilter" class="w-full kv-input rounded-xl border border-primary/10 bg-white/60 px-3 py-3 text-sm focus:border-primary focus:ring-primary">
-                            <option value="">全部狀態</option>
-                            <option value="未開封">未開封</option>
-                            <option value="已開封">已開封</option>
-                            <option value="展示中">展示中</option>
-                            <option value="未取貨">未取貨</option>
-                            <option value="已售出">已售出</option>
-                            <option value="願望清單">願望清單</option>
-                        </select>
-                    </div>
-                </section>
-
-                <section id="homeModeSection" class="hidden px-6 py-2">
-                    <div class="grid grid-cols-4 gap-2">
-                        <button class="modeBtn mode-active rounded-full border border-primary/10 bg-white/50 px-2 py-2 text-[12px] font-semibold" data-mode="list">列表</button>
-                        <button class="modeBtn rounded-full border border-primary/10 bg-white/50 px-2 py-2 text-[12px] font-semibold" data-mode="grid">網格</button>
-                        <button class="modeBtn rounded-full border border-primary/10 bg-white/50 px-2 py-2 text-[12px] font-semibold" data-mode="compact">卡片</button>
-                        <button class="modeBtn rounded-full border border-primary/10 bg-white/50 px-2 py-2 text-[12px] font-semibold" data-mode="wall">收藏牆</button>
-                    </div>
-                </section>
-
-                <section class="px-6 py-6">
-                    <div class="flex items-center justify-between mb-4">
-                        <h3 id="archiveTitle" class="text-lg font-bold">Archive Catalogue</h3>
-                        <div id="resultNote" class="text-primary text-sm font-bold">0 件</div>
-                    </div>
-                    <div id="collectionList"></div>
-                </section>
-            </section>
-
-            <!-- Add / Manage -->
-            <section id="pageAdd" class="page px-6 py-6 space-y-5">
-                <div class="kv-surface rounded-xl p-5 border border-primary/10 bg-white/55 shadow-sm">
-
+<div class="relative flex min-h-screen flex-col overflow-x-hidden pb-24">
+<header class="sticky top-0 z-30 flex items-center justify-between px-6 py-4 bg-background-light/80 backdrop-blur-md border-b border-primary/10">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-primary text-2xl">account_balance</span>
+<div>
+<h1 class="text-xl font-bold tracking-tight uppercase">Kura Archive</h1>
+<p class="text-[10px] text-slate-500 uppercase tracking-[0.18em]">Member Edition Clean • V8.8</p>
+</div>
+</div>
+<div class="flex items-center gap-2">
+<button class="size-10 flex items-center justify-center rounded-full bg-primary/10 text-primary" id="themeToggleBtn">
+<span class="material-symbols-outlined">palette</span>
+</button>
+<button class="size-10 flex items-center justify-center rounded-full bg-primary/10 text-primary" id="headerSearchBtn">
+<span class="material-symbols-outlined">tune</span>
+</button>
+</div>
+</header>
+<main class="flex-1 overflow-y-auto no-scrollbar">
+<!-- Archive -->
+<section class="page show" id="pageCollection">
+<section class="hidden px-6 py-6" id="homeOverviewSection">
+<div class="grid grid-cols-2 gap-3" id="overviewCards"></div>
+</section>
+<section class="hidden pt-2 pb-4" id="homeExhibitionSection">
+<div class="flex overflow-x-auto snap-x snap-mandatory px-6 gap-6 no-scrollbar" id="exhibitionRail"></div>
+</section>
+<section class="hidden px-6 py-2" id="homeSearchSection">
+<div class="relative">
+<span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-slate-400">search</span>
+<input class="w-full kv-input rounded-xl border border-primary/10 bg-white/60 py-3 pl-12 pr-4 text-sm placeholder:text-slate-400 focus:border-primary focus:ring-primary" id="searchInput" placeholder="搜尋模型、品牌、系列、分類..."/>
+</div>
+</section>
+<section class="hidden px-6 py-2" id="homeCategorySection">
+<div class="flex gap-2 overflow-x-auto no-scrollbar" id="categoryChips"></div>
+</section>
+<section class="hidden px-6 py-2" id="homeSortSection">
+<div class="grid grid-cols-2 gap-2">
+<select class="w-full kv-input rounded-xl border border-primary/10 bg-white/60 px-3 py-3 text-sm focus:border-primary focus:ring-primary" id="sortSelect">
+<option value="date_desc">最新加入</option>
+<option value="date_asc">最舊加入</option>
+<option value="price_desc">價錢高到低</option>
+<option value="price_asc">價錢低到高</option>
+<option value="name_asc">名稱 A-Z</option>
+<option value="name_desc">名稱 Z-A</option>
+</select>
+<select class="w-full kv-input rounded-xl border border-primary/10 bg-white/60 px-3 py-3 text-sm focus:border-primary focus:ring-primary" id="statusFilter">
+<option value="">全部狀態</option>
+<option value="未開封">未開封</option>
+<option value="已開封">已開封</option>
+<option value="展示中">展示中</option>
+<option value="未取貨">未取貨</option>
+<option value="已售出">已售出</option>
+<option value="願望清單">願望清單</option>
+</select>
+</div>
+</section>
+<section class="hidden px-6 py-2" id="homeModeSection">
+<div class="grid grid-cols-4 gap-2">
+<button class="modeBtn mode-active rounded-full border border-primary/10 bg-white/50 px-2 py-2 text-[12px] font-semibold" data-mode="list">列表</button>
+<button class="modeBtn rounded-full border border-primary/10 bg-white/50 px-2 py-2 text-[12px] font-semibold" data-mode="grid">網格</button>
+<button class="modeBtn rounded-full border border-primary/10 bg-white/50 px-2 py-2 text-[12px] font-semibold" data-mode="compact">卡片</button>
+<button class="modeBtn rounded-full border border-primary/10 bg-white/50 px-2 py-2 text-[12px] font-semibold" data-mode="wall">收藏牆</button>
+</div>
+</section>
+<section class="px-6 py-6">
 <div class="flex items-center justify-between mb-4">
-    <div>
-        <h2 class="text-lg font-bold">New Archive Entry</h2>
-        <p class="text-xs text-slate-500 uppercase tracking-widest mt-1">新增 / 修改收藏</p>
-    </div>
-    <span class="material-symbols-outlined text-primary text-3xl">edit_square</span>
+<h3 class="text-lg font-bold" id="archiveTitle">Archive Catalogue</h3>
+<div class="text-primary text-sm font-bold" id="resultNote">0 件</div>
 </div>
-
+<div id="collectionList"></div>
+</section>
+</section>
+<!-- Add / Manage -->
+<section class="page px-6 py-6 space-y-5" id="pageAdd">
+<div class="kv-surface rounded-xl p-5 border border-primary/10 bg-white/55 shadow-sm">
+<div class="flex items-center justify-between mb-4">
+<div>
+<h2 class="text-lg font-bold">New Archive Entry</h2>
+<p class="text-xs text-slate-500 uppercase tracking-widest mt-1">新增 / 修改收藏</p>
+</div>
+<span class="material-symbols-outlined text-primary text-3xl">edit_square</span>
+</div>
 <div class="mt-3">
-    <input id="name" class="kv-input w-full rounded-xl border border-primary/10 bg-background-light/80 px-4 py-3 text-sm placeholder:text-slate-400 focus:border-primary focus:ring-primary" placeholder="產品名稱" />
+<input class="kv-input w-full rounded-xl border border-primary/10 bg-background-light/80 px-4 py-3 text-sm placeholder:text-slate-400 focus:border-primary focus:ring-primary" id="name" placeholder="產品名稱"/>
 </div>
-
 <div class="grid grid-cols-1 gap-3 sm:grid-cols-2 mt-3">
-    <input id="price" class="kv-input rounded-xl border border-primary/10 bg-background-light/80 px-4 py-3 text-sm placeholder:text-slate-400 focus:border-primary focus:ring-primary" type="number" placeholder="購入價 HKD" />
-    <input id="category" class="kv-input rounded-xl border border-primary/10 bg-background-light/80 px-4 py-3 text-sm placeholder:text-slate-400 focus:border-primary focus:ring-primary" placeholder="分類" />
+<input class="kv-input rounded-xl border border-primary/10 bg-background-light/80 px-4 py-3 text-sm placeholder:text-slate-400 focus:border-primary focus:ring-primary" id="price" placeholder="購入價 HKD" type="number"/>
+<input class="kv-input rounded-xl border border-primary/10 bg-background-light/80 px-4 py-3 text-sm placeholder:text-slate-400 focus:border-primary focus:ring-primary" id="category" list="categoryOptions" placeholder="分類"/><datalist id="categoryOptions"></datalist>
 </div>
-
 <div class="mt-3">
-    <button id="aiFillBtn" type="button" class="w-full rounded-xl bg-black px-4 py-3 text-sm font-bold text-white">AI 拍攝填寫</button>
-    <div id="aiFillStatus" class="mt-2 text-xs text-slate-500"></div>
-    <input id="photo" class="hidden" type="file" accept="image/*" capture="environment" />
+<button class="w-full rounded-xl bg-black px-4 py-3 text-sm font-bold text-white" id="aiFillBtn" type="button">AI 拍攝填寫</button>
+<div class="mt-2 text-xs text-slate-500" id="aiFillStatus"></div>
+<input accept="image/*" capture="environment" class="hidden" id="photo" type="file"/>
 </div>
-
 <div class="mt-3">
-    <label class="text-xs font-bold tracking-widest uppercase text-slate-500 mb-2 block">檔案選擇</label>
-    <input id="photoLibrary" class="kv-input w-full rounded-xl border border-primary/10 bg-background-light/80 px-4 py-3 text-sm file:mr-3 file:rounded-lg file:border-0 file:bg-primary file:px-3 file:py-2 file:text-sm file:font-semibold file:text-white" type="file" accept="image/*" />
+<label class="text-xs font-bold tracking-widest uppercase text-slate-500 mb-2 block">檔案選擇</label>
+<input accept="image/*" class="kv-input w-full rounded-xl border border-primary/10 bg-background-light/80 px-4 py-3 text-sm file:mr-3 file:rounded-lg file:border-0 file:bg-primary file:px-3 file:py-2 file:text-sm file:font-semibold file:text-white" id="photoLibrary" type="file"/>
 </div>
-
 <div class="mt-3">
-    <label class="text-xs font-bold tracking-widest uppercase text-slate-500 mb-2 block">產品圖片連結</label>
-    <div class="grid grid-cols-1 gap-3 sm:grid-cols-[1fr_auto_auto]">
-        <input id="coverImageUrl" type="url" class="kv-input rounded-xl border border-primary/10 bg-background-light/80 px-4 py-3 text-sm placeholder:text-slate-400 focus:border-primary focus:ring-primary" placeholder="貼上圖片網址，例如 https://..." />
-        <button id="applyCoverUrlBtn" type="button" class="rounded-xl bg-black px-4 py-3 text-sm font-bold text-white">套用做 Cover</button>
-        <button id="clearCoverUrlBtn" type="button" class="rounded-xl bg-black/5 px-4 py-3 text-sm font-bold">清除</button>
-    </div>
-    <input id="coverImageApplied" type="hidden" />
-    <div id="coverUrlStatus" class="mt-2 text-xs text-slate-500"></div>
-    <div class="mt-3 rounded-xl border border-primary/10 bg-background-light/80 p-3">
-        <div class="text-xs font-bold tracking-widest uppercase text-slate-500 mb-2">即時預覽</div>
-        <div class="flex items-center justify-center rounded-xl bg-white/80 border border-primary/10 overflow-hidden min-h-[180px]">
-            <img id="coverUrlPreview" class="max-h-[260px] w-full object-contain hidden" alt="Cover Preview">
-            <div id="coverUrlEmpty" class="text-sm text-slate-400 py-10">未套用圖片</div>
-        </div>
-    </div>
+<label class="text-xs font-bold tracking-widest uppercase text-slate-500 mb-2 block">產品圖片連結</label>
+<div class="grid grid-cols-1 gap-3 sm:grid-cols-[1fr_auto_auto]">
+<input class="kv-input rounded-xl border border-primary/10 bg-background-light/80 px-4 py-3 text-sm placeholder:text-slate-400 focus:border-primary focus:ring-primary" id="coverImageUrl" placeholder="貼上圖片網址，例如 https://..." type="url"/>
+<button class="rounded-xl bg-black px-4 py-3 text-sm font-bold text-white" id="applyCoverUrlBtn" type="button">套用做 Cover</button>
+<button class="rounded-xl bg-black/5 px-4 py-3 text-sm font-bold" id="clearCoverUrlBtn" type="button">清除</button>
 </div>
-
+<input id="coverImageApplied" type="hidden"/>
+<div class="mt-2 text-xs text-slate-500" id="coverUrlStatus"></div>
+<div class="mt-3 rounded-xl border border-primary/10 bg-background-light/80 p-3">
+<div class="text-xs font-bold tracking-widest uppercase text-slate-500 mb-2">即時預覽</div>
+<div class="flex items-center justify-center rounded-xl bg-white/80 border border-primary/10 overflow-hidden min-h-[180px]">
+<img alt="Cover Preview" class="max-h-[260px] w-full object-contain hidden" id="coverUrlPreview"/>
+<div class="text-sm text-slate-400 py-10" id="coverUrlEmpty">未套用圖片</div>
+</div>
+</div>
+</div>
 <div class="grid grid-cols-1 gap-3 sm:grid-cols-2 mt-3">
-    <input id="date" class="kv-input rounded-xl border border-primary/10 bg-background-light/80 px-4 py-3 text-sm focus:border-primary focus:ring-primary" type="date" />
-    <select id="status" class="kv-input rounded-xl border border-primary/10 bg-background-light/80 px-4 py-3 text-sm focus:border-primary focus:ring-primary">
-        <option>未開封</option>
-        <option>已開封</option>
-        <option>展示中</option>
-        <option>未取貨</option>
-        <option>已售出</option>
-        <option>願望清單</option>
-    </select>
+<input class="kv-input rounded-xl border border-primary/10 bg-background-light/80 px-4 py-3 text-sm focus:border-primary focus:ring-primary" id="date" type="date"/>
+<select class="kv-input rounded-xl border border-primary/10 bg-background-light/80 px-4 py-3 text-sm focus:border-primary focus:ring-primary" id="status">
+<option>未開封</option>
+<option>已開封</option>
+<option>展示中</option>
+<option>未取貨</option>
+<option>已售出</option>
+<option>願望清單</option>
+</select>
 </div>
-
 <div class="grid grid-cols-1 gap-3 sm:grid-cols-2 mt-3">
-    <input id="sourceLink" class="kv-input rounded-xl border border-primary/10 bg-background-light/80 px-4 py-3 text-sm placeholder:text-slate-400 focus:border-primary focus:ring-primary" placeholder="購買地方" />
-    <input id="location" class="kv-input rounded-xl border border-primary/10 bg-background-light/80 px-4 py-3 text-sm placeholder:text-slate-400 focus:border-primary focus:ring-primary" placeholder="擺放位置 / 展示櫃" />
+<input class="kv-input rounded-xl border border-primary/10 bg-background-light/80 px-4 py-3 text-sm placeholder:text-slate-400 focus:border-primary focus:ring-primary" id="sourceLink" placeholder="購買地方"/>
+<input class="kv-input rounded-xl border border-primary/10 bg-background-light/80 px-4 py-3 text-sm placeholder:text-slate-400 focus:border-primary focus:ring-primary" id="location" placeholder="擺放位置 / 展示櫃"/>
 </div>
-
 <div class="grid grid-cols-1 gap-3 sm:grid-cols-2 mt-3">
-    <input id="itemCode" class="kv-input rounded-xl border border-primary/10 bg-background-light/80 px-4 py-3 text-sm placeholder:text-slate-400 focus:border-primary focus:ring-primary" placeholder="商品編號 / 條碼" />
-    <input id="cornerLabel" class="kv-input rounded-xl border border-primary/10 bg-background-light/80 px-4 py-3 text-sm placeholder:text-slate-400 focus:border-primary focus:ring-primary" placeholder="圖片左上角標籤，例如 LIMITED EDITION" />
+<input class="kv-input rounded-xl border border-primary/10 bg-background-light/80 px-4 py-3 text-sm placeholder:text-slate-400 focus:border-primary focus:ring-primary" id="itemCode" placeholder="商品編號 / 條碼"/>
+<input class="kv-input rounded-xl border border-primary/10 bg-background-light/80 px-4 py-3 text-sm placeholder:text-slate-400 focus:border-primary focus:ring-primary" id="cornerLabel" placeholder="圖片左上角標籤，例如 LIMITED EDITION"/>
 </div>
-
 <div class="mt-3">
-    <select id="cornerLabelColor" class="kv-input w-full rounded-xl border border-primary/10 bg-background-light/80 px-4 py-3 text-sm focus:border-primary focus:ring-primary">
-        <option value="auto">標籤顏色：自動</option>
-        <option value="red">紅</option>
-        <option value="black">黑</option>
-        <option value="gold">金</option>
-    </select>
+<select class="kv-input w-full rounded-xl border border-primary/10 bg-background-light/80 px-4 py-3 text-sm focus:border-primary focus:ring-primary" id="cornerLabelColor">
+<option value="auto">標籤顏色：自動</option>
+<option value="red">紅</option>
+<option value="black">黑</option>
+<option value="gold">金</option>
+</select>
 </div>
-
 <div class="mt-3 w-full">
-    <label class="text-xs font-bold tracking-widest uppercase text-slate-500 mb-2 block">備註</label>
-    <textarea id="note" rows="3" class="kv-input w-full rounded-xl border border-primary/10 bg-background-light/80 px-4 py-3 text-sm placeholder:text-slate-400 focus:border-primary focus:ring-primary" placeholder="備註"></textarea>
+<label class="text-xs font-bold tracking-widest uppercase text-slate-500 mb-2 block">備註</label>
+<textarea class="kv-input w-full rounded-xl border border-primary/10 bg-background-light/80 px-4 py-3 text-sm placeholder:text-slate-400 focus:border-primary focus:ring-primary" id="note" placeholder="備註" rows="3"></textarea>
 </div>
-
 <div class="mt-6">
-    <div class="text-xs font-bold tracking-widest uppercase text-slate-500 mb-2">品牌 / Logo</div>
-    <div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
-        <input id="brand" class="kv-input rounded-xl border border-primary/10 bg-background-light/80 px-4 py-3 text-sm placeholder:text-slate-400 focus:border-primary focus:ring-primary" placeholder="品牌 / 廠商" />
-        <input id="brandLogoUrl" class="kv-input rounded-xl border border-primary/10 bg-background-light/80 px-4 py-3 text-sm placeholder:text-slate-400 focus:border-primary focus:ring-primary" placeholder="品牌 logo 網址" />
-    </div>
-    <div class="mt-4">
-        <div class="text-xs font-bold tracking-widest uppercase text-slate-500 mb-2">品牌 Logo 快選</div>
-        <div id="brandPresetPicker" class="flex flex-wrap gap-2"></div>
-    </div>
-    <div id="brandLogoScopeWrap" class="mt-3"></div>
-    <div class="mt-3">
-        <input id="brandLogoFile" class="kv-input w-full rounded-xl border border-primary/10 bg-background-light/80 px-4 py-3 text-sm file:mr-3 file:rounded-lg file:border-0 file:bg-primary file:px-3 file:py-2 file:text-sm file:font-semibold file:text-white" type="file" accept="image/*" />
-    </div>
-    <button id="saveBrandLibBtn" class="mt-3 w-full rounded-xl bg-primary px-4 py-3 text-sm font-bold text-white">加入品牌 Logo 庫</button>
+<div class="text-xs font-bold tracking-widest uppercase text-slate-500 mb-2">品牌 / Logo</div>
+<div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
+<input class="kv-input rounded-xl border border-primary/10 bg-background-light/80 px-4 py-3 text-sm placeholder:text-slate-400 focus:border-primary focus:ring-primary" id="brand" placeholder="品牌 / 廠商"/>
+<input class="kv-input rounded-xl border border-primary/10 bg-background-light/80 px-4 py-3 text-sm placeholder:text-slate-400 focus:border-primary focus:ring-primary" id="brandLogoUrl" placeholder="品牌 logo 網址"/>
 </div>
-
+<div class="mt-4">
+<div class="text-xs font-bold tracking-widest uppercase text-slate-500 mb-2">品牌 Logo 快選</div>
+<div class="flex flex-wrap gap-2" id="brandPresetPicker"></div>
+</div>
+<div class="mt-3" id="brandLogoScopeWrap"></div>
+<div class="mt-3">
+<input accept="image/*" class="kv-input w-full rounded-xl border border-primary/10 bg-background-light/80 px-4 py-3 text-sm file:mr-3 file:rounded-lg file:border-0 file:bg-primary file:px-3 file:py-2 file:text-sm file:font-semibold file:text-white" id="brandLogoFile" type="file"/>
+</div>
+<button class="mt-3 w-full rounded-xl bg-primary px-4 py-3 text-sm font-bold text-white" id="saveBrandLibBtn">加入品牌 Logo 庫</button>
+</div>
 <div class="mt-6">
-    <div class="text-xs font-bold tracking-widest uppercase text-slate-500 mb-2">系列 / Logo</div>
-    <div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
-        <input id="series" class="kv-input rounded-xl border border-primary/10 bg-background-light/80 px-4 py-3 text-sm placeholder:text-slate-400 focus:border-primary focus:ring-primary" placeholder="系列 / 作品" />
-        <input id="seriesLogoUrl" class="kv-input rounded-xl border border-primary/10 bg-background-light/80 px-4 py-3 text-sm placeholder:text-slate-400 focus:border-primary focus:ring-primary" placeholder="系列 logo 網址" />
-    </div>
-    <div class="mt-4">
-        <div class="text-xs font-bold tracking-widest uppercase text-slate-500 mb-2">系列 Logo 快選</div>
-        <div id="seriesPresetPicker" class="flex flex-wrap gap-2"></div>
-    </div>
-    <div id="seriesLogoScopeWrap" class="mt-3"></div>
-    <div class="mt-3">
-        <input id="seriesLogoFile" class="kv-input w-full rounded-xl border border-primary/10 bg-background-light/80 px-4 py-3 text-sm file:mr-3 file:rounded-lg file:border-0 file:bg-primary file:px-3 file:py-2 file:text-sm file:font-semibold file:text-white" type="file" accept="image/*" />
-    </div>
-    <button id="saveSeriesLibBtn" class="mt-3 w-full rounded-xl bg-primary px-4 py-3 text-sm font-bold text-white">加入系列 Logo 庫</button>
+<div class="text-xs font-bold tracking-widest uppercase text-slate-500 mb-2">系列 / Logo</div>
+<div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
+<input class="kv-input rounded-xl border border-primary/10 bg-background-light/80 px-4 py-3 text-sm placeholder:text-slate-400 focus:border-primary focus:ring-primary" id="series" placeholder="系列 / 作品"/>
+<input class="kv-input rounded-xl border border-primary/10 bg-background-light/80 px-4 py-3 text-sm placeholder:text-slate-400 focus:border-primary focus:ring-primary" id="seriesLogoUrl" placeholder="系列 logo 網址"/>
 </div>
-
-<button id="saveBtn" class="mt-5 w-full rounded-xl bg-primary px-4 py-3 text-sm font-bold text-white">儲存收藏</button>
-
-
-                </div>
-
-                <div class="kv-surface rounded-xl p-5 border border-primary/10 bg-white/55 shadow-sm">
-                    <div class="flex items-center justify-between">
-                        <div>
-                            <h3 class="text-lg font-bold">Logo Library</h3>
-                            <p class="text-xs text-slate-500 uppercase tracking-widest mt-1">Logo Library 管理</p>
-                        </div>
-                        <span class="material-symbols-outlined text-gold text-3xl">diamond</span>
-                    </div>
-
-                    <div class="mt-5 flex items-center justify-between">
-                        <div class="font-semibold">品牌 Logos</div>
-                        <div id="brandLibCount" class="text-xs text-slate-500">0 個</div>
-                    </div>
-                    <div id="brandLibraryManager" class="mt-3 space-y-2"></div>
-
-                    <div class="mt-6 flex items-center justify-between">
-                        <div class="font-semibold">系列 Logos</div>
-                        <div id="seriesLibCount" class="text-xs text-slate-500">0 個</div>
-                    </div>
-                    <div id="seriesLibraryManager" class="mt-3 space-y-2"></div>
-                </div>
-
-                <div class="kv-surface rounded-xl p-5 border border-primary/10 bg-white/55 shadow-sm">
-                    <div class="flex items-center justify-between">
-                        <div>
-                            <h3 class="text-lg font-bold">Archive Tools</h3>
-                            <p class="text-xs text-slate-500 uppercase tracking-widest mt-1">備份 / 還原</p>
-                        </div>
-                        <span class="material-symbols-outlined text-primary text-3xl">cloud_sync</span>
-                    </div>
-
-                    <p class="mt-3 text-sm text-slate-500 leading-6">收藏資料、品牌 Logo 庫、系列 Logo 庫、角標設定會一齊備份。</p>
-
-                    <div class="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-3">
-                        <button id="exportBtn" class="rounded-xl bg-primary px-4 py-3 text-sm font-bold text-white">⬇️ 匯出 JSON</button>
-                        <button id="importBtn" class="rounded-xl bg-black/5 px-4 py-3 text-sm font-bold">⬆️ 匯入 JSON</button>
-                        <button id="clearBtn" class="rounded-xl bg-black/5 px-4 py-3 text-sm font-bold">🗑️ 清空資料</button>
-                    </div>
-
-                    <input id="importFile" type="file" accept=".json,application/json" class="hidden" />
-                    <div id="backupStatus" class="mt-3 text-xs text-primary font-semibold">未匯出 / 未匯入</div>
-                </div>
-            </section>
-
-            <!-- Insights -->
-            <section id="pageStats" class="page px-6 py-8">
-                <h3 class="text-lg font-bold mb-4">Chronicle</h3>
-
-                <div class="mb-4">
-                    <select id="statsYearFilter" class="w-full rounded-xl border border-primary/10 bg-white px-4 py-3 text-sm focus:border-primary focus:ring-primary"></select>
-                </div>
-
-                <div id="statsOverview" class="grid grid-cols-2 gap-3 mb-6"></div>
-
-                <div class="space-y-4">
-                    <div class="kv-surface rounded-xl bg-white border border-slate-100 shadow-sm p-4">
-                        <div class="flex items-center justify-between mb-3">
-                            <h4 class="font-bold">Top Archive Ranking</h4>
-                            <span class="material-symbols-outlined text-gold">workspace_premium</span>
-                        </div>
-                        <div id="topRanking"></div>
-                    </div>
-
-                    <div class="kv-surface rounded-xl bg-white border border-slate-100 shadow-sm p-4">
-                        <div class="flex items-center justify-between mb-3">
-                            <h4 class="font-bold">Brand Breakdown</h4>
-                            <span class="material-symbols-outlined text-primary">donut_large</span>
-                        </div>
-                        <div id="brandBreakdown"></div>
-                    </div>
-
-                    <div class="kv-surface rounded-xl bg-white border border-slate-100 shadow-sm p-4">
-                        <div class="flex items-center justify-between mb-3">
-                            <h4 class="font-bold">Series Breakdown</h4>
-                            <span class="material-symbols-outlined text-gold">stacked_bar_chart</span>
-                        </div>
-                        <div id="seriesBreakdown"></div>
-                    </div>
-
-                    <div class="kv-surface rounded-xl bg-white border border-slate-100 shadow-sm p-4">
-                        <div class="flex items-center justify-between mb-3">
-                            <h4 class="font-bold">Monthly Chronicle</h4>
-                            <span class="material-symbols-outlined text-gold">calendar_month</span>
-                        </div>
-                        <div id="monthlyBreakdown"></div>
-                    </div>
-                </div>
-            </section>
-
-            <!-- Profile -->
-            <section id="pageProfile" class="page px-6 py-8 space-y-4">
-                <div class="kv-surface rounded-xl bg-white border border-slate-100 shadow-sm p-5">
-                    <div class="flex items-center gap-4">
-                        <div class="size-16 rounded-full bg-primary/10 border border-primary/20 flex items-center justify-center">
-                            <span class="material-symbols-outlined text-primary text-3xl">person</span>
-                        </div>
-                        <div class="min-w-0">
-                            <h3 id="profileDisplayName" class="text-lg font-bold">Guest Collector</h3>
-                            <p id="profileDisplayEmail" class="text-sm text-slate-500 truncate">Not signed in</p>
-                            <p class="text-xs text-slate-400 uppercase tracking-widest mt-1">Private Collector</p>
-                        </div>
-                    </div>
-
-                    <div class="grid grid-cols-2 gap-3 mt-5">
-                        <div class="rounded-xl border border-primary/10 bg-primary/5 p-4">
-                            <div class="text-xs uppercase tracking-widest text-slate-500 font-semibold">Owned</div>
-                            <div id="profileOwnedCount" class="mt-2 text-2xl font-bold">0</div>
-                        </div>
-                        <div class="rounded-xl border border-gold/20 bg-gold/10 p-4">
-                            <div class="text-xs uppercase tracking-widest text-slate-500 font-semibold">Wish List</div>
-                            <div id="profileWishCount" class="mt-2 text-2xl font-bold">0</div>
-                        </div>
-                    </div>
-                </div>
-
-
-                <div class="kv-surface rounded-xl bg-white border border-slate-100 shadow-sm p-5">
-                    <div class="flex items-center justify-between mb-4">
-                        <div>
-                            <h3 class="text-lg font-bold">Theme Studio</h3>
-                            <p class="text-xs text-slate-500 uppercase tracking-widest mt-1">雙主題切換</p>
-                        </div>
-                        <span class="material-symbols-outlined text-gold text-3xl">palette</span>
-                    </div>
-
-                    <div class="grid grid-cols-2 gap-3">
-                        <button id="themePureBtn" class="theme-pill rounded-xl border border-primary/10 bg-white/60 px-4 py-4 text-sm font-bold">
-                            和風純淨
-                        </button>
-                        <button id="themeBlackGoldBtn" class="theme-pill rounded-xl border border-primary/10 bg-white/60 px-4 py-4 text-sm font-bold">
-                            黑金收藏家
-                        </button>
-                    </div>
-
-                    <p class="mt-3 text-xs text-slate-500 leading-6">
-                        兩個主題共用同一份收藏資料、統計、Logo Library、角標設定。
-                    </p>
-                </div>
-
-                <div class="kv-surface rounded-xl bg-white border border-slate-100 shadow-sm p-5">
-                    <div class="flex items-center justify-between mb-4">
-                        <div>
-                            <h3 class="text-lg font-bold">Sign In</h3>
-                            <p class="text-xs text-slate-500 uppercase tracking-widest mt-1">UI Preview</p>
-                        </div>
-                        <span class="material-symbols-outlined text-primary text-3xl">login</span>
-                    </div>
-
-                    <div class="space-y-3">
-                        <input id="loginEmail" class="kv-input rounded-xl border border-primary/10 bg-background-light/80 px-4 py-3 text-sm placeholder:text-slate-400 focus:border-primary focus:ring-primary" placeholder="Email address" type="email" />
-                        <input id="loginPassword" class="kv-input rounded-xl border border-primary/10 bg-background-light/80 px-4 py-3 text-sm placeholder:text-slate-400 focus:border-primary focus:ring-primary" placeholder="Password" type="password" />
-                        <button id="fakeLoginBtn" class="w-full rounded-xl bg-primary px-4 py-3 text-sm font-bold text-white">登入（示範 UI）</button>
-                    </div>
-                </div>
-
-                <div class="kv-surface rounded-xl bg-white border border-slate-100 shadow-sm p-5">
-                    <div class="flex items-center justify-between mb-4">
-                        <div>
-                            <h3 class="text-lg font-bold">Create Account</h3>
-                            <p class="text-xs text-slate-500 uppercase tracking-widest mt-1">UI Preview</p>
-                        </div>
-                        <span class="material-symbols-outlined text-gold text-3xl">person_add</span>
-                    </div>
-
-                    <div class="space-y-3">
-                        <input id="registerName" class="kv-input rounded-xl border border-primary/10 bg-background-light/80 px-4 py-3 text-sm placeholder:text-slate-400 focus:border-primary focus:ring-primary" placeholder="Display name" />
-                        <input id="registerEmail" class="kv-input rounded-xl border border-primary/10 bg-background-light/80 px-4 py-3 text-sm placeholder:text-slate-400 focus:border-primary focus:ring-primary" placeholder="Email address" type="email" />
-                        <input id="registerPassword" class="kv-input rounded-xl border border-primary/10 bg-background-light/80 px-4 py-3 text-sm placeholder:text-slate-400 focus:border-primary focus:ring-primary" placeholder="Password" type="password" />
-                        <button id="fakeRegisterBtn" class="w-full rounded-xl bg-primary px-4 py-3 text-sm font-bold text-white">註冊（示範 UI）</button>
-                    </div>
-                </div>
-            </section>
-        </main>
-
-
-        <div id="itemDetailModal" class="hidden fixed inset-0 z-[90] bg-black/45 detail-backdrop">
-            <div class="absolute inset-0" onclick="closeItemDetail()"></div>
-            <div class="absolute inset-x-0 bottom-0 max-h-[94vh] rounded-t-[2rem] bg-background-light kv-surface detail-safe-bottom overflow-hidden">
-                <div class="detail-scroll detail-safe-top max-h-[94vh] overflow-y-auto px-4 pt-3 pb-6">
-                    <div class="sticky top-0 z-10 -mx-4 mb-2 flex items-center justify-between bg-background-light/95 px-4 py-2 backdrop-blur-md">
-                        <button onclick="closeItemDetail()" class="rounded-full bg-black/5 px-4 py-3 text-sm font-bold">取消</button>
-                        <div class="flex items-center gap-2">
-                            <button id="detailShareBtn" class="size-12 rounded-full bg-black/5 flex items-center justify-center">
-                                <span class="material-symbols-outlined">ios_share</span>
-                            </button>
-                            <button id="detailCloseBtnTop" onclick="closeItemDetail()" class="size-12 rounded-full bg-black/5 flex items-center justify-center">
-                                <span class="material-symbols-outlined">close</span>
-                            </button>
-                        </div>
-                    </div>
-
-                    <div id="detailImageWrap" class="mt-4 rounded-[1.5rem] overflow-hidden border border-primary/10 bg-white/70">
-                        <div id="detailImage" class="aspect-[4/5] w-full bg-center bg-no-repeat bg-contain"></div>
-                    </div>
-
-                    <div class="mt-4 grid grid-cols-2 gap-3 text-sm">
-                        <div class="rounded-2xl border border-primary/10 bg-white/70 px-4 py-3">
-                            <div class="text-xs uppercase tracking-widest text-slate-400">分類</div>
-                            <div id="detailCategory" class="mt-2 font-bold">-</div>
-                        </div>
-                        <div class="rounded-2xl border border-primary/10 bg-white/70 px-4 py-3">
-                            <div class="text-xs uppercase tracking-widest text-slate-400">狀態</div>
-                            <div id="detailStatus" class="mt-2 font-bold">-</div>
-                        </div>
-                    </div>
-
-                    <div class="mt-4 rounded-[1.5rem] border border-primary/10 bg-white/70 p-5">
-                        <div class="flex items-start justify-between gap-4">
-                            <div>
-                                <div id="detailCornerLabel" class="inline-flex rounded-xl bg-emerald-400/85 px-3 py-1 text-xs font-bold text-white"></div>
-                                <h2 id="detailName" class="mt-3 text-2xl font-bold leading-tight">未命名收藏</h2>
-                                <p id="detailBrandSeries" class="mt-2 text-sm text-slate-500"></p>
-                            </div>
-                            <div id="detailLogos" class="flex flex-wrap justify-end gap-2"></div>
-                        </div>
-
-                        <div class="mt-5 grid grid-cols-2 gap-4 border-t border-black/10 pt-5 text-sm">
-                            <div>
-                                <div class="text-xs uppercase tracking-widest text-slate-400">Price</div>
-                                <div id="detailPrice" class="mt-2 text-xl font-bold text-primary">$0</div>
-                            </div>
-                            <div>
-                                <div class="text-xs uppercase tracking-widest text-slate-400">Date</div>
-                                <div id="detailDate" class="mt-2 text-xl font-bold">-</div>
-                            </div>
-                            <div>
-                                <div class="text-xs uppercase tracking-widest text-slate-400">Barcode / Code</div>
-                                <div id="detailCode" class="mt-2 text-lg font-bold break-all">-</div>
-                            </div>
-                            <div>
-                                <div class="text-xs uppercase tracking-widest text-slate-400">Location</div>
-                                <div id="detailLocation" class="mt-2 text-lg font-bold">-</div>
-                            </div>
-                        </div>
-
-                        <div class="mt-5 border-t border-black/10 pt-5">
-                            <div class="text-xs uppercase tracking-widest text-slate-400">購買地方</div>
-                            <div id="detailSource" class="mt-2 text-base font-semibold">-</div>
-                        </div>
-
-                        <div class="mt-5 border-t border-black/10 pt-5">
-                            <div class="text-xs uppercase tracking-widest text-slate-400">備註</div>
-                            <div id="detailNote" class="mt-2 text-base leading-relaxed text-slate-700">-</div>
-                        </div>
-                    </div>
-
-                    <div class="mt-5 grid grid-cols-3 gap-3">
-                        <button id="detailDeleteBtn" class="rounded-2xl bg-rose-500 px-4 py-4 text-base font-bold text-white">刪除</button>
-                        <button id="detailEditBtn" class="rounded-2xl bg-emerald-500 px-4 py-4 text-base font-bold text-white">編輯</button>
-                        <button id="detailShareBtnBottom" class="rounded-2xl bg-orange-500 px-4 py-4 text-base font-bold text-white">分享</button>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div id="shareCardModal" class="hidden fixed inset-0 z-[95] bg-black/45 detail-backdrop">
-            <div class="absolute inset-0" onclick="closeShareCard()"></div>
-            <div class="absolute inset-x-0 bottom-0 max-h-[94vh] rounded-t-[2rem] bg-background-light kv-surface detail-safe-bottom overflow-hidden">
-                <div class="detail-scroll detail-safe-top max-h-[94vh] overflow-y-auto px-4 pt-3 pb-6">
-                    <div class="sticky top-0 z-10 -mx-4 mb-2 flex items-center justify-between bg-background-light/95 px-4 py-2 backdrop-blur-md">
-                        <button onclick="closeShareCard()" class="rounded-full bg-black/5 px-4 py-3 text-sm font-bold">取消</button>
-                        <h3 class="text-2xl font-bold">分享卡片</h3>
-                        <button onclick="closeShareCard()" class="rounded-full bg-black/5 px-4 py-3 text-sm font-bold">完成</button>
-                    </div>
-
-                    <div class="mt-4 rounded-[2rem] border border-primary/10 bg-white/70 p-4">
-                        <div id="shareCardPreviewHost" class="mx-auto max-w-[380px]"></div>
-                    </div>
-
-                    <div class="mt-6">
-                        <div class="text-sm font-bold text-slate-500 mb-3">選擇版型</div>
-                        <div class="grid grid-cols-4 gap-3">
-                            <button class="shareStyleBtn rounded-2xl border border-primary/10 bg-white/70 px-2 py-3 text-center text-sm font-semibold" data-share-style="classic">經典</button>
-                            <button class="shareStyleBtn rounded-2xl border border-primary/10 bg-white/70 px-2 py-3 text-center text-sm font-semibold" data-share-style="polaroid">拍立得</button>
-                            <button class="shareStyleBtn rounded-2xl border border-primary/10 bg-white/70 px-2 py-3 text-center text-sm font-semibold" data-share-style="magazine">雜誌</button>
-                            <button class="shareStyleBtn rounded-2xl border border-primary/10 bg-white/70 px-2 py-3 text-center text-sm font-semibold" data-share-style="minimal">極簡</button>
-                        </div>
-                    </div>
-
-                    <div class="mt-6 grid grid-cols-2 gap-4">
-                        <button id="downloadShareBtn" class="rounded-[1.5rem] bg-black/20 px-5 py-5 text-lg font-bold text-slate-800">儲存圖片</button>
-                        <button id="nativeShareBtn" class="rounded-[1.5rem] bg-orange-500 px-5 py-5 text-lg font-bold text-white">分享</button>
-                    </div>
-                    <div id="shareStatus" class="mt-3 text-center text-xs text-slate-500"></div>
-                </div>
-            </div>
-        </div>
-
-
-        <nav class="fixed bottom-0 left-0 right-0 z-50 bg-background-light/90 backdrop-blur-xl border-t border-primary/10 px-6 pt-3 pb-8">
-            <div class="flex items-center justify-between max-w-md mx-auto">
-                <button id="navCollection" class="flex flex-col items-center gap-1 text-primary nav-active">
-                    <span class="material-symbols-outlined font-variation-fill">home</span>
-                    <span class="text-[10px] font-bold uppercase tracking-widest">Archive</span>
-                </button>
-
-                <button id="navWishlist" class="flex flex-col items-center gap-1 text-slate-400">
-                    <span class="material-symbols-outlined">explore</span>
-                    <span class="text-[10px] font-bold uppercase tracking-widest">Wish List</span>
-                </button>
-
-                <div class="relative -top-6">
-                    <button id="navAddCenter" class="size-14 bg-primary text-white rounded-full shadow-lg shadow-primary/40 flex items-center justify-center">
-                        <span class="material-symbols-outlined text-2xl">add</span>
-                    </button>
-                </div>
-
-                <button id="navStats" class="flex flex-col items-center gap-1 text-slate-400">
-                    <span class="material-symbols-outlined">history_edu</span>
-                    <span class="text-[10px] font-bold uppercase tracking-widest">Chronicle</span>
-                </button>
-
-                <button id="navProfile" class="flex flex-col items-center gap-1 text-slate-400">
-                    <span class="material-symbols-outlined">person</span>
-                    <span class="text-[10px] font-bold uppercase tracking-widest">Profile</span>
-                </button>
-            </div>
-        </nav>
-
-        <div id="monthDetailModal" class="hidden fixed inset-0 z-[80] bg-black/45 backdrop-blur-sm p-4">
-            <div class="mx-auto mt-8 max-w-md rounded-2xl border border-primary/10 bg-background-light shadow-2xl overflow-hidden kv-surface">
-                <div class="flex items-center justify-between border-b border-primary/10 px-5 py-4">
-                    <div>
-                        <h4 id="monthDetailTitle" class="text-lg font-bold">月份紀錄</h4>
-                        <p id="monthDetailSubtitle" class="text-xs uppercase tracking-widest text-slate-500 mt-1">0 件收藏</p>
-                    </div>
-                    <button onclick="closeMonthlyDetail()" class="size-10 rounded-full bg-black/5 flex items-center justify-center">
-                        <span class="material-symbols-outlined">close</span>
-                    </button>
-                </div>
-                <div class="p-5 pb-0">
-                    <div id="monthDetailSummary"></div>
-                </div>
-                <div id="monthDetailList" class="max-h-[70vh] overflow-y-auto space-y-3 p-5"></div>
-            </div>
-        </div>
-    </div>
-
-    <script>
+<div class="mt-4">
+<div class="text-xs font-bold tracking-widest uppercase text-slate-500 mb-2">系列 Logo 快選</div>
+<div class="flex flex-wrap gap-2" id="seriesPresetPicker"></div>
+</div>
+<div class="mt-3" id="seriesLogoScopeWrap"></div>
+<div class="mt-3">
+<input accept="image/*" class="kv-input w-full rounded-xl border border-primary/10 bg-background-light/80 px-4 py-3 text-sm file:mr-3 file:rounded-lg file:border-0 file:bg-primary file:px-3 file:py-2 file:text-sm file:font-semibold file:text-white" id="seriesLogoFile" type="file"/>
+</div>
+<button class="mt-3 w-full rounded-xl bg-primary px-4 py-3 text-sm font-bold text-white" id="saveSeriesLibBtn">加入系列 Logo 庫</button>
+</div>
+<button class="mt-5 w-full rounded-xl bg-primary px-4 py-3 text-sm font-bold text-white" id="saveBtn">儲存收藏</button>
+</div>
+<div class="kv-surface rounded-xl p-5 border border-primary/10 bg-white/55 shadow-sm">
+<div class="flex items-center justify-between">
+<div>
+<h3 class="text-lg font-bold">Logo Library</h3>
+<p class="text-xs text-slate-500 uppercase tracking-widest mt-1">Logo Library 管理</p>
+</div>
+<span class="material-symbols-outlined text-gold text-3xl">diamond</span>
+</div>
+<div class="mt-5 flex items-center justify-between">
+<div class="font-semibold">品牌 Logos</div>
+<div class="text-xs text-slate-500" id="brandLibCount">0 個</div>
+</div>
+<div class="mt-3 space-y-2" id="brandLibraryManager"></div>
+<div class="mt-6 flex items-center justify-between">
+<div class="font-semibold">系列 Logos</div>
+<div class="text-xs text-slate-500" id="seriesLibCount">0 個</div>
+</div>
+<div class="mt-3 space-y-2" id="seriesLibraryManager"></div>
+</div>
+<div class="kv-surface rounded-xl p-5 border border-primary/10 bg-white/55 shadow-sm">
+<div class="flex items-center justify-between">
+<div>
+<h3 class="text-lg font-bold">Archive Tools</h3>
+<p class="text-xs text-slate-500 uppercase tracking-widest mt-1">備份 / 還原</p>
+</div>
+<span class="material-symbols-outlined text-primary text-3xl">cloud_sync</span>
+</div>
+<p class="mt-3 text-sm text-slate-500 leading-6">收藏資料、品牌 Logo 庫、系列 Logo 庫、角標設定會一齊備份。</p>
+<div class="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-3">
+<button class="rounded-xl bg-primary px-4 py-3 text-sm font-bold text-white" id="exportBtn">⬇️ 匯出 JSON</button>
+<button class="rounded-xl bg-black/5 px-4 py-3 text-sm font-bold" id="importBtn">⬆️ 匯入 JSON</button>
+<button class="rounded-xl bg-black/5 px-4 py-3 text-sm font-bold" id="clearBtn">🗑️ 清空資料</button>
+</div>
+<input accept=".json,application/json" class="hidden" id="importFile" type="file"/>
+<div class="mt-3 text-xs text-primary font-semibold" id="backupStatus">未匯出 / 未匯入</div>
+</div>
+</section>
+<!-- Insights -->
+<section class="page px-4 py-6" id="pageCategory">
+<div class="mb-6 flex items-end justify-between">
+<div>
+<h2 class="text-2xl font-light tracking-tight italic">Categories</h2>
+<p class="text-[10px] text-primary uppercase tracking-[0.2em] font-medium">分類管理</p>
+</div>
+<div class="text-[10px] text-slate-400 font-medium tracking-widest uppercase border-b border-primary/20 pb-1">Museum Mode</div>
+</div>
+<div class="grid grid-cols-3 gap-3" id="categoryCardGrid"></div>
+<div class="mt-6 rounded-xl border border-primary/10 bg-white/60 p-4 shadow-sm">
+<div class="mb-3 flex items-center justify-between">
+<div>
+<h3 class="text-sm font-bold">My Categories</h3>
+<p class="text-[10px] uppercase tracking-[0.18em] text-slate-400">自訂分類</p>
+</div>
+<button class="rounded-full border border-primary/10 bg-background-light/80 px-4 py-2 text-[11px] font-bold" id="addCustomCategoryBtn">新增</button>
+</div>
+<div class="space-y-2" id="myCategoryList"></div>
+</div>
+<div class="mt-4 rounded-xl border border-primary/10 bg-white/60 p-4 shadow-sm">
+<div class="mb-3 flex items-center justify-between">
+<div>
+<h3 class="text-sm font-bold">Fixed Categories</h3>
+<p class="text-[10px] uppercase tracking-[0.18em] text-slate-400">固定分類</p>
+</div>
+<button class="hidden rounded-full border border-primary/10 bg-background-light/80 px-4 py-2 text-[11px] font-bold" id="addFixedCategoryBtn">新增固定分類</button>
+</div>
+<div class="space-y-2" id="fixedCategoryList"></div>
+</div>
+</section><section class="page px-6 py-8" id="pageStats">
+<h3 class="text-lg font-bold mb-4">Chronicle</h3>
+<div class="mb-4">
+<select class="w-full rounded-xl border border-primary/10 bg-white px-4 py-3 text-sm focus:border-primary focus:ring-primary" id="statsYearFilter"></select>
+</div>
+<div class="grid grid-cols-2 gap-3 mb-6" id="statsOverview"></div>
+<div class="space-y-4">
+<div class="kv-surface rounded-xl bg-white border border-slate-100 shadow-sm p-4">
+<div class="flex items-center justify-between mb-3">
+<h4 class="font-bold">Top Archive Ranking</h4>
+<span class="material-symbols-outlined text-gold">workspace_premium</span>
+</div>
+<div id="topRanking"></div>
+</div>
+<div class="kv-surface rounded-xl bg-white border border-slate-100 shadow-sm p-4">
+<div class="flex items-center justify-between mb-3">
+<h4 class="font-bold">Brand Breakdown</h4>
+<span class="material-symbols-outlined text-primary">donut_large</span>
+</div>
+<div id="brandBreakdown"></div>
+</div>
+<div class="kv-surface rounded-xl bg-white border border-slate-100 shadow-sm p-4">
+<div class="flex items-center justify-between mb-3">
+<h4 class="font-bold">Series Breakdown</h4>
+<span class="material-symbols-outlined text-gold">stacked_bar_chart</span>
+</div>
+<div id="seriesBreakdown"></div>
+</div>
+<div class="kv-surface rounded-xl bg-white border border-slate-100 shadow-sm p-4">
+<div class="flex items-center justify-between mb-3">
+<h4 class="font-bold">Monthly Chronicle</h4>
+<span class="material-symbols-outlined text-gold">calendar_month</span>
+</div>
+<div id="monthlyBreakdown"></div>
+</div>
+</div>
+</section>
+<!-- Profile -->
+<section class="page px-6 py-8 space-y-4" id="pageProfile">
+<div class="rounded-[28px] bg-white/75 border border-primary/10 shadow-sm p-6">
+<div class="flex flex-col items-center text-center">
+<div class="relative">
+<div class="w-28 h-28 rounded-full border-2 border-accent-gold/25 p-1 bg-white">
+<div class="w-full h-full rounded-full bg-primary/10 flex items-center justify-center overflow-hidden">
+<span class="material-symbols-outlined text-primary text-5xl">person</span>
+</div>
+</div>
+<div class="absolute -bottom-2 left-1/2 -translate-x-1/2 bg-primary text-white px-4 py-1 rounded-full text-[10px] font-bold tracking-widest uppercase shadow-sm border border-accent-gold/20">Master Vault</div>
+</div>
+<h2 class="mt-6 text-2xl font-light tracking-tight" id="profileDisplayName">Guest Collector</h2>
+<p class="text-sm text-slate-500 mt-1 truncate max-w-full" id="profileDisplayEmail">Not signed in</p>
+<p class="text-[10px] text-primary uppercase tracking-[0.2em] font-medium mt-2">Private Curator</p>
+</div>
+<div class="mt-6 grid grid-cols-2 gap-3">
+<div class="rounded-xl border border-primary/10 bg-white/70 p-4 text-center">
+<p class="text-[10px] uppercase tracking-widest text-slate-400 font-bold mb-1">Owned</p>
+<p class="text-xl font-light text-cinnabar"><span id="profileOwnedCount">0</span> <span class="text-xs text-slate-400">pcs</span></p>
+</div>
+<div class="rounded-xl border border-primary/10 bg-white/70 p-4 text-center">
+<p class="text-[10px] uppercase tracking-widest text-slate-400 font-bold mb-1">Wishlist</p>
+<p class="text-xl font-light text-slate-800"><span id="profileWishCount">0</span> <span class="text-xs text-slate-400">pcs</span></p>
+</div>
+</div>
+</div>
+<div class="rounded-[28px] bg-white/75 border border-primary/10 shadow-sm p-6">
+<h3 class="text-[11px] uppercase tracking-[0.3em] text-slate-400 font-bold mb-6 px-2">Management Tools</h3>
+<div class="grid grid-cols-4 gap-y-8 gap-x-3" id="profileToolsGrid">
+<button class="flex flex-col items-center gap-2 text-center" id="toolChronicle"><div class="w-12 h-12 rounded-2xl bg-background-light border border-primary/10 flex items-center justify-center text-primary"><span class="material-symbols-outlined text-2xl">history_edu</span></div><span class="text-[10px] font-medium text-slate-600">Archive</span></button>
+<button class="flex flex-col items-center gap-2 text-center" id="toolCategory"><div class="w-12 h-12 rounded-2xl bg-background-light border border-primary/10 flex items-center justify-center text-primary"><span class="material-symbols-outlined text-2xl">grid_view</span></div><span class="text-[10px] font-medium text-slate-600">Category</span></button>
+<button class="flex flex-col items-center gap-2 text-center" id="toolWishlist"><div class="w-12 h-12 rounded-2xl bg-background-light border border-primary/10 flex items-center justify-center text-accent-gold"><span class="material-symbols-outlined text-2xl">star</span></div><span class="text-[10px] font-medium text-slate-600">Wishes</span></button>
+<button class="flex flex-col items-center gap-2 text-center" id="toolLogo"><div class="w-12 h-12 rounded-2xl bg-background-light border border-primary/10 flex items-center justify-center text-primary"><span class="material-symbols-outlined text-2xl">palette</span></div><span class="text-[10px] font-medium text-slate-600">Logo</span></button>
+<button class="flex flex-col items-center gap-2 text-center" id="toolTheme"><div class="w-12 h-12 rounded-2xl bg-background-light border border-primary/10 flex items-center justify-center text-primary"><span class="material-symbols-outlined text-2xl">contrast</span></div><span class="text-[10px] font-medium text-slate-600">Theme</span></button>
+<button class="flex flex-col items-center gap-2 text-center" id="toolExport"><div class="w-12 h-12 rounded-2xl bg-background-light border border-primary/10 flex items-center justify-center text-primary"><span class="material-symbols-outlined text-2xl">file_export</span></div><span class="text-[10px] font-medium text-slate-600">Export</span></button>
+<button class="flex flex-col items-center gap-2 text-center" id="toolStats"><div class="w-12 h-12 rounded-2xl bg-background-light border border-primary/10 flex items-center justify-center text-primary"><span class="material-symbols-outlined text-2xl">query_stats</span></div><span class="text-[10px] font-medium text-slate-600">Stats</span></button>
+<button class="flex flex-col items-center gap-2 text-center" id="toolShare"><div class="w-12 h-12 rounded-2xl bg-background-light border border-primary/10 flex items-center justify-center text-primary"><span class="material-symbols-outlined text-2xl">share</span></div><span class="text-[10px] font-medium text-slate-600">Share</span></button>
+</div>
+</div>
+<div class="rounded-2xl bg-white/70 border border-primary/10 shadow-sm p-5" id="profileThemePanel">
+<div class="flex items-center justify-between mb-4"><div><h3 class="text-lg font-bold">Theme Studio</h3><p class="text-xs text-slate-500 uppercase tracking-widest mt-1">雙主題切換</p></div><span class="material-symbols-outlined text-accent-gold text-3xl">palette</span></div>
+<div class="grid grid-cols-2 gap-3"><button class="theme-pill rounded-xl border border-primary/10 bg-white/60 px-4 py-4 text-sm font-bold" id="themePureBtn">和風純淨</button><button class="theme-pill rounded-xl border border-primary/10 bg-white/60 px-4 py-4 text-sm font-bold" id="themeBlackGoldBtn">黑金收藏家</button></div>
+</div>
+<div class="space-y-4" id="profileGuestPanels">
+<div class="rounded-2xl bg-white/70 border border-primary/10 shadow-sm p-5">
+<div class="flex items-center justify-between mb-4"><div><h3 class="text-lg font-bold">Sign In</h3><p class="text-xs text-slate-500 uppercase tracking-widest mt-1">UI Preview</p></div><span class="material-symbols-outlined text-primary text-3xl">login</span></div>
+<div class="space-y-3"><input class="kv-input rounded-xl border border-primary/10 bg-background-light/80 px-4 py-3 text-sm placeholder:text-slate-400 focus:border-primary focus:ring-primary" id="loginEmail" placeholder="Email address" type="email"/><input class="kv-input rounded-xl border border-primary/10 bg-background-light/80 px-4 py-3 text-sm placeholder:text-slate-400 focus:border-primary focus:ring-primary" id="loginPassword" placeholder="Password" type="password"/><button class="w-full rounded-xl bg-primary px-4 py-3 text-sm font-bold text-white" id="fakeLoginBtn">登入（示範 UI）</button></div>
+</div>
+<div class="rounded-2xl bg-white/70 border border-primary/10 shadow-sm p-5">
+<div class="flex items-center justify-between mb-4"><div><h3 class="text-lg font-bold">Create Account</h3><p class="text-xs text-slate-500 uppercase tracking-widest mt-1">UI Preview</p></div><span class="material-symbols-outlined text-accent-gold text-3xl">person_add</span></div>
+<div class="space-y-3"><input class="kv-input rounded-xl border border-primary/10 bg-background-light/80 px-4 py-3 text-sm placeholder:text-slate-400 focus:border-primary focus:ring-primary" id="registerName" placeholder="Display name"/><input class="kv-input rounded-xl border border-primary/10 bg-background-light/80 px-4 py-3 text-sm placeholder:text-slate-400 focus:border-primary focus:ring-primary" id="registerEmail" placeholder="Email address" type="email"/><input class="kv-input rounded-xl border border-primary/10 bg-background-light/80 px-4 py-3 text-sm placeholder:text-slate-400 focus:border-primary focus:ring-primary" id="registerPassword" placeholder="Password" type="password"/><button class="w-full rounded-xl bg-accent-gold px-4 py-3 text-sm font-bold text-white" id="fakeRegisterBtn">註冊（示範 UI）</button></div>
+</div>
+</div>
+</section>
+</main>
+<div class="hidden fixed inset-0 z-[90] bg-black/45 detail-backdrop" id="itemDetailModal">
+<div class="absolute inset-0" onclick="closeItemDetail()"></div>
+<div class="absolute inset-x-0 bottom-0 max-h-[94vh] rounded-t-[2rem] bg-background-light kv-surface detail-safe-bottom overflow-hidden">
+<div class="detail-scroll detail-safe-top max-h-[94vh] overflow-y-auto px-4 pt-3 pb-6">
+<div class="sticky top-0 z-10 -mx-4 mb-2 flex items-center justify-between bg-background-light/95 px-4 py-2 backdrop-blur-md">
+<button class="rounded-full bg-black/5 px-4 py-3 text-sm font-bold" onclick="closeItemDetail()">取消</button>
+<div class="flex items-center gap-2">
+<button class="size-12 rounded-full bg-black/5 flex items-center justify-center" id="detailShareBtn">
+<span class="material-symbols-outlined">ios_share</span>
+</button>
+<button class="size-12 rounded-full bg-black/5 flex items-center justify-center" id="detailCloseBtnTop" onclick="closeItemDetail()">
+<span class="material-symbols-outlined">close</span>
+</button>
+</div>
+</div>
+<div class="mt-4 rounded-[1.5rem] overflow-hidden border border-primary/10 bg-white/70" id="detailImageWrap">
+<div class="aspect-[4/5] w-full bg-center bg-no-repeat bg-contain" id="detailImage"></div>
+</div>
+<div class="mt-4 grid grid-cols-2 gap-3 text-sm">
+<div class="rounded-2xl border border-primary/10 bg-white/70 px-4 py-3">
+<div class="text-xs uppercase tracking-widest text-slate-400">分類</div>
+<div class="mt-2 font-bold" id="detailCategory">-</div>
+</div>
+<div class="rounded-2xl border border-primary/10 bg-white/70 px-4 py-3">
+<div class="text-xs uppercase tracking-widest text-slate-400">狀態</div>
+<div class="mt-2 font-bold" id="detailStatus">-</div>
+</div>
+</div>
+<div class="mt-4 rounded-[1.5rem] border border-primary/10 bg-white/70 p-5">
+<div class="flex items-start justify-between gap-4">
+<div>
+<div class="inline-flex rounded-xl bg-emerald-400/85 px-3 py-1 text-xs font-bold text-white" id="detailCornerLabel"></div>
+<h2 class="mt-3 text-2xl font-bold leading-tight" id="detailName">未命名收藏</h2>
+<p class="mt-2 text-sm text-slate-500" id="detailBrandSeries"></p>
+</div>
+<div class="flex flex-wrap justify-end gap-2" id="detailLogos"></div>
+</div>
+<div class="mt-5 grid grid-cols-2 gap-4 border-t border-black/10 pt-5 text-sm">
+<div>
+<div class="text-xs uppercase tracking-widest text-slate-400">Price</div>
+<div class="mt-2 text-xl font-bold text-primary" id="detailPrice">$0</div>
+</div>
+<div>
+<div class="text-xs uppercase tracking-widest text-slate-400">Date</div>
+<div class="mt-2 text-xl font-bold" id="detailDate">-</div>
+</div>
+<div>
+<div class="text-xs uppercase tracking-widest text-slate-400">Barcode / Code</div>
+<div class="mt-2 text-lg font-bold break-all" id="detailCode">-</div>
+</div>
+<div>
+<div class="text-xs uppercase tracking-widest text-slate-400">Location</div>
+<div class="mt-2 text-lg font-bold" id="detailLocation">-</div>
+</div>
+</div>
+<div class="mt-5 border-t border-black/10 pt-5">
+<div class="text-xs uppercase tracking-widest text-slate-400">購買地方</div>
+<div class="mt-2 text-base font-semibold" id="detailSource">-</div>
+</div>
+<div class="mt-5 border-t border-black/10 pt-5">
+<div class="text-xs uppercase tracking-widest text-slate-400">備註</div>
+<div class="mt-2 text-base leading-relaxed text-slate-700" id="detailNote">-</div>
+</div>
+</div>
+<div class="mt-5 grid grid-cols-3 gap-3">
+<button class="rounded-2xl bg-rose-500 px-4 py-4 text-base font-bold text-white" id="detailDeleteBtn">刪除</button>
+<button class="rounded-2xl bg-emerald-500 px-4 py-4 text-base font-bold text-white" id="detailEditBtn">編輯</button>
+<button class="rounded-2xl bg-orange-500 px-4 py-4 text-base font-bold text-white" id="detailShareBtnBottom">分享</button>
+</div>
+</div>
+</div>
+</div>
+<div class="hidden fixed inset-0 z-[95] bg-black/45 detail-backdrop" id="shareCardModal">
+<div class="absolute inset-0" onclick="closeShareCard()"></div>
+<div class="absolute inset-x-0 bottom-0 max-h-[94vh] rounded-t-[2rem] bg-background-light kv-surface detail-safe-bottom overflow-hidden">
+<div class="detail-scroll detail-safe-top max-h-[94vh] overflow-y-auto px-4 pt-3 pb-6">
+<div class="sticky top-0 z-10 -mx-4 mb-2 flex items-center justify-between bg-background-light/95 px-4 py-2 backdrop-blur-md">
+<button class="rounded-full bg-black/5 px-4 py-3 text-sm font-bold" onclick="closeShareCard()">取消</button>
+<h3 class="text-2xl font-bold">分享卡片</h3>
+<button class="rounded-full bg-black/5 px-4 py-3 text-sm font-bold" onclick="closeShareCard()">完成</button>
+</div>
+<div class="mt-4 rounded-[2rem] border border-primary/10 bg-white/70 p-4">
+<div class="mx-auto max-w-[380px]" id="shareCardPreviewHost"></div>
+</div>
+<div class="mt-6">
+<div class="text-sm font-bold text-slate-500 mb-3">選擇版型</div>
+<div class="grid grid-cols-4 gap-3">
+<button class="shareStyleBtn rounded-2xl border border-primary/10 bg-white/70 px-2 py-3 text-center text-sm font-semibold" data-share-style="classic">經典</button>
+<button class="shareStyleBtn rounded-2xl border border-primary/10 bg-white/70 px-2 py-3 text-center text-sm font-semibold" data-share-style="polaroid">拍立得</button>
+<button class="shareStyleBtn rounded-2xl border border-primary/10 bg-white/70 px-2 py-3 text-center text-sm font-semibold" data-share-style="magazine">雜誌</button>
+<button class="shareStyleBtn rounded-2xl border border-primary/10 bg-white/70 px-2 py-3 text-center text-sm font-semibold" data-share-style="minimal">極簡</button>
+</div>
+</div>
+<div class="mt-6 grid grid-cols-2 gap-4">
+<button class="rounded-[1.5rem] bg-black/20 px-5 py-5 text-lg font-bold text-slate-800" id="downloadShareBtn">儲存圖片</button>
+<button class="rounded-[1.5rem] bg-orange-500 px-5 py-5 text-lg font-bold text-white" id="nativeShareBtn">分享</button>
+</div>
+<div class="mt-3 text-center text-xs text-slate-500" id="shareStatus"></div>
+</div>
+</div>
+</div>
+<nav class="fixed bottom-0 left-0 right-0 z-50 bg-background-light/90 backdrop-blur-xl border-t border-primary/10 px-6 pt-3 pb-8">
+<div class="flex items-center justify-between max-w-md mx-auto">
+<button class="flex flex-col items-center gap-1 text-primary nav-active" id="navCollection">
+<span class="material-symbols-outlined font-variation-fill">home</span>
+<span class="text-[10px] font-bold uppercase tracking-widest">Archive</span>
+</button>
+<button class="flex flex-col items-center gap-1 text-slate-400" id="navWishlist">
+<span class="material-symbols-outlined">explore</span>
+<span class="text-[10px] font-bold uppercase tracking-widest">Wish List</span>
+</button>
+<div class="relative -top-6">
+<button class="size-14 bg-primary text-white rounded-full shadow-lg shadow-primary/40 flex items-center justify-center" id="navAddCenter">
+<span class="material-symbols-outlined text-2xl">add</span>
+</button>
+</div>
+<button class="flex flex-col items-center gap-1 text-slate-400" id="navStats">
+<span class="material-symbols-outlined">grid_view</span>
+<span class="text-[10px] font-bold uppercase tracking-widest">Category</span>
+</button>
+<button class="flex flex-col items-center gap-1 text-slate-400" id="navProfile">
+<span class="material-symbols-outlined">person</span>
+<span class="text-[10px] font-bold uppercase tracking-widest">Profile</span>
+</button>
+</div>
+</nav>
+<div class="hidden fixed inset-0 z-[80] bg-black/45 backdrop-blur-sm p-4" id="monthDetailModal">
+<div class="mx-auto mt-8 max-w-md rounded-2xl border border-primary/10 bg-background-light shadow-2xl overflow-hidden kv-surface">
+<div class="flex items-center justify-between border-b border-primary/10 px-5 py-4">
+<div>
+<h4 class="text-lg font-bold" id="monthDetailTitle">月份紀錄</h4>
+<p class="text-xs uppercase tracking-widest text-slate-500 mt-1" id="monthDetailSubtitle">0 件收藏</p>
+</div>
+<button class="size-10 rounded-full bg-black/5 flex items-center justify-center" onclick="closeMonthlyDetail()">
+<span class="material-symbols-outlined">close</span>
+</button>
+</div>
+<div class="p-5 pb-0">
+<div id="monthDetailSummary"></div>
+</div>
+<div class="max-h-[70vh] overflow-y-auto space-y-3 p-5" id="monthDetailList"></div>
+</div>
+</div>
+</div>
+<script>
         const STABLE_KEY = "kyoto_vault_v88_pure_final_items";
         const BRAND_LIB_KEY = "kyoto_vault_v88_pure_final_brand_lib";
         const SERIES_LIB_KEY = "kyoto_vault_v88_pure_final_series_lib";
@@ -1973,8 +1909,7 @@
         applyVisualTheme();
         setActiveNav("collection");
     </script>
-
-    <script>
+<script>
     window.__kuraState = {
       getItems() {
         try { return Array.isArray(items) ? items : (window.items || []); } catch (e) { return window.items || []; }
@@ -1985,8 +1920,7 @@
       }
     };
     </script>
-
-    <script type="module">
+<script type="module">
       import { initializeApp } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-app.js";
       import {
         getAuth,
@@ -2191,8 +2125,7 @@
         bindButtons();
       }
     </script>
-
-    <script>
+<script>
     (function () {
       function currentFbUser() {
         return window.kuraFirebase?.auth?.currentUser || null;
@@ -2460,8 +2393,6 @@
       }
     })();
     </script>
-
-
 <script>
 (async function () {
   function fb() {
@@ -2904,8 +2835,6 @@
   window.loadMergedLogoLibraries = loadMergedLibraries;
 })();
 </script>
-
-
 <script>
 (async function () {
   const { collectionGroup, getDocs } = await import("https://www.gstatic.com/firebasejs/12.10.0/firebase-firestore.js");
@@ -3161,8 +3090,6 @@
   }
 })();
 </script>
-
-
 <script>
 (function () {
   function $(id) {
@@ -3359,9 +3286,6 @@
   });
 })();
 </script>
-
-
-
 <script>
 (function () {
   function safeItems() {
@@ -3615,8 +3539,6 @@
   });
 })();
 </script>
-
-
 <script>
 (function () {
   function $(id) { return document.getElementById(id); }
@@ -3796,8 +3718,212 @@
 })();
 </script>
 
-</body>
+<script>
+(function(){
+  const DEFAULT_FIXED_CATEGORIES = [
+    {id:'cars',name:'汽車模型',en:'Cars',icon:'directions_car'},
+    {id:'figures',name:'公仔',en:'Figures',icon:'toys'},
+    {id:'gundam',name:'鋼彈',en:'Gundam',icon:'precision_manufacturing'},
+    {id:'lego',name:'樂高',en:'LEGO',icon:'view_in_ar'},
+    {id:'scene',name:'場景',en:'Scene',icon:'landscape'},
+    {id:'aircraft',name:'飛機',en:'Aircraft',icon:'flight'},
+    {id:'ships',name:'船舶',en:'Ships',icon:'directions_boat'},
+    {id:'trains',name:'火車',en:'Trains',icon:'train'},
+    {id:'motorcycles',name:'機車',en:'Motorcycles',icon:'two_wheeler'},
+    {id:'other',name:'其他',en:'Other',icon:'category'}
+  ];
+  let fixedCategories = [];
+  let customCategories = [];
+  let enabledFixedCategoryIds = [];
 
+  function fb(){ return window.kuraFirebase || null; }
+  function $(id){ return document.getElementById(id); }
+  function normalize(v){ return String(v||'').trim(); }
+  function slugify(str){ return normalize(str).toLowerCase().replace(/\s+/g,'-').replace(/[^\w\-一-鿿]/g,'').slice(0,30) || ('cat-'+Date.now()); }
+  async function isAdmin(){
+    const api=fb(); const uid=api?.auth?.currentUser?.uid;
+    if(!api||!uid) return false;
+    try { const snap=await api.getDoc(api.doc(api.db,'admins',uid)); return snap.exists(); } catch(e){ return false; }
+  }
+  function getCombinedCategories(){
+    const fixedEnabled = fixedCategories.filter(c => enabledFixedCategoryIds.includes(c.id) && c.isActive !== false);
+    const customEnabled = customCategories.filter(c => c.enabled !== false);
+    return [...fixedEnabled, ...customEnabled];
+  }
+  async function loadCategories(){
+    const api=fb();
+    fixedCategories = DEFAULT_FIXED_CATEGORIES.map(x=>({...x,isActive:true}));
+    enabledFixedCategoryIds = fixedCategories.map(c=>c.id);
+    customCategories = [];
+    if(!api) { renderCategoryPage(); updateCategoryDatalist(); return; }
+    try {
+      const pubSnap = await api.getDoc(api.doc(api.db,'appConfig','public'));
+      if(pubSnap.exists() && Array.isArray(pubSnap.data().fixedCategories) && pubSnap.data().fixedCategories.length){
+        fixedCategories = pubSnap.data().fixedCategories;
+      }
+      const user = api.auth?.currentUser;
+      if(user){
+        const setSnap = await api.getDoc(api.doc(api.db,'users',user.uid,'categorySettings','main'));
+        if(setSnap.exists()){
+          const data=setSnap.data()||{};
+          if(Array.isArray(data.enabledFixedCategoryIds)) enabledFixedCategoryIds = data.enabledFixedCategoryIds;
+          if(Array.isArray(data.customCategories)) customCategories = data.customCategories;
+        } else {
+          enabledFixedCategoryIds = fixedCategories.filter(c=>c.isActive!==false).map(c=>c.id);
+        }
+      }
+    } catch(err){ console.error('loadCategories failed', err); }
+    renderCategoryPage();
+    updateCategoryDatalist();
+  }
+  async function saveUserCategorySettings(){
+    const api=fb(); const uid=api?.auth?.currentUser?.uid; if(!api||!uid) return;
+    await api.setDoc(api.doc(api.db,'users',uid,'categorySettings','main'), {
+      enabledFixedCategoryIds,
+      customCategories,
+      updatedAt: Date.now()
+    }, {merge:true});
+  }
+  async function saveFixedCategories(){
+    const api=fb(); if(!api) return; if(!(await isAdmin())) return;
+    await api.setDoc(api.doc(api.db,'appConfig','public'), { fixedCategories, updatedAt: Date.now() }, {merge:true});
+  }
+  function categoryCount(name){
+    try {
+      return (window.items || items || []).filter(item => normalize(item.category) === normalize(name)).length;
+    } catch(e){ return 0; }
+  }
+  function renderCategoryPage(){
+    const grid = $('categoryCardGrid'); const myList=$('myCategoryList'); const fixedList=$('fixedCategoryList'); const addFixedBtn=$('addFixedCategoryBtn');
+    if(!grid || !myList || !fixedList) return;
+    isAdmin().then(admin=>{ if(addFixedBtn) addFixedBtn.classList.toggle('hidden', !admin); renderLists(admin); });
+    const cards = getCombinedCategories();
+    grid.innerHTML = cards.map(cat => `
+      <button data-open-category="${cat.id}" class="relative aspect-[3/4] bg-white dark:bg-slate-800/40 border border-primary/5 rounded-lg flex flex-col items-center justify-center p-2 text-center hover:border-primary/20 transition-colors overflow-hidden">
+        <span class="material-symbols-outlined text-primary text-3xl mb-2">${cat.icon || 'category'}</span>
+        <h3 class="text-sm font-bold leading-tight">${cat.name}</h3>
+        <p class="text-[9px] text-slate-400 uppercase tracking-tighter">${cat.en || cat.name}</p>
+        <div class="mt-2 text-[10px] text-slate-400">${categoryCount(cat.name)} items</div>
+      </button>
+    `).join('') || '<div class="col-span-3 rounded-xl border border-primary/10 bg-white/60 p-6 text-center text-slate-400">未有可用分類</div>';
+
+    function renderLists(admin){
+      fixedList.innerHTML = fixedCategories.map(cat => {
+        const enabled = enabledFixedCategoryIds.includes(cat.id);
+        return `
+          <div class="flex items-center justify-between gap-3 rounded-xl border border-primary/10 bg-background-light/70 p-3">
+            <div class="flex items-center gap-3 min-w-0">
+              <span class="material-symbols-outlined text-primary">${cat.icon || 'category'}</span>
+              <div class="min-w-0">
+                <div class="font-medium truncate">${cat.name}</div>
+                <div class="text-[10px] uppercase tracking-widest text-slate-400 mt-1">${cat.en || cat.name}</div>
+              </div>
+            </div>
+            <div class="flex items-center gap-2 shrink-0">
+              <button data-toggle-fixed="${cat.id}" class="rounded-full px-3 py-1 text-[10px] font-bold ${enabled ? 'bg-primary text-white' : 'bg-black/5 text-slate-500'}">${enabled ? 'ON' : 'OFF'}</button>
+              ${admin ? `<button data-edit-fixed="${cat.id}" class="rounded-full bg-black/5 px-3 py-1 text-[10px] font-bold">改名</button><button data-delete-fixed="${cat.id}" class="rounded-full bg-black/5 px-3 py-1 text-[10px] font-bold">刪除</button>` : ''}
+            </div>
+          </div>`;
+      }).join('');
+      myList.innerHTML = customCategories.length ? customCategories.map(cat => `
+        <div class="flex items-center justify-between gap-3 rounded-xl border border-primary/10 bg-background-light/70 p-3">
+          <div class="flex items-center gap-3 min-w-0">
+            <span class="material-symbols-outlined text-primary">${cat.icon || 'sell'}</span>
+            <div class="min-w-0">
+              <div class="font-medium truncate">${cat.name}</div>
+              <div class="text-[10px] uppercase tracking-widest text-slate-400 mt-1">${cat.en || 'Custom'}</div>
+            </div>
+          </div>
+          <div class="flex items-center gap-2 shrink-0">
+            <button data-toggle-custom="${cat.id}" class="rounded-full px-3 py-1 text-[10px] font-bold ${cat.enabled !== false ? 'bg-primary text-white' : 'bg-black/5 text-slate-500'}">${cat.enabled !== false ? 'ON' : 'OFF'}</button>
+            <button data-edit-custom="${cat.id}" class="rounded-full bg-black/5 px-3 py-1 text-[10px] font-bold">改名</button>
+            <button data-delete-custom="${cat.id}" class="rounded-full bg-black/5 px-3 py-1 text-[10px] font-bold">刪除</button>
+          </div>
+        </div>
+      `).join('') : '<div class="rounded-xl border border-primary/10 bg-background-light/70 p-4 text-center text-slate-400">未有自訂分類</div>';
+    }
+  }
+  function updateCategoryDatalist(){
+    const dl = $('categoryOptions'); const input=$('category'); if(!dl || !input) return;
+    input.setAttribute('list','categoryOptions');
+    dl.innerHTML = getCombinedCategories().map(cat => `<option value="${cat.name}"></option>`).join('');
+  }
+  async function openCategoryFromCard(id){
+    const all=[...fixedCategories, ...customCategories];
+    const cat=all.find(c=>c.id===id); if(!cat) return;
+    currentCategory = cat.name;
+    view='owned';
+    showPage('pageCollection');
+    setActiveNav('collection');
+    render();
+  }
+  async function addCustomCategory(){
+    const name = prompt('輸入自訂分類名稱');
+    if(!name) return;
+    customCategories.push({id: slugify(name), name: normalize(name), en: 'Custom', icon:'sell', enabled:true});
+    await saveUserCategorySettings();
+    renderCategoryPage(); updateCategoryDatalist();
+  }
+  async function addFixedCategory(){
+    if(!(await isAdmin())) return;
+    const name = prompt('輸入固定分類名稱');
+    if(!name) return;
+    const icon = prompt('輸入 Material Icon 名稱（可留空）','category') || 'category';
+    fixedCategories.push({id: slugify(name), name: normalize(name), en: normalize(name), icon, isActive:true});
+    enabledFixedCategoryIds.push(slugify(name));
+    await saveFixedCategories();
+    await saveUserCategorySettings();
+    renderCategoryPage(); updateCategoryDatalist();
+  }
+  document.addEventListener('click', async function(e){
+    const openBtn = e.target.closest('[data-open-category]');
+    if(openBtn){ openCategoryFromCard(openBtn.getAttribute('data-open-category')); return; }
+    if(e.target.closest('#addCustomCategoryBtn')){ addCustomCategory(); return; }
+    if(e.target.closest('#addFixedCategoryBtn')){ addFixedCategory(); return; }
+    const tf = e.target.closest('[data-toggle-fixed]');
+    if(tf){ const id=tf.getAttribute('data-toggle-fixed'); enabledFixedCategoryIds = enabledFixedCategoryIds.includes(id) ? enabledFixedCategoryIds.filter(x=>x!==id) : [...enabledFixedCategoryIds,id]; await saveUserCategorySettings(); renderCategoryPage(); updateCategoryDatalist(); return; }
+    const tc = e.target.closest('[data-toggle-custom]');
+    if(tc){ const id=tc.getAttribute('data-toggle-custom'); customCategories = customCategories.map(c=>c.id===id?{...c,enabled:c.enabled===false?true:false}:c); await saveUserCategorySettings(); renderCategoryPage(); updateCategoryDatalist(); return; }
+    const ec=e.target.closest('[data-edit-custom]');
+    if(ec){ const id=ec.getAttribute('data-edit-custom'); const item=customCategories.find(c=>c.id===id); if(!item) return; const name=prompt('修改分類名稱', item.name); if(!name) return; customCategories = customCategories.map(c=>c.id===id?{...c,name:normalize(name)}:c); await saveUserCategorySettings(); renderCategoryPage(); updateCategoryDatalist(); return; }
+    const dc=e.target.closest('[data-delete-custom]');
+    if(dc){ const id=dc.getAttribute('data-delete-custom'); customCategories = customCategories.filter(c=>c.id!==id); await saveUserCategorySettings(); renderCategoryPage(); updateCategoryDatalist(); return; }
+    const ef=e.target.closest('[data-edit-fixed]');
+    if(ef){ if(!(await isAdmin())) return; const id=ef.getAttribute('data-edit-fixed'); const item=fixedCategories.find(c=>c.id===id); if(!item) return; const name=prompt('修改固定分類名稱', item.name); if(!name) return; fixedCategories = fixedCategories.map(c=>c.id===id?{...c,name:normalize(name),en:normalize(name)}:c); await saveFixedCategories(); renderCategoryPage(); updateCategoryDatalist(); return; }
+    const df=e.target.closest('[data-delete-fixed]');
+    if(df){ if(!(await isAdmin())) return; const id=df.getAttribute('data-delete-fixed'); fixedCategories = fixedCategories.filter(c=>c.id!==id); enabledFixedCategoryIds = enabledFixedCategoryIds.filter(x=>x!==id); await saveFixedCategories(); await saveUserCategorySettings(); renderCategoryPage(); updateCategoryDatalist(); return; }
+    if(e.target.closest('#toolChronicle')){ showPage('pageStats'); setActiveNav('profile'); renderStats(); return; }
+    if(e.target.closest('#toolCategory')){ showPage('pageCategory'); setActiveNav('stats'); renderCategoryPage(); return; }
+    if(e.target.closest('#toolWishlist')){ view='wishlist'; showPage('pageCollection'); setActiveNav('wishlist'); render(); return; }
+    if(e.target.closest('#toolLogo')){ showPage('pageAdd'); setActiveNav('profile'); setTimeout(()=>{document.getElementById('brandLibraryManager')?.scrollIntoView({behavior:'smooth',block:'start'});},300); return; }
+    if(e.target.closest('#toolTheme')){ document.getElementById('profileThemePanel')?.scrollIntoView({behavior:'smooth',block:'start'}); return; }
+    if(e.target.closest('#toolExport')){ if(typeof exportBackup==='function') exportBackup(); return; }
+    if(e.target.closest('#toolStats')){ showPage('pageStats'); setActiveNav('profile'); renderStats(); return; }
+    if(e.target.closest('#toolShare')){ alert('分享卡片功能會保留喺展品詳情頁內使用。'); return; }
+  });
+  const oldRenderProfilePage = window.renderProfilePage;
+  window.renderProfilePage = function(){
+    if(typeof oldRenderProfilePage==='function') oldRenderProfilePage.apply(this, arguments);
+    const signed = !!window.kuraFirebase?.auth?.currentUser;
+    const guestPanels=$('profileGuestPanels');
+    if(guestPanels) guestPanels.style.display = signed ? 'none' : '';
+  }
+  const oldSetActiveNav = window.setActiveNav;
+  if(typeof oldSetActiveNav==='function'){
+    window.setActiveNav = function(key){ oldSetActiveNav(key); };
+  }
+  function patchNav(){
+    const navStats=$('navStats');
+    if(navStats) navStats.onclick = function(){ showPage('pageCategory'); setActiveNav('stats'); renderCategoryPage(); };
+    const navProfile=$('navProfile');
+    if(navProfile) navProfile.onclick = function(){ showPage('pageProfile'); setActiveNav('profile'); renderProfilePage(); };
+  }
+  function boot(){ patchNav(); loadCategories(); renderProfilePage(); }
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded', boot); else boot();
+  document.addEventListener('click', function(e){ if(e.target.closest('#navStats') || e.target.closest('#navProfile')) setTimeout(()=>{loadCategories(); renderCategoryPage(); renderProfilePage();}, 200); });
+})();
+</script>
+</body>
 <script>
 (function(){
   function enforceHomeClean(){
@@ -3810,7 +3936,6 @@
   document.addEventListener('click', function(e){ if(e.target.closest('#navCollection')){ setTimeout(enforceHomeClean,200); } });
 })();
 </script>
-
 <script>
 (function () {
   function $(id) { return document.getElementById(id); }
@@ -4106,8 +4231,6 @@
   });
 })();
 </script>
-
-
 <script>
 (function () {
   function removeCollectionActionButtons() {
@@ -4159,5 +4282,4 @@
   });
 })();
 </script>
-
 </html>
