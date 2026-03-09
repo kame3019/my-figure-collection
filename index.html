@@ -212,7 +212,10 @@
         #itemDetailModal .detail-scroll > .sticky button,
         #itemDetailModal .detail-scroll > .sticky [id^="detail"] { position: relative; z-index: 81 !important; pointer-events: auto; }
         #itemDetailModal #detailImageWrap,
-        #itemDetailModal #detailImageWrap * { position: relative; z-index: 1; }
+        #itemDetailModal #detailImageWrap * { position: relative; z-index: 1; pointer-events: none !important; }
+        #itemDetailModal .detail-scroll > .sticky { z-index: 200 !important; }
+        #itemDetailModal .detail-scroll > .sticky,
+        #itemDetailModal .detail-scroll > .sticky * { pointer-events: auto !important; }
         #themeToggleBtn { display: none !important; }
         .share-style-active {
             background: #fb923c !important;
@@ -606,7 +609,7 @@
 <div class="absolute inset-0" onclick="closeItemDetail()"></div>
 <div class="absolute inset-x-0 bottom-0 max-h-[94vh] rounded-t-[2rem] bg-background-light kv-surface detail-safe-bottom overflow-hidden">
 <div class="detail-scroll detail-safe-top max-h-[94vh] overflow-y-auto px-4 pt-3 pb-6">
-<div class="sticky top-0 z-10 -mx-4 mb-2 flex items-center justify-between bg-background-light/95 px-4 py-2 backdrop-blur-md">
+<div class="sticky top-0 z-[200] -mx-4 mb-2 flex items-center justify-between bg-background-light/95 px-4 py-2 backdrop-blur-md">
 <button class="rounded-full bg-black/5 px-4 py-3 text-sm font-bold" onclick="closeItemDetail()">取消</button>
 <div class="flex items-center gap-2">
 <button class="size-12 rounded-full bg-black/5 flex items-center justify-center" id="detailShareBtn">
@@ -617,8 +620,8 @@
 </button>
 </div>
 </div>
-<div class="mt-4 rounded-[1.5rem] overflow-hidden border border-primary/10 bg-white/70" id="detailImageWrap">
-<div class="aspect-[4/5] w-full bg-center bg-no-repeat bg-contain" id="detailImage"></div>
+<div class="mt-4 rounded-[1.5rem] overflow-hidden border border-primary/10 bg-white/70 pointer-events-none select-none" id="detailImageWrap">
+<div class="aspect-[4/5] w-full bg-center bg-no-repeat bg-contain pointer-events-none" id="detailImage"></div>
 </div>
 <div class="mt-4 grid grid-cols-2 gap-3 text-sm">
 <div class="rounded-2xl border border-primary/10 bg-white/70 px-4 py-3">
@@ -4091,7 +4094,6 @@
     const grid = $('categoryCardGrid'); const myList=$('myCategoryList'); const fixedList=$('fixedCategoryList'); const addFixedBtn=$('addFixedCategoryBtn'); const page=$('pageCategory');
     if(!grid || !myList || !fixedList) return;
     destroyCategoryGridSortable();
-    if(page && !page.dataset.ready){ page.style.opacity='0'; }
     const admin = await isAdmin();
     if(addFixedBtn) addFixedBtn.classList.toggle('hidden', !admin);
     const cards = getCombinedCategories();
@@ -4142,7 +4144,7 @@
         </div>
       </div>
     `).join('') : '<div class="rounded-xl border border-primary/10 bg-background-light/70 p-4 text-center text-slate-400">未有自訂分類</div>';
-    if(page){ page.dataset.ready='1'; page.style.opacity=''; }
+    if(page){ page.dataset.ready='1'; }
     initCategoryGridSortable();
   }
   function updateCategoryDatalist(){
@@ -4219,12 +4221,15 @@
   }
   async function boot(){ patchNav(); createCategoryEditorModal(); await loadCategories(); renderProfilePage(); }
   if(document.readyState==='loading') document.addEventListener('DOMContentLoaded', ()=>{boot();}); else boot();
-  document.addEventListener('click', function(e){ if(e.target.closest('#navStats') || e.target.closest('#navProfile')) setTimeout(async ()=>{ await loadCategories(); renderProfilePage(); }, 200); });
+  document.addEventListener('click', function(e){ if(e.target.closest('#navStats')) requestAnimationFrame(()=>applyI18n?.()); if(e.target.closest('#navProfile')) requestAnimationFrame(()=>renderProfilePage()); });
 })();
 </script>
 
 <style>
 #profileToolModal.hidden{display:none!important}
+
+#pageCategory{opacity:1!important;transition:none!important}
+#pageCategory *{transition-property:color,background-color,border-color,box-shadow,transform!important}
 #profileToolModal{position:fixed;inset:0;z-index:120;background:rgba(0,0,0,.35);backdrop-filter:blur(2px)}
 #profileToolModal .tool-modal-shell{position:absolute;inset:0;display:flex;align-items:flex-end;justify-content:center;padding:16px}
 #profileToolModal .tool-modal-card{width:min(100%,440px);max-height:min(72vh,640px);overflow:auto;border-radius:32px;background:var(--color-background-light,#fdfcf0);border:1px solid rgba(185,92,74,.18);box-shadow:0 20px 60px rgba(0,0,0,.18);padding:16px 16px 18px}
