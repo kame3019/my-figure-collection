@@ -207,16 +207,6 @@
             -ms-overflow-style: none;
             scrollbar-width: none;
         }
-
-        #itemDetailModal .detail-scroll > .sticky { z-index: 80 !important; position: sticky; isolation: isolate; }
-        #itemDetailModal .detail-scroll > .sticky button,
-        #itemDetailModal .detail-scroll > .sticky [id^="detail"] { position: relative; z-index: 81 !important; pointer-events: auto; }
-        #itemDetailModal #detailImageWrap,
-        #itemDetailModal #detailImageWrap * { position: relative; z-index: 1; pointer-events: none !important; }
-        #itemDetailModal .detail-scroll > .sticky { z-index: 200 !important; }
-        #itemDetailModal .detail-scroll > .sticky,
-        #itemDetailModal .detail-scroll > .sticky * { pointer-events: auto !important; }
-        #themeToggleBtn { display: none !important; }
         .share-style-active {
             background: #fb923c !important;
             color: #fff !important;
@@ -228,6 +218,11 @@
         .detail-safe-top {
             padding-top: max(4.75rem, env(safe-area-inset-top) + 4.75rem);
         }
+        #itemDetailModal .detail-scroll { overscroll-behavior: contain; }
+        #itemDetailModal #detailImageWrap { margin-top: 0; }
+        #itemDetailModal .sticky { pointer-events: auto; }
+        #itemDetailModal #detailImage, #itemDetailModal #detailImageWrap { position: relative; z-index: 1; }
+        #itemDetailModal #detailDeleteBtn, #itemDetailModal #detailEditBtn, #itemDetailModal #detailShareBtnBottom { min-height: 56px; }
     </style>
 </head>
 <body class="bg-background-light font-display text-slate-900 washi-texture">
@@ -241,6 +236,9 @@
 </div>
 </div>
 <div class="flex items-center gap-2">
+<button class="size-10 flex items-center justify-center rounded-full bg-primary/10 text-primary" id="themeToggleBtn">
+<span class="material-symbols-outlined">palette</span>
+</button>
 <button class="size-10 flex items-center justify-center rounded-full bg-primary/10 text-primary" id="headerSearchBtn">
 <span class="material-symbols-outlined">tune</span>
 </button>
@@ -607,21 +605,22 @@
 </main>
 <div class="hidden fixed inset-0 z-[90] bg-black/45 detail-backdrop" id="itemDetailModal">
 <div class="absolute inset-0" onclick="closeItemDetail()"></div>
-<div class="absolute inset-x-0 bottom-0 max-h-[94vh] rounded-t-[2rem] bg-background-light kv-surface detail-safe-bottom overflow-hidden">
-<div class="detail-scroll detail-safe-top max-h-[94vh] overflow-y-auto px-4 pt-3 pb-6">
-<div class="sticky top-0 z-[200] -mx-4 mb-2 flex items-center justify-between bg-background-light/95 px-4 py-2 backdrop-blur-md">
-<button class="rounded-full bg-black/5 px-4 py-3 text-sm font-bold" onclick="closeItemDetail()">取消</button>
-<div class="flex items-center gap-2">
-<button class="size-12 rounded-full bg-black/5 flex items-center justify-center" id="detailShareBtn">
+<div class="absolute inset-0 flex items-center justify-center p-4 sm:p-6">
+<div class="w-full max-w-[430px] max-h-[92vh] rounded-[2rem] bg-background-light kv-surface overflow-hidden shadow-2xl border border-primary/10" role="dialog" aria-modal="true">
+<div class="detail-scroll max-h-[92vh] overflow-y-auto px-4 pt-4 pb-6">
+<div class="sticky top-0 z-30 -mx-4 mb-4 flex items-center justify-between bg-background-light/98 px-4 py-3 backdrop-blur-md border-b border-primary/10">
+<button class="rounded-full bg-black/5 px-5 py-3 text-sm font-bold relative z-30" onclick="closeItemDetail()">取消</button>
+<div class="flex items-center gap-2 relative z-30">
+<button class="size-12 rounded-full bg-black/5 flex items-center justify-center" id="detailShareBtn" type="button">
 <span class="material-symbols-outlined">ios_share</span>
 </button>
-<button class="size-12 rounded-full bg-black/5 flex items-center justify-center" id="detailCloseBtnTop" onclick="closeItemDetail()">
+<button class="size-12 rounded-full bg-black/5 flex items-center justify-center" id="detailCloseBtnTop" onclick="closeItemDetail()" type="button">
 <span class="material-symbols-outlined">close</span>
 </button>
 </div>
 </div>
-<div class="mt-4 rounded-[1.5rem] overflow-hidden border border-primary/10 bg-white/70 pointer-events-none select-none" id="detailImageWrap">
-<div class="aspect-[4/5] w-full bg-center bg-no-repeat bg-contain pointer-events-none" id="detailImage"></div>
+<div class="mt-2 rounded-[1.5rem] overflow-hidden border border-primary/10 bg-white/70" id="detailImageWrap">
+<div class="aspect-[4/5] w-full bg-center bg-no-repeat bg-contain" id="detailImage"></div>
 </div>
 <div class="mt-4 grid grid-cols-2 gap-3 text-sm">
 <div class="rounded-2xl border border-primary/10 bg-white/70 px-4 py-3">
@@ -673,6 +672,8 @@
 <button class="rounded-2xl bg-rose-500 px-4 py-4 text-base font-bold text-white" id="detailDeleteBtn">刪除</button>
 <button class="rounded-2xl bg-emerald-500 px-4 py-4 text-base font-bold text-white" id="detailEditBtn">編輯</button>
 <button class="rounded-2xl bg-orange-500 px-4 py-4 text-base font-bold text-white" id="detailShareBtnBottom">分享</button>
+</div>
+</div>
 </div>
 </div>
 </div>
@@ -4094,6 +4095,7 @@
     const grid = $('categoryCardGrid'); const myList=$('myCategoryList'); const fixedList=$('fixedCategoryList'); const addFixedBtn=$('addFixedCategoryBtn'); const page=$('pageCategory');
     if(!grid || !myList || !fixedList) return;
     destroyCategoryGridSortable();
+    if(page && !page.dataset.ready){ page.style.opacity='0'; }
     const admin = await isAdmin();
     if(addFixedBtn) addFixedBtn.classList.toggle('hidden', !admin);
     const cards = getCombinedCategories();
@@ -4144,7 +4146,7 @@
         </div>
       </div>
     `).join('') : '<div class="rounded-xl border border-primary/10 bg-background-light/70 p-4 text-center text-slate-400">未有自訂分類</div>';
-    if(page){ page.dataset.ready='1'; }
+    if(page){ page.dataset.ready='1'; page.style.opacity=''; }
     initCategoryGridSortable();
   }
   function updateCategoryDatalist(){
@@ -4221,15 +4223,12 @@
   }
   async function boot(){ patchNav(); createCategoryEditorModal(); await loadCategories(); renderProfilePage(); }
   if(document.readyState==='loading') document.addEventListener('DOMContentLoaded', ()=>{boot();}); else boot();
-  document.addEventListener('click', function(e){ if(e.target.closest('#navStats')) requestAnimationFrame(()=>applyI18n?.()); if(e.target.closest('#navProfile')) requestAnimationFrame(()=>renderProfilePage()); });
+  document.addEventListener('click', function(e){ if(e.target.closest('#navStats') || e.target.closest('#navProfile')) setTimeout(async ()=>{ await loadCategories(); renderProfilePage(); }, 200); });
 })();
 </script>
 
 <style>
 #profileToolModal.hidden{display:none!important}
-
-#pageCategory{opacity:1!important;transition:none!important}
-#pageCategory *{transition-property:color,background-color,border-color,box-shadow,transform!important}
 #profileToolModal{position:fixed;inset:0;z-index:120;background:rgba(0,0,0,.35);backdrop-filter:blur(2px)}
 #profileToolModal .tool-modal-shell{position:absolute;inset:0;display:flex;align-items:flex-end;justify-content:center;padding:16px}
 #profileToolModal .tool-modal-card{width:min(100%,440px);max-height:min(72vh,640px);overflow:auto;border-radius:32px;background:var(--color-background-light,#fdfcf0);border:1px solid rgba(185,92,74,.18);box-shadow:0 20px 60px rgba(0,0,0,.18);padding:16px 16px 18px}
@@ -4344,14 +4343,14 @@
     ja: {
       appLang:'ja',
       pageArchive:'アーカイブ',
-      pageWishlist:'ウィッシュリスト',
+      pageWishlist:'ウィッシュ',
       pageCategory:'カテゴリー',
       pageProfile:'プロフィール',
       noArchive:'まだコレクションがありません',
       noWish:'まだウィッシュがありません',
       resultSuffix:'件',
       navArchive:'アーカイブ',
-      navWish:'ウィッシュリスト',
+      navWish:'ウィッシュ',
       navCategory:'カテゴリー',
       navProfile:'プロフィール',
       toolArchiveHistory:'アーカイブ履歴',
@@ -4410,7 +4409,7 @@
     map.forEach(([id,key])=>{
       const btn = $(id);
       if(!btn) return;
-      const label = btn.children && btn.children[1] ? btn.children[1] : null;
+      const label = btn.querySelector('span:last-child');
       if(label) label.textContent = textFor(key);
     });
   }
@@ -4419,19 +4418,7 @@
     const title = $('archiveTitle');
     const result = $('resultNote');
     const lang = getLang();
-    const navWishlist = $('navWishlist');
-    const navCollection = $('navCollection');
-    const onWishlist = !!(navWishlist && navWishlist.classList.contains('nav-active'));
-    const onArchive = !!(navCollection && navCollection.classList.contains('nav-active'));
-    let currentView = onWishlist ? 'wishlist' : (onArchive ? 'archive' : null);
-    if(!currentView){
-      const titleNow = (title?.textContent || '').trim();
-      if([textFor('pageWishlist'),'Wish List Catalogue','ウィッシュリスト'].includes(titleNow)) currentView = 'wishlist';
-    }
-    if(!currentView){
-      const wl = document.getElementById('navWishlist');
-      currentView = wl && !wl.classList.contains('text-slate-400') ? 'wishlist' : 'archive';
-    }
+    const currentView = (window.view === 'wishlist') ? 'wishlist' : 'archive';
     if(title){
       title.textContent = currentView === 'wishlist' ? textFor('pageWishlist') : textFor('pageArchive');
     }
@@ -4442,19 +4429,13 @@
 
     const pageCategory = $('pageCategory');
     if(pageCategory){
-      const headWrap = pageCategory.querySelector('.mb-6.flex.items-end.justify-between');
-      if(headWrap){
-        const h2 = headWrap.querySelector('h2');
-        const p = headWrap.querySelector('p');
-        if(h2) h2.textContent = textFor('pageCategory');
-        if(p) p.textContent = textFor('categorySub');
-      }
-      const myWrap = $('myCategoryList')?.closest('.rounded-xl');
-      const fixedWrap = $('fixedCategoryList')?.closest('.rounded-xl');
-      const myTitle = myWrap?.querySelector('h3');
-      const fixedTitle = fixedWrap?.querySelector('h3');
-      if(myTitle) myTitle.textContent = textFor('categoryMine');
-      if(fixedTitle) fixedTitle.textContent = textFor('categoryFixed');
+      const h2 = pageCategory.querySelector('h2');
+      const p = pageCategory.querySelector('p');
+      if(h2) h2.textContent = textFor('pageCategory');
+      if(p) p.textContent = textFor('categorySub');
+      const h3s = pageCategory.querySelectorAll('h3');
+      if(h3s[0]) h3s[0].textContent = textFor('categoryMine');
+      if(h3s[1]) h3s[1].textContent = textFor('categoryFixed');
       const addCustom = $('addCustomCategoryBtn');
       const addFixed = $('addFixedCategoryBtn');
       if(addCustom) addCustom.textContent = textFor('add');
@@ -4465,9 +4446,7 @@
   function updateEmptyStates(){
     const list = $('collectionList');
     if(!list) return;
-    const navWishlist = $('navWishlist');
-    const navCollection = $('navCollection');
-    const currentView = (navWishlist && navWishlist.classList.contains('nav-active')) ? 'wishlist' : ((navCollection && navCollection.classList.contains('nav-active')) ? 'archive' : 'archive');
+    const currentView = (window.view === 'wishlist') ? 'wishlist' : 'archive';
     const text = currentView === 'wishlist' ? textFor('noWish') : textFor('noArchive');
     Array.from(list.querySelectorAll('div,p,span')).forEach(el=>{
       const t = (el.textContent || '').trim();
@@ -4491,7 +4470,7 @@
     Object.entries(toolMap).forEach(([id,key])=>{
       const btn = $(id);
       if(!btn) return;
-      const label = btn.querySelector('[data-i18n]') || (btn.children && btn.children[1] ? btn.children[1] : null);
+      const label = btn.querySelector('span:last-child');
       if(label) label.textContent = textFor(key);
     });
   }
@@ -4680,7 +4659,7 @@
         const old = window[name];
         window[name] = function(){
           const r = old.apply(this, arguments);
-          applyI18n();
+          setTimeout(applyI18n, 0);
           return r;
         };
         window[name].__i18nWrapped = true;
@@ -4699,15 +4678,6 @@
     hideHomeTheme();
     applyI18n();
     wrapRender();
-    const oldSetActiveNav = window.setActiveNav;
-    if(typeof oldSetActiveNav === 'function' && !oldSetActiveNav.__i18nTitleWrapped){
-      window.setActiveNav = function(){
-        const r = oldSetActiveNav.apply(this, arguments);
-        requestAnimationFrame(()=>updatePageTitles());
-        return r;
-      };
-      window.setActiveNav.__i18nTitleWrapped = true;
-    }
   }
 
   if(document.readyState==='loading'){
@@ -4716,205 +4686,10 @@
 
   document.addEventListener('click', function(e){
     if(e.target.closest('#navCollection') || e.target.closest('#navWishlist') || e.target.closest('#navStats') || e.target.closest('#navProfile') || e.target.closest('#toolsBtn') || e.target.closest('#closeToolsSheetBtnV2')){
-      requestAnimationFrame(()=>{ hideHomeTheme(); applyI18n(); bindToolButtons(); });
+      setTimeout(()=>{ hideHomeTheme(); applyI18n(); bindToolButtons(); }, 120);
+      setTimeout(()=>{ hideHomeTheme(); applyI18n(); }, 400);
     }
   });
-})();
-</script>
-
-
-<script>
-(function(){
-  function $(id){ return document.getElementById(id); }
-  function isCategoryShown(){ const p=$('pageCategory'); return !!(p && p.classList.contains('show')); }
-
-  function patchCategoryFastSwitch(){
-    let categoryLoadedOnce = !!document.querySelector('#myCategoryList > * , #fixedCategoryList > *');
-
-    const oldLoad = window.loadCategories;
-    if(typeof oldLoad === 'function' && !oldLoad.__fastPatched){
-      window.loadCategories = async function(){
-        const out = await oldLoad.apply(this, arguments);
-        categoryLoadedOnce = true;
-        return out;
-      };
-      window.loadCategories.__fastPatched = true;
-    }
-
-    const navStats = $('navStats');
-    if(navStats && !navStats.dataset.fastSwitchPatched){
-      navStats.dataset.fastSwitchPatched = '1';
-      navStats.onclick = async function(){
-        showPage('pageCategory');
-        setActiveNav('stats');
-        if(!categoryLoadedOnce){
-          await window.loadCategories?.();
-        } else {
-          window.applyI18n?.();
-        }
-      };
-    }
-
-    document.addEventListener('click', async function(e){
-      const btn = e.target.closest('#toolCategory');
-      if(!btn) return;
-      e.preventDefault();
-      e.stopPropagation();
-      showPage('pageCategory');
-      setActiveNav('stats');
-      if(!categoryLoadedOnce){
-        await window.loadCategories?.();
-      } else {
-        window.applyI18n?.();
-      }
-    }, true);
-
-    const oldRenderCategoryPage = window.renderCategoryPage;
-    if(typeof oldRenderCategoryPage === 'function' && !oldRenderCategoryPage.__visibleOnlyPatched){
-      window.renderCategoryPage = async function(){
-        const page = $('pageCategory');
-        if(page && page.dataset.rendering === '1') return;
-        if(page) page.dataset.rendering = '1';
-        try {
-          return await oldRenderCategoryPage.apply(this, arguments);
-        } finally {
-          if(page) page.dataset.rendering = '0';
-          if(isCategoryShown()) window.applyI18n?.();
-        }
-      };
-      window.renderCategoryPage.__visibleOnlyPatched = true;
-    }
-  }
-
-  function patchDetailHeaderClick(){
-    const modal = $('itemDetailModal');
-    if(!modal || modal.dataset.topbarPatched==='1') return;
-    const scroll = modal.querySelector('.detail-scroll');
-    const topBar = scroll && scroll.querySelector('.sticky');
-    if(!scroll || !topBar) return;
-
-    topBar.style.position = 'sticky';
-    topBar.style.top = '0';
-    topBar.style.zIndex = '260';
-    topBar.style.pointerEvents = 'auto';
-    topBar.style.isolation = 'isolate';
-
-    // keep the original visible top bar, only harden click handling
-    const shareTop = topBar.querySelector('#detailShareBtn');
-    const closeTop = topBar.querySelector('#detailCloseBtnTop');
-    const buttons = topBar.querySelectorAll('button');
-    topBar.addEventListener('click', function(ev){ ev.stopPropagation(); }, true);
-    buttons.forEach(btn => {
-      btn.type = 'button';
-      btn.style.pointerEvents = 'auto';
-      btn.style.position = 'relative';
-      btn.style.zIndex = '261';
-      btn.style.touchAction = 'manipulation';
-    });
-    if(shareTop){
-      shareTop.addEventListener('click', function(ev){
-        ev.preventDefault();
-        ev.stopPropagation();
-        if(window.currentDetailId) window.openShareCard?.(window.currentDetailId);
-      });
-    }
-    if(closeTop){
-      closeTop.addEventListener('click', function(ev){
-        ev.preventDefault();
-        ev.stopPropagation();
-        window.closeItemDetail?.();
-      });
-    }
-    const cancelTop = Array.from(topBar.querySelectorAll('button')).find(btn => (btn.textContent||'').trim().includes('取消'));
-    if(cancelTop){
-      cancelTop.addEventListener('click', function(ev){
-        ev.preventDefault();
-        ev.stopPropagation();
-        window.closeItemDetail?.();
-      });
-    }
-
-    modal.dataset.topbarPatched='1';
-  }
-
-  function strengthenDetailLayers(){
-    const style = document.createElement('style');
-    style.textContent = `
-      #itemDetailModal > .absolute.inset-0{z-index:0!important}
-      #itemDetailModal > .absolute.inset-x-0.bottom-0{z-index:2!important}
-      #itemDetailModal .detail-scroll > .sticky, #itemDetailModal .detail-scroll > .sticky *{pointer-events:auto!important}
-      #itemDetailModal .detail-scroll > .sticky{
-        position:sticky!important;
-        top:0!important;
-        z-index:260!important;
-        isolation:isolate;
-        background:var(--color-background-light,#fdfcf0)!important;
-        padding-top:4px!important;
-        padding-bottom:6px!important;
-      }
-      #itemDetailModal .detail-scroll{position:relative; z-index:1; padding-top:0!important;}
-      #itemDetailModal .detail-scroll > :not(.sticky){position:relative; z-index:1!important;}
-      #itemDetailModal .detail-scroll > .sticky button{cursor:pointer!important;}
-      #itemDetailModal #detailImageWrap{
-        pointer-events:none!important;
-        margin-top:16px!important;
-        transform:scale(.94)!important;
-        transform-origin:top center!important;
-      }
-      #itemDetailModal #detailImageWrap *{pointer-events:none!important}
-      #itemDetailModal #detailImage{min-height:0!important;}
-      #itemDetailModal .detail-scroll > :not(.sticky):first-of-type{margin-top:16px!important}
-    `;
-    document.head.appendChild(style);
-  }
-
-
-  function rebindCollectionControls(){
-    if(document.documentElement.dataset.collectionControlsBound==='1') return;
-    document.documentElement.dataset.collectionControlsBound='1';
-
-    document.addEventListener('change', function(e){
-      const t = e.target;
-      if(!t) return;
-      if(t.id === 'sortSelect' || t.id === 'statusFilter'){
-        window.renderList?.();
-        window.renderExhibitionRail?.();
-      }
-    }, true);
-
-    document.addEventListener('input', function(e){
-      const t = e.target;
-      if(t && t.id === 'searchInput'){
-        window.renderList?.();
-        window.renderExhibitionRail?.();
-      }
-    }, true);
-
-    document.addEventListener('click', function(e){
-      const btn = e.target && e.target.closest ? e.target.closest('.modeBtn') : null;
-      if(!btn) return;
-      e.preventDefault();
-      const nextMode = btn.dataset.mode;
-      if(!nextMode) return;
-      window.mode = nextMode;
-      try { mode = nextMode; } catch(err) {}
-      document.querySelectorAll('.modeBtn').forEach(el => el.classList.toggle('mode-active', el.dataset.mode === nextMode));
-      window.renderList?.();
-    }, true);
-  }
-
-  function boot(){
-    strengthenDetailLayers();
-    patchDetailHeaderClick();
-    patchCategoryFastSwitch();
-    rebindCollectionControls();
-  }
-
-  if(document.readyState==='loading'){
-    document.addEventListener('DOMContentLoaded', boot);
-  } else {
-    boot();
-  }
 })();
 </script>
 
