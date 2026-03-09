@@ -4656,13 +4656,13 @@
 #profileToolModal.hidden{display:none!important}
 #profileToolModal{position:fixed;inset:0;z-index:120;background:rgba(0,0,0,.35);backdrop-filter:blur(2px)}
 #profileToolModal .tool-modal-shell{position:absolute;inset:0;display:flex;align-items:flex-end;justify-content:center;padding:16px}
-#profileToolModal .tool-modal-card{width:min(100%,440px);max-height:min(82vh,760px);overflow:auto;border-radius:32px;background:var(--color-background-light,#fdfcf0);border:1px solid rgba(185,92,74,.18);box-shadow:0 20px 60px rgba(0,0,0,.18);padding:20px 18px 22px}
+#profileToolModal .tool-modal-card{width:min(100%,440px);max-height:min(82vh,760px);overflow:auto;border-radius:32px;background:var(--color-background-light,#fdfcf0);border:1px solid rgba(185,92,74,.18);box-shadow:0 20px 60px rgba(0,0,0,.18);padding:16px 16px 18px}
 #profileToolModal .tool-modal-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:14px}
-#profileToolModal .tool-modal-title{font-size:28px;font-weight:800;letter-spacing:.04em}
-#profileToolModal .tool-modal-close{border-radius:999px;background:rgba(0,0,0,.06);padding:12px 16px;font-weight:700}
+#profileToolModal .tool-modal-title{font-size:18px;font-weight:800;letter-spacing:.02em}
+#profileToolModal .tool-modal-close{border-radius:999px;background:rgba(0,0,0,.06);padding:10px 14px;font-weight:700;font-size:14px}
 #profileToolModal .tool-modal-body > *{margin-top:0!important}
 #profileToolModal .tool-modal-body .rounded-2xl{background:#fffdf8!important}
-#profileThemePanel,#profileNotificationsPanel,#profileLanguagePanel,#profileCurrencyPanel{display:none!important}
+#profileToolPanelStash #profileThemePanel,#profileToolPanelStash #profileNotificationsPanel,#profileToolPanelStash #profileLanguagePanel,#profileToolPanelStash #profileCurrencyPanel{display:none!important}
 </style>
 <script>
 (function(){
@@ -4760,6 +4760,50 @@
   document.addEventListener('click', function(e){
     if(e.target.closest('#navProfile')) setTimeout(boot, 180);
     if(e.target.closest('#navCollection')) setTimeout(removeHomeThemeBits, 180);
+  });
+})();
+</script>
+
+
+<script>
+(function(){
+  function textHasTheme(el){
+    const t=(el?.textContent||'').replace(/\s+/g,' ').trim().toLowerCase();
+    return t.includes('theme') || t.includes('主題') || t.includes('theme studio') || t.includes('主題工坊');
+  }
+  function hideThemeLikeBlocks(root){
+    if(!root) return;
+    root.querySelectorAll('button, a, div, section').forEach(function(el){
+      if(!textHasTheme(el)) return;
+      const box = el.closest('.kv-surface, .rounded-2xl, .rounded-3xl, .grid, .flex, section, div');
+      if(box && !box.id?.startsWith('profile')){
+        box.style.display='none';
+        box.classList?.add('hidden');
+      }
+    });
+  }
+  function hardHideHomeTheme(){
+    ['pageCollection','pageArchive','pageHome'].forEach(function(id){
+      const root=document.getElementById(id);
+      if(root) hideThemeLikeBlocks(root);
+    });
+    document.querySelectorAll('[data-home-theme],[data-theme-studio],[data-top-theme]').forEach(function(el){el.style.display='none';el.classList.add('hidden');});
+  }
+  function modalTune(){
+    const modal=document.getElementById('profileToolModal');
+    if(!modal) return;
+    const title=document.getElementById('profileToolModalTitle');
+    const card=modal.querySelector('.tool-modal-card');
+    if(title) title.style.fontSize='18px';
+    if(card){ card.style.maxHeight='min(72vh,640px)'; }
+  }
+  function boot(){ hardHideHomeTheme(); modalTune(); }
+  if(document.readyState==='loading'){ document.addEventListener('DOMContentLoaded', boot); } else { boot(); }
+  document.addEventListener('click', function(e){
+    if(e.target.closest('#navCollection') || e.target.closest('#navArchive') || e.target.closest('#toolTheme') || e.target.closest('#toolNotifications') || e.target.closest('#toolLanguage') || e.target.closest('#toolCurrency')){
+      setTimeout(boot, 120);
+      setTimeout(boot, 500);
+    }
   });
 })();
 </script>
