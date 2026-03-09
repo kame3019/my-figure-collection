@@ -4893,7 +4893,8 @@
       toolCurrency:'toolCurrency'
     };
     Object.entries(profileTools).forEach(([id,key])=>{
-      const label = $(id)?.querySelector('span:last-child');
+      const toolBtn = $(id);
+      const label = toolBtn?.querySelector(':scope > span[data-i18n]') || toolBtn?.querySelector('[data-i18n]');
       setText(label, t(key));
     });
 
