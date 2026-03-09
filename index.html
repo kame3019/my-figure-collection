@@ -241,6 +241,7 @@
 </style>
 
 <style id="detail-popup-v11-patch-2">
+/* stronger popup layering + closer to reference card */
 #itemDetailModal{padding:18px;backdrop-filter:saturate(1.05);}
 #itemDetailModal > .absolute.inset-0{z-index:0!important;pointer-events:auto!important;}
 #itemDetailModal > .absolute.left-1\/2.top-1\/2{
@@ -672,7 +673,7 @@
 <div class="hidden fixed inset-0 z-[90] bg-black/45 detail-backdrop" id="itemDetailModal">
 <div class="absolute inset-0" onclick="closeItemDetail()"></div>
 <div class="absolute left-1/2 top-1/2 w-[min(92vw,720px)] max-h-[88vh] -translate-x-1/2 -translate-y-1/2 rounded-[2rem] border border-primary/10 bg-background-light kv-surface overflow-hidden shadow-2xl">
-<div class="detail-scroll detail-safe-top max-h-[94vh] overflow-y-auto px-4 pt-3 pb-6">
+<div class="detail-scroll max-h-[88vh] overflow-y-auto px-4 pt-3 pb-6">
 <div class="sticky top-0 z-[200] -mx-4 mb-2 flex items-center justify-between bg-background-light/95 px-4 py-2 backdrop-blur-md">
 <button class="rounded-full bg-black/5 px-4 py-3 text-sm font-bold" onclick="closeItemDetail()">取消</button>
 <div class="flex items-center gap-2">
@@ -4954,3 +4955,125 @@
 </script>
 
 </html>
+
+<script>
+(function(){
+  function $(id){ return document.getElementById(id); }
+
+  function hasCategoryContent(){
+    return !!document.querySelector('#categoryCardGrid > * , #myCategoryList > * , #fixedCategoryList > *');
+  }
+
+  function forceBindCollectionControls(){
+    const search = $('searchInput');
+    if(search && !search.dataset.forceBound){
+      search.dataset.forceBound='1';
+      search.oninput = function(){ try{ renderList(); renderExhibitionRail(); }catch(e){} };
+    }
+    const sort = $('sortSelect');
+    if(sort && !sort.dataset.forceBound){
+      sort.dataset.forceBound='1';
+      sort.onchange = function(){ try{ renderList(); renderExhibitionRail(); }catch(e){} };
+    }
+    const status = $('statusFilter');
+    if(status && !status.dataset.forceBound){
+      status.dataset.forceBound='1';
+      status.onchange = function(){ try{ renderList(); renderExhibitionRail(); }catch(e){} };
+    }
+    document.querySelectorAll('.modeBtn').forEach(btn=>{
+      if(btn.dataset.forceBound==='1') return;
+      btn.dataset.forceBound='1';
+      btn.onclick = function(ev){
+        ev.preventDefault();
+        try{ mode = this.dataset.mode; }catch(e){}
+        document.querySelectorAll('.modeBtn').forEach(el => el.classList.toggle('mode-active', el === this));
+        try{ renderList(); }catch(e){}
+      };
+    });
+    document.querySelectorAll('.categoryChip').forEach(btn=>{
+      if(btn.dataset.forceBound==='1') return;
+      btn.dataset.forceBound='1';
+      btn.onclick = function(ev){
+        ev.preventDefault();
+        try{ currentCategory = this.dataset.cat || ''; }catch(e){}
+        try{ renderCategoryChips(); }catch(e){}
+        setTimeout(()=>{
+          try{ forceBindCollectionControls(); }catch(e){}
+          try{ renderList(); renderExhibitionRail(); }catch(e){}
+        },0);
+      };
+    });
+  }
+
+  function patchCategoryNavigation(){
+    let loaded = hasCategoryContent();
+    let inFlight = null;
+
+    const origLoad = window.loadCategories;
+    if(typeof origLoad === 'function' && !origLoad.__memoPatched){
+      window.loadCategories = async function(){
+        if(loaded && hasCategoryContent()) return;
+        if(inFlight) return inFlight;
+        inFlight = Promise.resolve(origLoad.apply(this, arguments)).finally(()=>{
+          loaded = hasCategoryContent();
+          inFlight = null;
+          try{ forceBindCollectionControls(); }catch(e){}
+        });
+        return inFlight;
+      };
+      window.loadCategories.__memoPatched = true;
+    }
+
+    const goCategory = async function(ev){
+      if(ev){ ev.preventDefault(); ev.stopPropagation(); if(ev.stopImmediatePropagation) ev.stopImmediatePropagation(); }
+      try{ showPage('pageCategory'); }catch(e){}
+      try{ setActiveNav('stats'); }catch(e){}
+      if(!loaded || !hasCategoryContent()){
+        if(typeof window.loadCategories === 'function') await window.loadCategories();
+      } else {
+        try{ applyI18n && applyI18n(); }catch(e){}
+      }
+    };
+
+    const navStats = $('navStats');
+    if(navStats && !navStats.dataset.categoryCapturePatched){
+      navStats.dataset.categoryCapturePatched='1';
+      navStats.addEventListener('click', goCategory, true);
+    }
+    document.addEventListener('click', function(e){
+      const btn = e.target.closest('#toolCategory');
+      if(btn) goCategory(e);
+    }, true);
+  }
+
+  function hardenAfterRender(){
+    const wrap = (name, after)=>{
+      const fn = window[name];
+      if(typeof fn === 'function' && !fn.__hardPatched){
+        window[name] = function(){
+          const r = fn.apply(this, arguments);
+          Promise.resolve(r).finally(after);
+          return r;
+        };
+        window[name].__hardPatched = true;
+      }
+    };
+    wrap('render', ()=>{ forceBindCollectionControls(); });
+    wrap('renderList', ()=>{ forceBindCollectionControls(); });
+    wrap('renderCategoryChips', ()=>{ forceBindCollectionControls(); });
+    wrap('openToolsSheet', ()=>{ forceBindCollectionControls(); });
+    wrap('closeToolsSheet', ()=>{ forceBindCollectionControls(); });
+    wrap('loadCategories', ()=>{});
+  }
+
+  function boot(){
+    forceBindCollectionControls();
+    patchCategoryNavigation();
+    hardenAfterRender();
+    setTimeout(forceBindCollectionControls, 0);
+    setTimeout(forceBindCollectionControls, 300);
+  }
+
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded', boot); else boot();
+})();
+</script>
