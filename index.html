@@ -3814,4 +3814,301 @@
   document.addEventListener('click', function(e){ if(e.target.closest('#navCollection')){ setTimeout(enforceHomeClean,200); } });
 })();
 </script>
+
+<script>
+(function () {
+  function $(id) { return document.getElementById(id); }
+
+  function safeRenderAll() {
+    try { if (typeof renderList === "function") renderList(); } catch (e) { console.error(e); }
+    try { if (typeof renderExhibitionRail === "function") renderExhibitionRail(); } catch (e) {}
+    try { if (typeof renderCategoryChips === "function") renderCategoryChips(); } catch (e) {}
+  }
+
+  function hideOldTopSections() {
+    ["homeOverviewSection","homeExhibitionSection","homeSearchSection","homeCategorySection","homeSortSection","homeModeSection"].forEach(function(id){
+      const el = $(id);
+      if (el) { el.style.display = "none"; el.classList.add("hidden"); }
+    });
+  }
+
+  function createToolsSheetV2() {
+    if ($("toolsSheetBackdropV2") && $("toolsSheetV2")) return;
+
+    const backdrop = document.createElement("div");
+    backdrop.id = "toolsSheetBackdropV2";
+    backdrop.className = "hidden fixed inset-0 z-[70] bg-black/45 backdrop-blur-sm";
+
+    const sheet = document.createElement("div");
+    sheet.id = "toolsSheetV2";
+    sheet.className = "hidden fixed inset-x-0 bottom-0 z-[71] max-h-[86vh] overflow-y-auto rounded-t-3xl border border-primary/10 bg-background-light px-6 pb-8 pt-5 shadow-2xl";
+    sheet.innerHTML = `
+      <div class="mx-auto mb-4 h-1.5 w-16 rounded-full bg-black/10"></div>
+      <div class="flex items-start justify-between gap-4">
+        <div>
+          <h3 class="text-xl font-bold">功能面板</h3>
+          <p class="mt-1 text-xs uppercase tracking-widest text-slate-500">Display • Filter • Manage</p>
+        </div>
+        <button id="closeToolsSheetBtnV2" class="size-10 rounded-full bg-black/5 flex items-center justify-center">
+          <span class="material-symbols-outlined">close</span>
+        </button>
+      </div>
+
+      <div class="mt-6 space-y-6">
+        <div>
+          <div class="mb-2 text-xs font-bold uppercase tracking-widest text-slate-500">搜尋</div>
+          <div id="toolsSearchSlotV2"></div>
+        </div>
+
+        <div>
+          <div class="mb-2 text-xs font-bold uppercase tracking-widest text-slate-500">分類</div>
+          <div id="toolsCategorySlotV2"></div>
+        </div>
+
+        <div>
+          <div class="mb-2 text-xs font-bold uppercase tracking-widest text-slate-500">篩選 / 排序</div>
+          <div id="toolsFilterSlotV2" class="grid grid-cols-2 gap-2"></div>
+        </div>
+
+        <div>
+          <div class="mb-2 text-xs font-bold uppercase tracking-widest text-slate-500">顯示模式</div>
+          <div id="toolsDisplaySlotV2" class="grid grid-cols-4 gap-2"></div>
+        </div>
+
+        <div>
+          <div class="mb-2 text-xs font-bold uppercase tracking-widest text-slate-500">管理</div>
+          <div class="grid grid-cols-1 gap-3">
+            <button id="toolsCategoryManagerBtnV2" class="rounded-2xl border border-primary/10 bg-white/70 px-4 py-4 text-left">
+              <div class="font-bold">分類管理</div>
+              <div class="mt-1 text-xs text-slate-500">固定分類 / 自訂分類</div>
+            </button>
+            <button id="toolsBulkDeleteBtnV2" class="rounded-2xl border border-primary/10 bg-white/70 px-4 py-4 text-left">
+              <div class="font-bold">多項目刪除</div>
+              <div class="mt-1 text-xs text-slate-500">批次刪除目前畫面項目</div>
+            </button>
+          </div>
+        </div>
+      </div>
+    `;
+    document.body.appendChild(backdrop);
+    document.body.appendChild(sheet);
+
+    $("closeToolsSheetBtnV2").onclick = closeToolsSheetV2;
+    backdrop.onclick = closeToolsSheetV2;
+    $("toolsCategoryManagerBtnV2").onclick = function(){ alert("下一步會整合分類管理到功能面板。"); };
+    $("toolsBulkDeleteBtnV2").onclick = function(){ alert("下一步會整合多項目刪除模式。"); };
+  }
+
+  function buildSearchControl() {
+    const original = $("searchInput");
+    if (!original) return;
+    const slot = $("toolsSearchSlotV2");
+    if (!slot) return;
+    if (!$("toolsSearchInputV2")) {
+      const wrap = document.createElement("div");
+      wrap.innerHTML = `
+        <div class="relative">
+          <span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-slate-400">search</span>
+          <input id="toolsSearchInputV2" class="w-full kv-input rounded-xl border border-primary/10 bg-white/70 py-3 pl-12 pr-4 text-sm placeholder:text-slate-400 focus:border-primary focus:ring-primary" placeholder="搜尋產品、品牌、系列、分類..." />
+        </div>
+      `;
+      slot.appendChild(wrap.firstElementChild);
+    }
+    const clone = $("toolsSearchInputV2");
+    clone.value = original.value || "";
+    clone.oninput = function() {
+      original.value = clone.value;
+      safeRenderAll();
+    };
+  }
+
+  function moveCategoryChipsToSheet() {
+    const chips = $("categoryChips");
+    const slot = $("toolsCategorySlotV2");
+    if (!chips || !slot) return;
+    if (chips.parentElement !== slot) slot.appendChild(chips);
+    chips.classList.remove("hidden");
+    chips.style.display = "";
+  }
+
+  function buildFilterControls() {
+    const sortOriginal = $("sortSelect");
+    const statusOriginal = $("statusFilter");
+    const slot = $("toolsFilterSlotV2");
+    if (!sortOriginal || !statusOriginal || !slot) return;
+
+    if (!$("toolsSortSelectV2")) {
+      const sortClone = sortOriginal.cloneNode(true);
+      sortClone.id = "toolsSortSelectV2";
+      sortClone.className = sortOriginal.className;
+      slot.appendChild(sortClone);
+    }
+    if (!$("toolsStatusFilterV2")) {
+      const statusClone = statusOriginal.cloneNode(true);
+      statusClone.id = "toolsStatusFilterV2";
+      statusClone.className = statusOriginal.className;
+      slot.appendChild(statusClone);
+    }
+
+    const sortClone = $("toolsSortSelectV2");
+    const statusClone = $("toolsStatusFilterV2");
+    sortClone.value = sortOriginal.value;
+    statusClone.value = statusOriginal.value;
+
+    sortClone.onchange = function() {
+      sortOriginal.value = sortClone.value;
+      safeRenderAll();
+    };
+    statusClone.onchange = function() {
+      statusOriginal.value = statusClone.value;
+      safeRenderAll();
+    };
+  }
+
+  function buildDisplayControls() {
+    const slot = $("toolsDisplaySlotV2");
+    if (!slot) return;
+    slot.innerHTML = "";
+    const modes = [
+      { value: "list", label: "列表" },
+      { value: "grid", label: "網格" },
+      { value: "compact", label: "卡片" },
+      { value: "wall", label: "收藏牆" }
+    ];
+    modes.forEach(function(m) {
+      const btn = document.createElement("button");
+      btn.className = "toolsModeBtn rounded-full border border-primary/10 bg-white/70 px-2 py-2 text-[12px] font-semibold";
+      if (typeof mode !== "undefined" && mode === m.value) btn.classList.add("mode-active");
+      btn.textContent = m.label;
+      btn.dataset.mode = m.value;
+      btn.onclick = function() {
+        try { mode = m.value; } catch (e) {}
+        document.querySelectorAll("#toolsDisplaySlotV2 .toolsModeBtn").forEach(function(el){ el.classList.remove("mode-active"); });
+        btn.classList.add("mode-active");
+        document.querySelectorAll(".modeBtn").forEach(function(el){
+          el.classList.toggle("mode-active", el.dataset.mode === m.value);
+        });
+        safeRenderAll();
+      };
+      slot.appendChild(btn);
+    });
+  }
+
+  function openToolsSheetV2() {
+    createToolsSheetV2();
+    try {
+      if (typeof showPage === "function") showPage("pageCollection");
+      if (typeof setActiveNav === "function") setActiveNav(view === "wishlist" ? "wishlist" : "collection");
+    } catch (e) {}
+    buildSearchControl();
+    moveCategoryChipsToSheet();
+    buildFilterControls();
+    buildDisplayControls();
+    hideOldTopSections();
+    if ($("toolsSheetBackdrop")) $("toolsSheetBackdrop").classList.add("hidden");
+    if ($("toolsSheet")) $("toolsSheet").classList.add("hidden");
+    $("toolsSheetBackdropV2").classList.remove("hidden");
+    $("toolsSheetV2").classList.remove("hidden");
+    document.body.classList.add("overflow-hidden");
+  }
+
+  function closeToolsSheetV2() {
+    if ($("toolsSheetBackdropV2")) $("toolsSheetBackdropV2").classList.add("hidden");
+    if ($("toolsSheetV2")) $("toolsSheetV2").classList.add("hidden");
+    document.body.classList.remove("overflow-hidden");
+  }
+
+  async function patchLogoScopeControls() {
+    const brandWrap = $("brandLogoScopeWrap");
+    const seriesWrap = $("seriesLogoScopeWrap");
+    if (!brandWrap || !seriesWrap) return;
+
+    let admin = false;
+    const api = window.kuraFirebase;
+    const uid = api?.auth?.currentUser?.uid || "";
+    if (api && uid) {
+      try {
+        const snap = await api.getDoc(api.doc(api.db, "admins", uid));
+        admin = snap.exists();
+      } catch (e) {}
+    }
+
+    const prevBrand = $("brandLogoScope")?.value || (admin ? "global" : "personal");
+    const prevSeries = $("seriesLogoScope")?.value || (admin ? "global" : "personal");
+
+    brandWrap.innerHTML = `
+      <label class="text-xs font-bold tracking-widest uppercase text-slate-500 mb-2 block">Brand Logo Scope</label>
+      <select id="brandLogoScope" class="w-full rounded-xl border border-primary/10 bg-white/60 px-4 py-3 text-sm">
+        ${admin ? '<option value="global">Global</option>' : ''}
+        <option value="personal">My Logo</option>
+      </select>
+    `;
+    seriesWrap.innerHTML = `
+      <label class="text-xs font-bold tracking-widest uppercase text-slate-500 mb-2 block">Series Logo Scope</label>
+      <select id="seriesLogoScope" class="w-full rounded-xl border border-primary/10 bg-white/60 px-4 py-3 text-sm">
+        ${admin ? '<option value="global">Global</option>' : ''}
+        <option value="personal">My Logo</option>
+      </select>
+    `;
+    $("brandLogoScope").value = admin && prevBrand === "global" ? "global" : (admin ? prevBrand : "personal");
+    $("seriesLogoScope").value = admin && prevSeries === "global" ? "global" : (admin ? prevSeries : "personal");
+
+    const saveBrandBtn = $("saveBrandLibBtn");
+    const saveSeriesBtn = $("saveSeriesLibBtn");
+    if (saveBrandBtn) saveBrandBtn.textContent = admin ? "加入 Logo（Global / My）" : "加入我的 Brand Logo";
+    if (saveSeriesBtn) saveSeriesBtn.textContent = admin ? "加入 Logo（Global / My）" : "加入我的 Series Logo";
+  }
+
+  function patchHeaderButtonV2() {
+    const btn = $("headerSearchBtn");
+    if (!btn) return;
+    const icon = btn.querySelector(".material-symbols-outlined");
+    if (icon) icon.textContent = "tune";
+    btn.onclick = function(e) {
+      e.preventDefault();
+      openToolsSheetV2();
+    };
+  }
+
+  function boot() {
+    patchHeaderButtonV2();
+    createToolsSheetV2();
+    buildSearchControl();
+    moveCategoryChipsToSheet();
+    buildFilterControls();
+    buildDisplayControls();
+    hideOldTopSections();
+    patchLogoScopeControls();
+  }
+
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", boot);
+  } else {
+    boot();
+  }
+
+  document.addEventListener("click", function(e) {
+    if (e.target.closest("#navCollection") || e.target.closest("#navWishlist")) {
+      setTimeout(function(){
+        buildSearchControl();
+        moveCategoryChipsToSheet();
+        buildFilterControls();
+        buildDisplayControls();
+        hideOldTopSections();
+      }, 300);
+    }
+    if (e.target.closest("#navAddCenter") || e.target.closest("#navProfile")) {
+      setTimeout(patchLogoScopeControls, 300);
+      setTimeout(patchLogoScopeControls, 1200);
+    }
+  });
+
+  document.addEventListener("change", function(e) {
+    if (e.target.closest("#statusFilter") || e.target.closest("#sortSelect")) {
+      buildFilterControls();
+    }
+  });
+})();
+</script>
+
 </html>
