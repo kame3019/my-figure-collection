@@ -3100,4 +3100,251 @@ window.kuraAI = { ai, autoFillModel };
   });
 })();
 </script>
+
+    <script>
+(function () {
+  function $(id) {
+    return document.getElementById(id);
+  }
+
+  function makeWrap(className = "mt-3") {
+    const div = document.createElement("div");
+    div.className = className;
+    return div;
+  }
+
+  function makeGrid() {
+    const div = document.createElement("div");
+    div.className = "grid grid-cols-1 gap-3 sm:grid-cols-2 mt-3";
+    return div;
+  }
+
+  function ensureAIBtn() {
+    const saveBtn = $("saveBtn");
+    if (!saveBtn) return null;
+
+    let aiBtn = $("aiFillBtn");
+    if (!aiBtn) {
+      aiBtn = document.createElement("button");
+      aiBtn.id = "aiFillBtn";
+      aiBtn.className = "mt-3 w-full rounded-xl bg-black px-4 py-3 text-sm font-bold text-white";
+      aiBtn.textContent = "AI 拍攝填寫";
+      saveBtn.parentNode.insertBefore(aiBtn, saveBtn);
+    }
+
+    let aiStatus = $("aiFillStatus");
+    if (!aiStatus) {
+      aiStatus = document.createElement("div");
+      aiStatus.id = "aiFillStatus";
+      aiStatus.className = "mt-2 text-xs text-slate-500";
+      aiBtn.parentNode.insertBefore(aiStatus, saveBtn);
+    }
+
+    aiBtn.textContent = "AI 拍攝填寫";
+    return { aiBtn, aiStatus };
+  }
+
+  function patchAddPageLayout() {
+    const pageAdd = $("pageAdd");
+    if (!pageAdd) return;
+
+    const formCard = pageAdd.querySelector(".kv-surface");
+    if (!formCard) return;
+
+    const header = formCard.querySelector(".flex.items-center.justify-between.mb-4");
+    if (!header) return;
+
+    const aiBits = ensureAIBtn();
+    const aiBtn = aiBits?.aiBtn || $("aiFillBtn");
+    const aiStatus = aiBits?.aiStatus || $("aiFillStatus");
+
+    const name = $("name");
+    const brand = $("brand");
+    const series = $("series");
+    const itemCode = $("itemCode");
+    const price = $("price");
+    const date = $("date");
+    const category = $("category");
+    const location = $("location");
+    const status = $("status");
+    const sourceLink = $("sourceLink");
+    const photo = $("photo");
+    const photoLibrary = $("photoLibrary");
+    const cornerLabel = $("cornerLabel");
+    const cornerLabelColor = $("cornerLabelColor");
+    const note = $("note");
+    const saveBtn = $("saveBtn");
+
+    const brandPresetBlock = $("brandPresetPicker")?.parentElement || null;
+    const seriesPresetBlock = $("seriesPresetPicker")?.parentElement || null;
+    const brandLogoRow = $("brandLogoUrl")?.closest(".grid") || null;
+    const seriesLogoRow = $("seriesLogoUrl")?.closest(".grid") || null;
+    const brandScopeWrap = $("brandLogoScopeWrap") || $("brandLogoScope")?.parentElement || null;
+    const seriesScopeWrap = $("seriesLogoScopeWrap") || $("seriesLogoScope")?.parentElement || null;
+    const saveBrandBtn = $("saveBrandLibBtn");
+    const saveSeriesBtn = $("saveSeriesLibBtn");
+
+    if (!name || !price || !category || !status || !saveBtn) return;
+
+    name.placeholder = "產品名稱";
+    if (sourceLink) sourceLink.placeholder = "購買地方";
+
+    if (photo) {
+      photo.setAttribute("accept", "image/*");
+      photo.setAttribute("capture", "environment");
+      photo.style.display = "none";
+    }
+    if (photoLibrary) {
+      const photoLibraryRow = photoLibrary.closest(".grid") || photoLibrary.parentElement;
+      if (photoLibraryRow) photoLibraryRow.style.display = "none";
+      photoLibrary.style.display = "none";
+    }
+
+    if (formCard.dataset.addLayoutPatched === "1") return;
+    formCard.dataset.addLayoutPatched = "1";
+
+    const newLayout = document.createElement("div");
+    newLayout.id = "patchedAddLayout";
+    newLayout.className = "mt-4";
+
+    const rowName = makeWrap("mt-3");
+    rowName.appendChild(name);
+
+    const rowPriceCategory = makeGrid();
+    rowPriceCategory.appendChild(price);
+    rowPriceCategory.appendChild(category);
+
+    const rowAI = makeWrap("mt-3");
+    if (aiBtn) rowAI.appendChild(aiBtn);
+    if (aiStatus) rowAI.appendChild(aiStatus);
+
+    const rowDateStatus = makeGrid();
+    if (date) rowDateStatus.appendChild(date);
+    rowDateStatus.appendChild(status);
+
+    const rowWhere = makeGrid();
+    if (sourceLink) rowWhere.appendChild(sourceLink);
+    if (location) rowWhere.appendChild(location);
+
+    const rowExtra = makeGrid();
+    if (itemCode) rowExtra.appendChild(itemCode);
+    if (cornerLabel) rowExtra.appendChild(cornerLabel);
+
+    const rowExtra2 = makeGrid();
+    if (cornerLabelColor) rowExtra2.appendChild(cornerLabelColor);
+
+    const rowNote = makeWrap("mt-3");
+    if (note) rowNote.appendChild(note);
+
+    const rowSave = makeWrap("mt-5");
+    rowSave.appendChild(saveBtn);
+
+    const brandSection = document.createElement("div");
+    brandSection.className = "mt-6";
+    brandSection.innerHTML = `
+      <div class="text-xs font-bold tracking-widest uppercase text-slate-500 mb-2">品牌 / Logo</div>
+    `;
+    const brandRow = makeWrap("mt-3");
+    if (brand) brandRow.appendChild(brand);
+    brandSection.appendChild(brandRow);
+    if (brandPresetBlock) brandSection.appendChild(brandPresetBlock);
+    if (brandScopeWrap) brandSection.appendChild(brandScopeWrap);
+    if (brandLogoRow) brandSection.appendChild(brandLogoRow);
+    if (saveBrandBtn) {
+      const brandBtnWrap = makeWrap("mt-3");
+      brandBtnWrap.appendChild(saveBrandBtn);
+      brandSection.appendChild(brandBtnWrap);
+    }
+
+    const seriesSection = document.createElement("div");
+    seriesSection.className = "mt-6";
+    seriesSection.innerHTML = `
+      <div class="text-xs font-bold tracking-widest uppercase text-slate-500 mb-2">系列 / Logo</div>
+    `;
+    const seriesRow = makeWrap("mt-3");
+    if (series) seriesRow.appendChild(series);
+    seriesSection.appendChild(seriesRow);
+    if (seriesPresetBlock) seriesSection.appendChild(seriesPresetBlock);
+    if (seriesScopeWrap) seriesSection.appendChild(seriesScopeWrap);
+    if (seriesLogoRow) seriesSection.appendChild(seriesLogoRow);
+    if (saveSeriesBtn) {
+      const seriesBtnWrap = makeWrap("mt-3");
+      seriesBtnWrap.appendChild(saveSeriesBtn);
+      seriesSection.appendChild(seriesBtnWrap);
+    }
+
+    newLayout.appendChild(rowName);
+    newLayout.appendChild(rowPriceCategory);
+    newLayout.appendChild(rowAI);
+    newLayout.appendChild(rowDateStatus);
+    newLayout.appendChild(rowWhere);
+    newLayout.appendChild(rowExtra);
+    newLayout.appendChild(rowExtra2);
+    newLayout.appendChild(rowNote);
+    newLayout.appendChild(brandSection);
+    newLayout.appendChild(seriesSection);
+    newLayout.appendChild(rowSave);
+
+    const allChildren = Array.from(formCard.children);
+    allChildren.forEach((child) => {
+      if (child !== header && child !== newLayout) {
+        child.style.display = "none";
+      }
+    });
+
+    formCard.appendChild(newLayout);
+  }
+
+  function bindAICameraFlow() {
+    const aiBtn = $("aiFillBtn");
+    const photo = $("photo");
+    const aiStatus = $("aiFillStatus");
+    if (!aiBtn || !photo) return;
+
+    if (aiBtn.dataset.cameraBound === "1") return;
+    aiBtn.dataset.cameraBound = "1";
+
+    document.addEventListener("click", function (e) {
+      const btn = e.target.closest("#aiFillBtn");
+      if (!btn) return;
+
+      if (btn.dataset.runAiNow === "1") {
+        btn.dataset.runAiNow = "";
+        return;
+      }
+
+      e.preventDefault();
+      e.stopImmediatePropagation();
+
+      if (aiStatus) aiStatus.textContent = "請拍攝產品圖片...";
+      photo.click();
+    }, true);
+
+    photo.addEventListener("change", function () {
+      if (!photo.files || !photo.files[0]) return;
+      if (aiStatus) aiStatus.textContent = "拍攝完成，AI 分析中...";
+      aiBtn.dataset.runAiNow = "1";
+      setTimeout(() => aiBtn.click(), 50);
+    });
+  }
+
+  function boot() {
+    patchAddPageLayout();
+    bindAICameraFlow();
+  }
+
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", boot);
+  } else {
+    boot();
+  }
+
+  document.addEventListener("click", function (e) {
+    if (e.target.closest("#navAddCenter")) {
+      setTimeout(boot, 300);
+      setTimeout(boot, 1000);
+    }
+  });
+})();
+</script>
 </html>
