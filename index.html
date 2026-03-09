@@ -3824,4 +3824,72 @@ window.kuraAI = { ai, autoFillModel };
   });
 })();
 </script>
+
+<script>
+(function () {
+  function $(id) {
+    return document.getElementById(id);
+  }
+
+  function moveAfter(target, node) {
+    if (!target || !node || target === node) return;
+    target.insertAdjacentElement("afterend", node);
+  }
+
+  function findNoteBlock(note) {
+    if (!note) return null;
+
+    let el = note.parentElement;
+    while (el) {
+      const hasLabel = !!el.querySelector("label");
+      const hasNote = !!el.querySelector("#note");
+      if (hasLabel && hasNote) return el;
+      el = el.parentElement;
+    }
+
+    return note.parentElement;
+  }
+
+  function fixNoteBackToOwnLabel() {
+    const layout = $("patchedAddLayout");
+    const note = $("note");
+    const coverUrlWrap = $("coverUrlWrap");
+    if (!layout || !note) return;
+
+    const noteBlock = findNoteBlock(note);
+    if (!noteBlock) return;
+
+    // 備註欄保持原本高度，只係闊度用盡
+    note.rows = 3;
+    note.style.minHeight = "";
+    note.style.height = "";
+    note.style.width = "100%";
+    note.classList.add("w-full");
+
+    noteBlock.className = "mt-3 w-full";
+
+    // 備註整個區塊放返去 cover 區下面
+    if (coverUrlWrap) {
+      moveAfter(coverUrlWrap, noteBlock);
+    }
+  }
+
+  function boot() {
+    fixNoteBackToOwnLabel();
+  }
+
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", boot);
+  } else {
+    boot();
+  }
+
+  document.addEventListener("click", function (e) {
+    if (e.target.closest("#navAddCenter")) {
+      setTimeout(boot, 300);
+      setTimeout(boot, 1000);
+    }
+  });
+})();
+</script>
 </html>
