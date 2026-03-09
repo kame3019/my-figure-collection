@@ -207,6 +207,13 @@
             -ms-overflow-style: none;
             scrollbar-width: none;
         }
+
+        #itemDetailModal .detail-scroll > .sticky { z-index: 80 !important; position: sticky; isolation: isolate; }
+        #itemDetailModal .detail-scroll > .sticky button,
+        #itemDetailModal .detail-scroll > .sticky [id^="detail"] { position: relative; z-index: 81 !important; pointer-events: auto; }
+        #itemDetailModal #detailImageWrap,
+        #itemDetailModal #detailImageWrap * { position: relative; z-index: 1; }
+        #themeToggleBtn { display: none !important; }
         .share-style-active {
             background: #fb923c !important;
             color: #fff !important;
@@ -231,9 +238,6 @@
 </div>
 </div>
 <div class="flex items-center gap-2">
-<button class="size-10 flex items-center justify-center rounded-full bg-primary/10 text-primary" id="themeToggleBtn">
-<span class="material-symbols-outlined">palette</span>
-</button>
 <button class="size-10 flex items-center justify-center rounded-full bg-primary/10 text-primary" id="headerSearchBtn">
 <span class="material-symbols-outlined">tune</span>
 </button>
@@ -4412,8 +4416,17 @@
     const lang = getLang();
     const navWishlist = $('navWishlist');
     const navCollection = $('navCollection');
-    const onWishlist = !!(navWishlist && navWishlist.className.includes('text-primary') && (!navCollection || !navCollection.className.includes('text-primary')));
-    const currentView = onWishlist ? 'wishlist' : 'archive';
+    const onWishlist = !!(navWishlist && navWishlist.classList.contains('nav-active'));
+    const onArchive = !!(navCollection && navCollection.classList.contains('nav-active'));
+    let currentView = onWishlist ? 'wishlist' : (onArchive ? 'archive' : null);
+    if(!currentView){
+      const titleNow = (title?.textContent || '').trim();
+      if([textFor('pageWishlist'),'Wish List Catalogue','ウィッシュリスト'].includes(titleNow)) currentView = 'wishlist';
+    }
+    if(!currentView){
+      const wl = document.getElementById('navWishlist');
+      currentView = wl && !wl.classList.contains('text-slate-400') ? 'wishlist' : 'archive';
+    }
     if(title){
       title.textContent = currentView === 'wishlist' ? textFor('pageWishlist') : textFor('pageArchive');
     }
@@ -4449,7 +4462,7 @@
     if(!list) return;
     const navWishlist = $('navWishlist');
     const navCollection = $('navCollection');
-    const currentView = !!(navWishlist && navWishlist.className.includes('text-primary') && (!navCollection || !navCollection.className.includes('text-primary'))) ? 'wishlist' : 'archive';
+    const currentView = (navWishlist && navWishlist.classList.contains('nav-active')) ? 'wishlist' : ((navCollection && navCollection.classList.contains('nav-active')) ? 'archive' : 'archive');
     const text = currentView === 'wishlist' ? textFor('noWish') : textFor('noArchive');
     Array.from(list.querySelectorAll('div,p,span')).forEach(el=>{
       const t = (el.textContent || '').trim();
@@ -4681,6 +4694,15 @@
     hideHomeTheme();
     applyI18n();
     wrapRender();
+    const oldSetActiveNav = window.setActiveNav;
+    if(typeof oldSetActiveNav === 'function' && !oldSetActiveNav.__i18nTitleWrapped){
+      window.setActiveNav = function(){
+        const r = oldSetActiveNav.apply(this, arguments);
+        requestAnimationFrame(()=>updatePageTitles());
+        return r;
+      };
+      window.setActiveNav.__i18nTitleWrapped = true;
+    }
   }
 
   if(document.readyState==='loading'){
