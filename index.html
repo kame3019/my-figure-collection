@@ -4803,36 +4803,35 @@
     const shareTop = topBar.querySelector('#detailShareBtn');
     const closeTop = topBar.querySelector('#detailCloseBtnTop');
     const buttons = topBar.querySelectorAll('button');
+    topBar.addEventListener('click', function(ev){ ev.stopPropagation(); }, true);
     buttons.forEach(btn => {
+      btn.type = 'button';
       btn.style.pointerEvents = 'auto';
       btn.style.position = 'relative';
       btn.style.zIndex = '261';
-      btn.addEventListener('click', function(ev){
-        ev.preventDefault();
-        ev.stopPropagation();
-      }, true);
+      btn.style.touchAction = 'manipulation';
     });
     if(shareTop){
-      shareTop.onclick = function(ev){
+      shareTop.addEventListener('click', function(ev){
         ev.preventDefault();
         ev.stopPropagation();
         if(window.currentDetailId) window.openShareCard?.(window.currentDetailId);
-      };
+      });
     }
     if(closeTop){
-      closeTop.onclick = function(ev){
+      closeTop.addEventListener('click', function(ev){
         ev.preventDefault();
         ev.stopPropagation();
         window.closeItemDetail?.();
-      };
+      });
     }
     const cancelTop = Array.from(topBar.querySelectorAll('button')).find(btn => (btn.textContent||'').trim().includes('取消'));
     if(cancelTop){
-      cancelTop.onclick = function(ev){
+      cancelTop.addEventListener('click', function(ev){
         ev.preventDefault();
         ev.stopPropagation();
         window.closeItemDetail?.();
-      };
+      });
     }
 
     modal.dataset.topbarPatched='1';
@@ -4854,6 +4853,8 @@
         padding-bottom:6px!important;
       }
       #itemDetailModal .detail-scroll{position:relative; z-index:1; padding-top:0!important;}
+      #itemDetailModal .detail-scroll > :not(.sticky){position:relative; z-index:1!important;}
+      #itemDetailModal .detail-scroll > .sticky button{cursor:pointer!important;}
       #itemDetailModal #detailImageWrap{
         pointer-events:none!important;
         margin-top:16px!important;
@@ -4867,10 +4868,46 @@
     document.head.appendChild(style);
   }
 
+
+  function rebindCollectionControls(){
+    if(document.documentElement.dataset.collectionControlsBound==='1') return;
+    document.documentElement.dataset.collectionControlsBound='1';
+
+    document.addEventListener('change', function(e){
+      const t = e.target;
+      if(!t) return;
+      if(t.id === 'sortSelect' || t.id === 'statusFilter'){
+        window.renderList?.();
+        window.renderExhibitionRail?.();
+      }
+    }, true);
+
+    document.addEventListener('input', function(e){
+      const t = e.target;
+      if(t && t.id === 'searchInput'){
+        window.renderList?.();
+        window.renderExhibitionRail?.();
+      }
+    }, true);
+
+    document.addEventListener('click', function(e){
+      const btn = e.target && e.target.closest ? e.target.closest('.modeBtn') : null;
+      if(!btn) return;
+      e.preventDefault();
+      const nextMode = btn.dataset.mode;
+      if(!nextMode) return;
+      window.mode = nextMode;
+      try { mode = nextMode; } catch(err) {}
+      document.querySelectorAll('.modeBtn').forEach(el => el.classList.toggle('mode-active', el.dataset.mode === nextMode));
+      window.renderList?.();
+    }, true);
+  }
+
   function boot(){
     strengthenDetailLayers();
     patchDetailHeaderClick();
     patchCategoryFastSwitch();
+    rebindCollectionControls();
   }
 
   if(document.readyState==='loading'){
