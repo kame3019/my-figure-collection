@@ -5,7 +5,7 @@
 <meta charset="utf-8"/>
 <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
 <title>Kura Archive | Member Edition Clean</title>
-<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script type='text/javascript' nonce='Wix8X9z1Fve0U9+PP1K4yA==' src='https://contribution.usercontent.google.com/1PlRHjYAGuLn0_7a8eBcTU0NksrkwVln4SqeRnrDAab7ZKXnD9iHS_08o5Y9jt4rTdgEcSPd1ipjzv-zqKMNhIWsQ-vh8S2Kd4qkqHN76SLsSEFseD-pFcVQPYSA0Uzd10ltJ59EVHx71MMlxT2SR27wjD28pWPUEgJWH8WAdAZ3fLxErOgSmNV4blwdG6ZSIMtNF2wMVO5ss4k6-RNqMjMJHmNh-O1W9QcaUNI93OXdCdctstiQAfKvgB_UG3xIz7UurRTFm4maLco9FtOhZMx_FgXxlreKPEjbZS3AMc-ItFhoQM1VZWnPMClFbql1BKjgwDHDDdC5YEUsAkyOTOfvZ-vrKuuh4-85ZA3oq2Ey4U0EO_vcHejqWCACF4xqlTeuCfvTwkhV9RQcELRBzsr18dsglofexKB2TG1l1tp2vk1KC4Q-o9irorah4SRRyU8vJH6e6RUvBncpB1hky13-z2N9KdvVXhPQzI3FAhqQ-NhQ3cQEtsMZ5EoX6gqvM0UMEhZYtvQzQsfmmajXVJVEzpW_PsUtgijuiWlRJB77VEc649vI5XmIOHAtTCSfkobwuanlDZtgwBgOKeTTSQ9ZxwxTbOjCo2nGnlfFk-A68mNvEY-2CBI1H2VL71S25DuUTiiWvTKO1Mrk5j1U7zmwue9YogPyM8Z_QBVZR5JYbJpgoLwCmu7g-gte2y-Q6WzEh3kGfifDmmRY-jmVeZf_BUWa4wEoikK_UT9tCkGroUo4WyPBuhdmxLnE1C7TSRqwn_obX7JVLWSf7-uqmC7WnNte_slOKnF4aGYOyBilltUAgSOmqclIQU53jXU_2iDWqKeF'></script><script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
 <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@200..800&amp;display=swap" rel="stylesheet"/>
 <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
 <script>
@@ -4651,4 +4651,117 @@
   });
 })();
 </script>
+
+<style>
+#profileToolModal.hidden{display:none!important}
+#profileToolModal{position:fixed;inset:0;z-index:120;background:rgba(0,0,0,.35);backdrop-filter:blur(2px)}
+#profileToolModal .tool-modal-shell{position:absolute;inset:0;display:flex;align-items:flex-end;justify-content:center;padding:16px}
+#profileToolModal .tool-modal-card{width:min(100%,440px);max-height:min(82vh,760px);overflow:auto;border-radius:32px;background:var(--color-background-light,#fdfcf0);border:1px solid rgba(185,92,74,.18);box-shadow:0 20px 60px rgba(0,0,0,.18);padding:20px 18px 22px}
+#profileToolModal .tool-modal-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:14px}
+#profileToolModal .tool-modal-title{font-size:28px;font-weight:800;letter-spacing:.04em}
+#profileToolModal .tool-modal-close{border-radius:999px;background:rgba(0,0,0,.06);padding:12px 16px;font-weight:700}
+#profileToolModal .tool-modal-body > *{margin-top:0!important}
+#profileToolModal .tool-modal-body .rounded-2xl{background:#fffdf8!important}
+#profileThemePanel,#profileNotificationsPanel,#profileLanguagePanel,#profileCurrencyPanel{display:none!important}
+</style>
+<script>
+(function(){
+  function $(id){return document.getElementById(id)}
+  function ensureModal(){
+    if($("profileToolModal")) return $("profileToolModal");
+    const modal=document.createElement('div');
+    modal.id='profileToolModal';
+    modal.className='hidden';
+    modal.innerHTML=`
+      <div class="tool-modal-shell">
+        <div class="absolute inset-0" id="profileToolModalBackdrop"></div>
+        <div class="tool-modal-card relative">
+          <div class="tool-modal-head">
+            <div class="tool-modal-title" id="profileToolModalTitle">Tools</div>
+            <button type="button" class="tool-modal-close" id="profileToolModalClose">取消</button>
+          </div>
+          <div id="profileToolModalBody" class="tool-modal-body"></div>
+        </div>
+      </div>`;
+    document.body.appendChild(modal);
+    modal.querySelector('#profileToolModalBackdrop').addEventListener('click', closeModal);
+    modal.querySelector('#profileToolModalClose').addEventListener('click', closeModal);
+    return modal;
+  }
+  function ensureStash(){
+    if($("profileToolPanelStash")) return $("profileToolPanelStash");
+    const stash=document.createElement('div');
+    stash.id='profileToolPanelStash';
+    stash.style.display='none';
+    document.body.appendChild(stash);
+    return stash;
+  }
+  function normalizePanel(panelId, titleText){
+    const panel=$(panelId); if(!panel) return;
+    panel.dataset.toolPanel='1';
+    panel.style.display='none';
+    if(titleText){ panel.dataset.modalTitle=titleText; }
+    ensureStash().appendChild(panel);
+  }
+  function openPanel(panelId, fallbackTitle){
+    const panel=$(panelId); if(!panel) return;
+    const modal=ensureModal();
+    const body=$("profileToolModalBody");
+    body.innerHTML='';
+    body.appendChild(panel);
+    panel.style.display='block';
+    $("profileToolModalTitle").textContent=panel.dataset.modalTitle || fallbackTitle || 'Tools';
+    modal.classList.remove('hidden');
+    document.documentElement.style.overflow='hidden';
+    document.body.style.overflow='hidden';
+  }
+  function closeModal(){
+    const modal=$("profileToolModal"); if(!modal) return;
+    const body=$("profileToolModalBody");
+    const stash=ensureStash();
+    Array.from(body.children).forEach(function(node){
+      if(node.dataset && node.dataset.toolPanel==='1'){
+        node.style.display='none';
+        stash.appendChild(node);
+      }
+    });
+    modal.classList.add('hidden');
+    document.documentElement.style.overflow='';
+    document.body.style.overflow='';
+  }
+  window.closeProfileToolModal = closeModal;
+  function bindToolButtons(){
+    const map=[
+      ['toolTheme','profileThemePanel','Theme'],
+      ['toolNotifications','profileNotificationsPanel','Notifications'],
+      ['toolLanguage','profileLanguagePanel','Language'],
+      ['toolCurrency','profileCurrencyPanel','Currency']
+    ];
+    map.forEach(function(row){
+      const trigger=$(row[0]); const panel=$(row[1]);
+      if(!trigger || !panel) return;
+      normalizePanel(row[1], row[2]);
+      trigger.onclick=function(){ openPanel(row[1], row[2]); };
+    });
+  }
+  function removeHomeThemeBits(){
+    [
+      'homeThemeSection','homeThemeStudioSection','themeQuickToggle','themeStudioBtn',
+      'homeThemeTools','topThemeTools','topThemePanel','homeTopThemeSection'
+    ].forEach(function(id){ const el=$(id); if(el){ el.style.display='none'; el.classList.add('hidden'); } });
+    document.querySelectorAll('[data-home-theme],[data-theme-studio],[data-top-theme]').forEach(function(el){ el.style.display='none'; el.classList.add('hidden'); });
+  }
+  function boot(){
+    ensureModal();
+    bindToolButtons();
+    removeHomeThemeBits();
+  }
+  if(document.readyState==='loading'){ document.addEventListener('DOMContentLoaded', boot); } else { boot(); }
+  document.addEventListener('click', function(e){
+    if(e.target.closest('#navProfile')) setTimeout(boot, 180);
+    if(e.target.closest('#navCollection')) setTimeout(removeHomeThemeBits, 180);
+  });
+})();
+</script>
+
 </html>
