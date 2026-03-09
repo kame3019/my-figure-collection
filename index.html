@@ -4424,6 +4424,123 @@
 })();
 </script>
 
+
+<script>
+(function(){
+  const LANG_KEY='kura_ui_lang';
+  const PATCH_STRINGS={
+    zh:{navArchive:'Archive',navWish:'Wish List',navCategory:'Category',navProfile:'Profile',
+        toolArchive:'Archive History',toolTheme:'Theme',toolNotifications:'Notifications',toolLanguage:'Language',toolLogo:'Logo Library',toolShare:'Share Cards',toolBackup:'Backup',toolCurrency:'Currency',
+        theme:'Theme',notifications:'Notifications',language:'Language',currency:'Currency',cancel:'取消',
+        archive:'Archive Catalogue',wishlist:'Wish List Catalogue',categories:'Categories',categoriesSub:'分類管理'},
+    en:{navArchive:'Archive',navWish:'Wish List',navCategory:'Category',navProfile:'Profile',
+        toolArchive:'Archive History',toolTheme:'Theme',toolNotifications:'Notifications',toolLanguage:'Language',toolLogo:'Logo Library',toolShare:'Share Cards',toolBackup:'Backup',toolCurrency:'Currency',
+        theme:'Theme',notifications:'Notifications',language:'Language',currency:'Currency',cancel:'Cancel',
+        archive:'Archive Catalogue',wishlist:'Wish List Catalogue',categories:'Categories',categoriesSub:'Category Management'},
+    ja:{navArchive:'Archive',navWish:'ウィッシュ',navCategory:'Category',navProfile:'Profile',
+        toolArchive:'Archive History',toolTheme:'Theme',toolNotifications:'Notifications',toolLanguage:'Language',toolLogo:'Logo Library',toolShare:'Share Cards',toolBackup:'Backup',toolCurrency:'Currency',
+        theme:'Theme',notifications:'Notifications',language:'Language',currency:'Currency',cancel:'閉じる',
+        archive:'アーカイブ',wishlist:'ウィッシュ',categories:'カテゴリー',categoriesSub:'分類管理'}
+  };
+  function $(id){return document.getElementById(id)}
+  function lang(){return localStorage.getItem(LANG_KEY)||'zh'}
+  function s(){return PATCH_STRINGS[lang()]||PATCH_STRINGS.zh}
+  function currentView(){ try { return window.view || ''; } catch(e){ return ''; } }
+  function setText(el,val){ if(el && val!=null && el.textContent!==val) el.textContent=val; }
+  function applyPatch(){
+    const t=s();
+    // stabilize typography
+    const modalTitle=$('profileToolModalTitle');
+    if(modalTitle){ modalTitle.style.transition='none'; modalTitle.style.fontSize='1rem'; modalTitle.style.fontWeight='700'; }
+    const modalClose=$('profileToolModalClose');
+    if(modalClose){ modalClose.style.transition='none'; setText(modalClose,t.cancel); }
+
+    // bottom nav immediate translation
+    const navMap={navCollection:t.navArchive, navWishlist:t.navWish, navStats:t.navCategory, navProfile:t.navProfile};
+    Object.entries(navMap).forEach(([id,val])=>{ const span=document.querySelector('#'+id+' span:last-child'); setText(span,val); if(span) span.style.transition='none'; });
+
+    // profile tools labels
+    const toolMap={toolArchive:t.toolArchive, toolTheme:t.toolTheme, toolNotifications:t.toolNotifications, toolLanguage:t.toolLanguage, toolLogo:t.toolLogo, toolShare:t.toolShare, toolBackup:t.toolBackup, toolCurrency:t.toolCurrency};
+    const ids={toolArchive:'#toolArchiveHistory span:last-child',toolTheme:'#toolTheme span:last-child',toolNotifications:'#toolNotifications span:last-child',toolLanguage:'#toolLanguage span:last-child',toolLogo:'#toolLogo span:last-child',toolShare:'#toolShare span:last-child',toolBackup:'#toolExport span:last-child',toolCurrency:'#toolCurrency span:last-child'};
+    Object.entries(ids).forEach(([k,sel])=>{ const el=document.querySelector(sel); setText(el, toolMap[k]); if(el) el.style.transition='none'; });
+
+    // modal title immediate by active panel
+    const body=$('profileToolModalBody');
+    if(body){
+      const panel=(body.children && body.children[0])||null;
+      if(panel){
+        const panelId=panel.id;
+        const map={profileThemePanel:t.theme,profileNotificationsPanel:t.notifications,profileLanguagePanel:t.language,profileCurrencyPanel:t.currency};
+        if(map[panelId]) setText(modalTitle,map[panelId]);
+      }
+    }
+
+    // archive / wishlist title
+    const arch=$('archiveTitle');
+    if(arch){ setText(arch, currentView()==='wishlist' ? t.wishlist : t.archive); }
+
+    // category title
+    const catPage=$('pageCategory');
+    if(catPage){
+      const h2=catPage.querySelector('h2');
+      const sub=catPage.querySelector('p.text-\[10px\]');
+      setText(h2,t.categories);
+      setText(sub,t.categoriesSub);
+    }
+
+    // right top function menu controls immediate translation
+    const sort=$('sortSelect');
+    if(sort){
+      const v=sort.value;
+      const opts={
+        zh:['最新加入','最舊加入','價錢高到低','價錢低到高','名稱 A-Z','名稱 Z-A'],
+        en:['Newest First','Oldest First','Price High-Low','Price Low-High','Name A-Z','Name Z-A'],
+        ja:['新しい順','古い順','価格 高→低','価格 低→高','名前 A-Z','名前 Z-A']
+      }[lang()]||[];
+      const vals=['date_desc','date_asc','price_desc','price_asc','name_asc','name_desc'];
+      sort.innerHTML=vals.map((vv,i)=>`<option value="${vv}">${opts[i]||vv}</option>`).join('');
+      sort.value=v;
+    }
+    const sf=$('statusFilter');
+    if(sf){
+      const v=sf.value;
+      const opts={
+        zh:['全部狀態','未開封','已開封','展示中','未取貨','已售出','願望清單'],
+        en:['All Status','Sealed','Opened','On Display','Pending Pickup','Sold','Wish List'],
+        ja:['すべての状態','未開封','開封済み','展示中','未受取','売却済み','ウィッシュ']
+      }[lang()]||[];
+      const vals=['','未開封','已開封','展示中','未取貨','已售出','願望清單'];
+      sf.innerHTML=vals.map((vv,i)=>`<option value="${vv}">${opts[i]||vv}</option>`).join('');
+      sf.value=v;
+    }
+    const modes={zh:{list:'列表',grid:'網格',compact:'卡片',wall:'收藏牆'},en:{list:'List',grid:'Grid',compact:'Cards',wall:'Wall'},ja:{list:'リスト',grid:'グリッド',compact:'カード',wall:'ウォール'}}[lang()]||{};
+    document.querySelectorAll('.modeBtn').forEach(btn=>{ const m=btn.dataset.mode; if(modes[m]) setText(btn,modes[m]); btn.style.transition='none'; });
+
+    // hard remove any lingering home theme blocks by text
+    const root=$('pageCollection');
+    if(root){
+      root.querySelectorAll('*').forEach(el=>{
+        const txt=(el.textContent||'').replace(/\s+/g,' ').trim().toLowerCase();
+        if(!txt) return;
+        if((txt==='theme'||txt==='theme studio'||txt==='主題'||txt==='主題工坊') && el.children.length<6){
+          const box=el.closest('.kv-surface,.rounded-2xl,.rounded-xl,section,div')||el;
+          if(box && box.closest('#pageCollection')) box.style.display='none';
+        }
+      });
+    }
+  }
+  function many(){ [0,40,120,260,500].forEach(ms=>setTimeout(applyPatch,ms)); }
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',many); else many();
+  document.addEventListener('click',function(e){
+    if(e.target.closest('#langZhBtn')||e.target.closest('#langEnBtn')||e.target.closest('#langJaBtn')||e.target.closest('#navCollection')||e.target.closest('#navWishlist')||e.target.closest('#navStats')||e.target.closest('#navProfile')||e.target.closest('#toolTheme')||e.target.closest('#toolNotifications')||e.target.closest('#toolLanguage')||e.target.closest('#toolCurrency')||e.target.closest('#searchActionBtn')){
+      many();
+    }
+  }, true);
+  const obs=new MutationObserver(()=>{ applyPatch(); });
+  if(document.body) obs.observe(document.body,{childList:true,subtree:true,characterData:true});
+})();
+</script>
+
 </body>
 <script>
 (function(){
