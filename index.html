@@ -108,7 +108,7 @@
 
         body.theme-blackgold .kv-surface,
         body.theme-blackgold .soft-card,
-        body.theme-blackgold .bg-white,
+        body.theme-blackgold .bg-white:not(.kv-artframe),
         body.theme-blackgold [class*="bg-white/60"],
         body.theme-blackgold [class*="bg-white/70"],
         body.theme-blackgold [class*="bg-white/80"] {
@@ -124,6 +124,10 @@
             background-size: contain !important;
             background-position: center !important;
             background-repeat: no-repeat !important;
+        }
+
+        body.theme-blackgold .kv-artframe {
+            background-color: rgba(244,235,221,.96) !important;
         }
 
         body.theme-blackgold .kv-input,
@@ -220,7 +224,7 @@
 
         body.theme-springgarden .kv-surface,
         body.theme-springgarden .soft-card,
-        body.theme-springgarden .bg-white,
+        body.theme-springgarden .bg-white:not(.kv-artframe),
         body.theme-springgarden [class*="bg-white/60"],
         body.theme-springgarden [class*="bg-white/70"],
         body.theme-springgarden [class*="bg-white/80"] {
@@ -236,6 +240,10 @@
             background-size: contain !important;
             background-position: center !important;
             background-repeat: no-repeat !important;
+        }
+
+        body.theme-springgarden .kv-artframe {
+            background-color: rgba(255,255,255,.82) !important;
         }
 
         body.theme-springgarden .kv-input,
@@ -1135,6 +1143,16 @@
             return localStorage.getItem(VISUAL_THEME_KEY) || "pure";
         }
 
+        function refreshArtframeCovers() {
+            document.querySelectorAll('.kv-artframe[style*="background-image"]').forEach(el => {
+                const bg = el.style.backgroundImage;
+                if (bg) el.style.setProperty('background-image', bg, 'important');
+                el.style.setProperty('background-size', 'contain', 'important');
+                el.style.setProperty('background-position', 'center', 'important');
+                el.style.setProperty('background-repeat', 'no-repeat', 'important');
+            });
+        }
+
         function applyVisualTheme() {
             const theme = getVisualTheme();
             document.body.classList.remove("theme-blackgold", "theme-springgarden");
@@ -1146,11 +1164,25 @@
             }
 
             syncThemeButtons();
+            requestAnimationFrame(refreshArtframeCovers);
         }
 
         function setVisualTheme(theme) {
             localStorage.setItem(VISUAL_THEME_KEY, theme);
             applyVisualTheme();
+
+            try {
+                if (typeof render === "function") render();
+                if (typeof renderCategoryPage === "function") renderCategoryPage();
+                refreshArtframeCovers();
+                requestAnimationFrame(() => {
+                    if (typeof render === "function") render();
+                    if (typeof renderCategoryPage === "function") renderCategoryPage();
+                    refreshArtframeCovers();
+                });
+            } catch (e) {
+                console.warn("theme rerender failed", e);
+            }
         }
 
         function syncThemeButtons() {
@@ -2184,6 +2216,8 @@
         loadFakeUser();
         render();
         applyVisualTheme();
+        refreshArtframeCovers();
+        window.addEventListener("load", () => { applyVisualTheme(); refreshArtframeCovers(); });
         setActiveNav("collection");
     </script>
 <script>
