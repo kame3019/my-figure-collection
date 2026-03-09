@@ -293,89 +293,126 @@
             <!-- Add / Manage -->
             <section id="pageAdd" class="page px-6 py-6 space-y-5">
                 <div class="kv-surface rounded-xl p-5 border border-primary/10 bg-white/55 shadow-sm">
-                    <div class="flex items-center justify-between mb-4">
-                        <div>
-                            <h2 class="text-lg font-bold">New Archive Entry</h2>
-                            <p class="text-xs text-slate-500 uppercase tracking-widest mt-1">新增 / 修改收藏</p>
-                        </div>
-                        <span class="material-symbols-outlined text-primary text-3xl">edit_square</span>
-                    </div>
 
-                    <div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
-                        <input id="name" class="kv-input rounded-xl border border-primary/10 bg-background-light/80 px-4 py-3 text-sm placeholder:text-slate-400 focus:border-primary focus:ring-primary" placeholder="模型名稱" />
-                        <input id="brand" class="kv-input rounded-xl border border-primary/10 bg-background-light/80 px-4 py-3 text-sm placeholder:text-slate-400 focus:border-primary focus:ring-primary" placeholder="品牌 / 廠商" />
-                    </div>
+<div class="flex items-center justify-between mb-4">
+    <div>
+        <h2 class="text-lg font-bold">New Archive Entry</h2>
+        <p class="text-xs text-slate-500 uppercase tracking-widest mt-1">新增 / 修改收藏</p>
+    </div>
+    <span class="material-symbols-outlined text-primary text-3xl">edit_square</span>
+</div>
 
-                    <div class="mt-4">
-                        <div class="text-xs font-bold tracking-widest uppercase text-slate-500 mb-2">品牌 Logo 快選</div>
-                        <div id="brandPresetPicker" class="flex flex-wrap gap-2"></div>
-                    </div>
+<div class="mt-3">
+    <input id="name" class="kv-input w-full rounded-xl border border-primary/10 bg-background-light/80 px-4 py-3 text-sm placeholder:text-slate-400 focus:border-primary focus:ring-primary" placeholder="產品名稱" />
+</div>
 
-                    <div class="grid grid-cols-1 gap-3 sm:grid-cols-2 mt-3">
-                        <input id="brandLogoUrl" class="kv-input rounded-xl border border-primary/10 bg-background-light/80 px-4 py-3 text-sm placeholder:text-slate-400 focus:border-primary focus:ring-primary" placeholder="品牌 logo 網址" />
-                        <input id="brandLogoFile" class="kv-input rounded-xl border border-primary/10 bg-background-light/80 px-4 py-3 text-sm file:mr-3 file:rounded-lg file:border-0 file:bg-primary file:px-3 file:py-2 file:text-sm file:font-semibold file:text-white" type="file" accept="image/*" />
-                    </div>
+<div class="grid grid-cols-1 gap-3 sm:grid-cols-2 mt-3">
+    <input id="price" class="kv-input rounded-xl border border-primary/10 bg-background-light/80 px-4 py-3 text-sm placeholder:text-slate-400 focus:border-primary focus:ring-primary" type="number" placeholder="購入價 HKD" />
+    <input id="category" class="kv-input rounded-xl border border-primary/10 bg-background-light/80 px-4 py-3 text-sm placeholder:text-slate-400 focus:border-primary focus:ring-primary" placeholder="分類" />
+</div>
 
-                    <button id="saveBrandLibBtn" class="mt-3 w-full rounded-xl bg-primary px-4 py-3 text-sm font-bold text-white">加入品牌 Logo 庫</button>
+<div class="mt-3">
+    <button id="aiFillBtn" type="button" class="w-full rounded-xl bg-black px-4 py-3 text-sm font-bold text-white">AI 拍攝填寫</button>
+    <div id="aiFillStatus" class="mt-2 text-xs text-slate-500"></div>
+    <input id="photo" class="hidden" type="file" accept="image/*" capture="environment" />
+</div>
 
-                    <div class="grid grid-cols-1 gap-3 sm:grid-cols-2 mt-5">
-                        <input id="series" class="kv-input rounded-xl border border-primary/10 bg-background-light/80 px-4 py-3 text-sm placeholder:text-slate-400 focus:border-primary focus:ring-primary" placeholder="系列 / 作品" />
-                        <input id="itemCode" class="kv-input rounded-xl border border-primary/10 bg-background-light/80 px-4 py-3 text-sm placeholder:text-slate-400 focus:border-primary focus:ring-primary" placeholder="商品編號 / 條碼" />
-                    </div>
+<div class="mt-3">
+    <label class="text-xs font-bold tracking-widest uppercase text-slate-500 mb-2 block">檔案選擇</label>
+    <input id="photoLibrary" class="kv-input w-full rounded-xl border border-primary/10 bg-background-light/80 px-4 py-3 text-sm file:mr-3 file:rounded-lg file:border-0 file:bg-primary file:px-3 file:py-2 file:text-sm file:font-semibold file:text-white" type="file" accept="image/*" />
+</div>
 
-                    <div class="mt-4">
-                        <div class="text-xs font-bold tracking-widest uppercase text-slate-500 mb-2">系列 Logo 快選</div>
-                        <div id="seriesPresetPicker" class="flex flex-wrap gap-2"></div>
-                    </div>
+<div class="mt-3">
+    <label class="text-xs font-bold tracking-widest uppercase text-slate-500 mb-2 block">產品圖片連結</label>
+    <div class="grid grid-cols-1 gap-3 sm:grid-cols-[1fr_auto_auto]">
+        <input id="coverImageUrl" type="url" class="kv-input rounded-xl border border-primary/10 bg-background-light/80 px-4 py-3 text-sm placeholder:text-slate-400 focus:border-primary focus:ring-primary" placeholder="貼上圖片網址，例如 https://..." />
+        <button id="applyCoverUrlBtn" type="button" class="rounded-xl bg-black px-4 py-3 text-sm font-bold text-white">套用做 Cover</button>
+        <button id="clearCoverUrlBtn" type="button" class="rounded-xl bg-black/5 px-4 py-3 text-sm font-bold">清除</button>
+    </div>
+    <input id="coverImageApplied" type="hidden" />
+    <div id="coverUrlStatus" class="mt-2 text-xs text-slate-500"></div>
+    <div class="mt-3 rounded-xl border border-primary/10 bg-background-light/80 p-3">
+        <div class="text-xs font-bold tracking-widest uppercase text-slate-500 mb-2">即時預覽</div>
+        <div class="flex items-center justify-center rounded-xl bg-white/80 border border-primary/10 overflow-hidden min-h-[180px]">
+            <img id="coverUrlPreview" class="max-h-[260px] w-full object-contain hidden" alt="Cover Preview">
+            <div id="coverUrlEmpty" class="text-sm text-slate-400 py-10">未套用圖片</div>
+        </div>
+    </div>
+</div>
 
-                    <div class="grid grid-cols-1 gap-3 sm:grid-cols-2 mt-3">
-                        <input id="seriesLogoUrl" class="kv-input rounded-xl border border-primary/10 bg-background-light/80 px-4 py-3 text-sm placeholder:text-slate-400 focus:border-primary focus:ring-primary" placeholder="系列 logo 網址" />
-                        <input id="seriesLogoFile" class="kv-input rounded-xl border border-primary/10 bg-background-light/80 px-4 py-3 text-sm file:mr-3 file:rounded-lg file:border-0 file:bg-primary file:px-3 file:py-2 file:text-sm file:font-semibold file:text-white" type="file" accept="image/*" />
-                    </div>
+<div class="grid grid-cols-1 gap-3 sm:grid-cols-2 mt-3">
+    <input id="date" class="kv-input rounded-xl border border-primary/10 bg-background-light/80 px-4 py-3 text-sm focus:border-primary focus:ring-primary" type="date" />
+    <select id="status" class="kv-input rounded-xl border border-primary/10 bg-background-light/80 px-4 py-3 text-sm focus:border-primary focus:ring-primary">
+        <option>未開封</option>
+        <option>已開封</option>
+        <option>展示中</option>
+        <option>未取貨</option>
+        <option>已售出</option>
+        <option>願望清單</option>
+    </select>
+</div>
 
-                    <button id="saveSeriesLibBtn" class="mt-3 w-full rounded-xl bg-primary px-4 py-3 text-sm font-bold text-white">加入系列 Logo 庫</button>
+<div class="grid grid-cols-1 gap-3 sm:grid-cols-2 mt-3">
+    <input id="sourceLink" class="kv-input rounded-xl border border-primary/10 bg-background-light/80 px-4 py-3 text-sm placeholder:text-slate-400 focus:border-primary focus:ring-primary" placeholder="購買地方" />
+    <input id="location" class="kv-input rounded-xl border border-primary/10 bg-background-light/80 px-4 py-3 text-sm placeholder:text-slate-400 focus:border-primary focus:ring-primary" placeholder="擺放位置 / 展示櫃" />
+</div>
 
-                    <div class="grid grid-cols-1 gap-3 sm:grid-cols-2 mt-5">
-                        <input id="price" class="kv-input rounded-xl border border-primary/10 bg-background-light/80 px-4 py-3 text-sm placeholder:text-slate-400 focus:border-primary focus:ring-primary" type="number" placeholder="購入價 HKD" />
-                        <input id="date" class="kv-input rounded-xl border border-primary/10 bg-background-light/80 px-4 py-3 text-sm focus:border-primary focus:ring-primary" type="date" />
-                    </div>
+<div class="grid grid-cols-1 gap-3 sm:grid-cols-2 mt-3">
+    <input id="itemCode" class="kv-input rounded-xl border border-primary/10 bg-background-light/80 px-4 py-3 text-sm placeholder:text-slate-400 focus:border-primary focus:ring-primary" placeholder="商品編號 / 條碼" />
+    <input id="cornerLabel" class="kv-input rounded-xl border border-primary/10 bg-background-light/80 px-4 py-3 text-sm placeholder:text-slate-400 focus:border-primary focus:ring-primary" placeholder="圖片左上角標籤，例如 LIMITED EDITION" />
+</div>
 
-                    <div class="grid grid-cols-1 gap-3 sm:grid-cols-2 mt-3">
-                        <input id="category" class="kv-input rounded-xl border border-primary/10 bg-background-light/80 px-4 py-3 text-sm placeholder:text-slate-400 focus:border-primary focus:ring-primary" placeholder="分類" />
-                        <input id="location" class="kv-input rounded-xl border border-primary/10 bg-background-light/80 px-4 py-3 text-sm placeholder:text-slate-400 focus:border-primary focus:ring-primary" placeholder="擺放位置 / 展示櫃" />
-                    </div>
+<div class="mt-3">
+    <select id="cornerLabelColor" class="kv-input w-full rounded-xl border border-primary/10 bg-background-light/80 px-4 py-3 text-sm focus:border-primary focus:ring-primary">
+        <option value="auto">標籤顏色：自動</option>
+        <option value="red">紅</option>
+        <option value="black">黑</option>
+        <option value="gold">金</option>
+    </select>
+</div>
 
-                    <div class="grid grid-cols-1 gap-3 sm:grid-cols-2 mt-3">
-                        <select id="status" class="kv-input rounded-xl border border-primary/10 bg-background-light/80 px-4 py-3 text-sm focus:border-primary focus:ring-primary">
-                            <option>未開封</option>
-                            <option>已開封</option>
-                            <option>展示中</option>
-                            <option>未取貨</option>
-                            <option>已售出</option>
-                            <option>願望清單</option>
-                        </select>
+<div class="mt-3 w-full">
+    <label class="text-xs font-bold tracking-widest uppercase text-slate-500 mb-2 block">備註</label>
+    <textarea id="note" rows="3" class="kv-input w-full rounded-xl border border-primary/10 bg-background-light/80 px-4 py-3 text-sm placeholder:text-slate-400 focus:border-primary focus:ring-primary" placeholder="備註"></textarea>
+</div>
 
-                        <input id="sourceLink" class="kv-input rounded-xl border border-primary/10 bg-background-light/80 px-4 py-3 text-sm placeholder:text-slate-400 focus:border-primary focus:ring-primary" placeholder="產品來源連結" />
-                    </div>
+<div class="mt-6">
+    <div class="text-xs font-bold tracking-widest uppercase text-slate-500 mb-2">品牌 / Logo</div>
+    <div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
+        <input id="brand" class="kv-input rounded-xl border border-primary/10 bg-background-light/80 px-4 py-3 text-sm placeholder:text-slate-400 focus:border-primary focus:ring-primary" placeholder="品牌 / 廠商" />
+        <input id="brandLogoUrl" class="kv-input rounded-xl border border-primary/10 bg-background-light/80 px-4 py-3 text-sm placeholder:text-slate-400 focus:border-primary focus:ring-primary" placeholder="品牌 logo 網址" />
+    </div>
+    <div class="mt-4">
+        <div class="text-xs font-bold tracking-widest uppercase text-slate-500 mb-2">品牌 Logo 快選</div>
+        <div id="brandPresetPicker" class="flex flex-wrap gap-2"></div>
+    </div>
+    <div id="brandLogoScopeWrap" class="mt-3"></div>
+    <div class="mt-3">
+        <input id="brandLogoFile" class="kv-input w-full rounded-xl border border-primary/10 bg-background-light/80 px-4 py-3 text-sm file:mr-3 file:rounded-lg file:border-0 file:bg-primary file:px-3 file:py-2 file:text-sm file:font-semibold file:text-white" type="file" accept="image/*" />
+    </div>
+    <button id="saveBrandLibBtn" class="mt-3 w-full rounded-xl bg-primary px-4 py-3 text-sm font-bold text-white">加入品牌 Logo 庫</button>
+</div>
 
-                    <div class="grid grid-cols-1 gap-3 sm:grid-cols-2 mt-3">
-                        <input id="photo" class="kv-input rounded-xl border border-primary/10 bg-background-light/80 px-4 py-3 text-sm file:mr-3 file:rounded-lg file:border-0 file:bg-primary file:px-3 file:py-2 file:text-sm file:font-semibold file:text-white" type="file" accept="image/*" capture="environment" />
-                        <input id="photoLibrary" class="kv-input rounded-xl border border-primary/10 bg-background-light/80 px-4 py-3 text-sm file:mr-3 file:rounded-lg file:border-0 file:bg-primary file:px-3 file:py-2 file:text-sm file:font-semibold file:text-white" type="file" accept="image/*" />
-                    </div>
+<div class="mt-6">
+    <div class="text-xs font-bold tracking-widest uppercase text-slate-500 mb-2">系列 / Logo</div>
+    <div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
+        <input id="series" class="kv-input rounded-xl border border-primary/10 bg-background-light/80 px-4 py-3 text-sm placeholder:text-slate-400 focus:border-primary focus:ring-primary" placeholder="系列 / 作品" />
+        <input id="seriesLogoUrl" class="kv-input rounded-xl border border-primary/10 bg-background-light/80 px-4 py-3 text-sm placeholder:text-slate-400 focus:border-primary focus:ring-primary" placeholder="系列 logo 網址" />
+    </div>
+    <div class="mt-4">
+        <div class="text-xs font-bold tracking-widest uppercase text-slate-500 mb-2">系列 Logo 快選</div>
+        <div id="seriesPresetPicker" class="flex flex-wrap gap-2"></div>
+    </div>
+    <div id="seriesLogoScopeWrap" class="mt-3"></div>
+    <div class="mt-3">
+        <input id="seriesLogoFile" class="kv-input w-full rounded-xl border border-primary/10 bg-background-light/80 px-4 py-3 text-sm file:mr-3 file:rounded-lg file:border-0 file:bg-primary file:px-3 file:py-2 file:text-sm file:font-semibold file:text-white" type="file" accept="image/*" />
+    </div>
+    <button id="saveSeriesLibBtn" class="mt-3 w-full rounded-xl bg-primary px-4 py-3 text-sm font-bold text-white">加入系列 Logo 庫</button>
+</div>
 
-                    <div class="grid grid-cols-1 gap-3 sm:grid-cols-2 mt-3">
-                        <input id="cornerLabel" class="kv-input rounded-xl border border-primary/10 bg-background-light/80 px-4 py-3 text-sm placeholder:text-slate-400 focus:border-primary focus:ring-primary" placeholder="圖片左上角標籤，例如 LIMITED EDITION" />
-                        <select id="cornerLabelColor" class="kv-input rounded-xl border border-primary/10 bg-background-light/80 px-4 py-3 text-sm focus:border-primary focus:ring-primary">
-                            <option value="auto">標籤顏色：自動</option>
-                            <option value="red">紅</option>
-                            <option value="black">黑</option>
-                            <option value="gold">金</option>
-                        </select>
-                    </div>
+<button id="saveBtn" class="mt-5 w-full rounded-xl bg-primary px-4 py-3 text-sm font-bold text-white">儲存收藏</button>
 
-                    <textarea id="note" class="mt-3 kv-input rounded-xl border border-primary/10 bg-background-light/80 px-4 py-3 text-sm placeholder:text-slate-400 focus:border-primary focus:ring-primary" placeholder="備註"></textarea>
 
-                    <button id="saveBtn" class="mt-5 w-full rounded-xl bg-primary px-4 py-3 text-sm font-bold text-white">儲存收藏</button>
                 </div>
 
                 <div class="kv-surface rounded-xl p-5 border border-primary/10 bg-white/55 shadow-sm">
@@ -1205,8 +1242,14 @@
             let brandLogo = old?.brandLogo || "";
             let seriesLogo = old?.seriesLogo || "";
 
-            const photo = document.getElementById("photo").files[0] || document.getElementById("photoLibrary").files[0];
-            if (photo) image = await fileToDataURL(photo);
+            const photoCover = document.getElementById("photoLibrary").files[0];
+            const coverApplied = document.getElementById("coverImageApplied")?.value.trim() || "";
+
+            if (photoCover) {
+                image = await fileToDataURL(photoCover);
+            } else if (coverApplied) {
+                image = coverApplied;
+            }
 
             const brandLogoFile = document.getElementById("brandLogoFile").files[0];
             const seriesLogoFile = document.getElementById("seriesLogoFile").files[0];
@@ -1263,7 +1306,7 @@
             [
                 "name","brand","series","itemCode","price","date","category","location",
                 "sourceLink","note","brandLogoUrl","seriesLogoUrl","photo","photoLibrary",
-                "brandLogoFile","seriesLogoFile","cornerLabel"
+                "brandLogoFile","seriesLogoFile","cornerLabel","coverImageUrl","coverImageApplied"
             ].forEach(id => {
                 const el = document.getElementById(id);
                 if (el) el.value = "";
@@ -1271,6 +1314,7 @@
 
             document.getElementById("status").value = "未開封";
             document.getElementById("cornerLabelColor").value = "auto";
+            if (window.resetCoverPreview) window.resetCoverPreview();
             delete document.getElementById("saveBtn").dataset.editing;
         }
 
@@ -1293,6 +1337,11 @@
             document.getElementById("note").value = item.note || "";
             document.getElementById("cornerLabel").value = item.cornerLabel || "";
             document.getElementById("cornerLabelColor").value = item.cornerLabelColor || "auto";
+            const coverUrlInput = document.getElementById("coverImageUrl");
+            const coverApplied = document.getElementById("coverImageApplied");
+            if (coverUrlInput) coverUrlInput.value = (item.image && /^https?:/i.test(item.image)) ? item.image : "";
+            if (coverApplied) coverApplied.value = (item.image && /^https?:/i.test(item.image)) ? item.image : "";
+            if (window.setCoverPreview) window.setCoverPreview(item.image || "");
             document.getElementById("saveBtn").dataset.editing = id;
 
             showPage("pageAdd");
@@ -1807,7 +1856,6 @@
     </script>
 
     <script type="module">
-      import { getAI, getGenerativeModel, GoogleAIBackend, Schema } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-ai.js";
       import { initializeApp } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-app.js";
       import {
         getAuth,
@@ -1825,6 +1873,7 @@
         getDocs,
         deleteDoc
       } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-firestore.js";
+      import { getAI, getGenerativeModel, GoogleAIBackend, Schema } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-ai.js";
 
       const firebaseConfig = {
         apiKey: "AIzaSyBcfXAKbsysChltrsepGlYSsBhp5NRpQrg",
@@ -1837,32 +1886,30 @@
       };
 
       const app = initializeApp(firebaseConfig);
-        const ai = getAI(app, { backend: new GoogleAIBackend() });
-
-const autoFillSchema = Schema.object({
-  properties: {
-    name: Schema.string(),
-    brand: Schema.string(),
-    series: Schema.string(),
-    category: Schema.string(),
-    status: Schema.string(),
-    note: Schema.string()
-  },
-  optionalProperties: ["brand", "series", "category", "status", "note"]
-});
-
-const autoFillModel = getGenerativeModel(ai, {
-  model: "gemini-2.5-flash",
-  generationConfig: {
-    responseMimeType: "application/json",
-    responseSchema: autoFillSchema
-  }
-});
-
-window.kuraAI = { ai, autoFillModel };
       const auth = getAuth(app);
       const db = getFirestore(app);
       const provider = new GoogleAuthProvider();
+      const ai = getAI(app, { backend: new GoogleAIBackend() });
+      const autoFillSchema = Schema.object({
+        properties: {
+          name: Schema.string(),
+          brand: Schema.string(),
+          series: Schema.string(),
+          category: Schema.string(),
+          status: Schema.string(),
+          note: Schema.string()
+        },
+        optionalProperties: ["brand", "series", "category", "status", "note"]
+      });
+      const autoFillModel = getGenerativeModel(ai, {
+        model: "gemini-2.5-flash",
+        generationConfig: {
+          responseMimeType: "application/json",
+          responseSchema: autoFillSchema
+        }
+      });
+
+      window.kuraAI = { ai, autoFillModel };
 
       window.kuraFirebase = {
         auth,
@@ -2984,477 +3031,38 @@ window.kuraAI = { ai, autoFillModel };
 })();
 </script>
 
-</body>
 
-    <script>
-(function () {
-  function insertAIFillButton() {
-    const saveBtn = document.getElementById("saveBtn");
-    if (!saveBtn) return;
-    if (document.getElementById("aiFillBtn")) return;
-
-    const aiBtn = document.createElement("button");
-    aiBtn.id = "aiFillBtn";
-    aiBtn.className = "mt-3 w-full rounded-xl bg-black px-4 py-3 text-sm font-bold text-white";
-    aiBtn.textContent = "AI 讀圖填寫";
-
-    const status = document.createElement("div");
-    status.id = "aiFillStatus";
-    status.className = "mt-2 text-xs text-slate-500";
-
-    saveBtn.parentNode.insertBefore(aiBtn, saveBtn);
-    saveBtn.parentNode.insertBefore(status, saveBtn);
-  }
-
-  if (document.readyState === "loading") {
-    document.addEventListener("DOMContentLoaded", insertAIFillButton);
-  } else {
-    insertAIFillButton();
-  }
-
-  document.addEventListener("click", function (e) {
-    if (e.target.closest("#navAddCenter")) {
-      setTimeout(insertAIFillButton, 300);
-      setTimeout(insertAIFillButton, 1000);
-    }
-  });
-})();
-</script>
-
-    <script>
+<script>
 (function () {
   function $(id) {
     return document.getElementById(id);
-  }
-
-  async function fileToGenerativePart(file) {
-    const base64EncodedData = await new Promise((resolve) => {
-      const reader = new FileReader();
-      reader.onloadend = () => resolve(reader.result.split(",")[1]);
-      reader.readAsDataURL(file);
-    });
-
-    return {
-      inlineData: {
-        data: base64EncodedData,
-        mimeType: file.type
-      }
-    };
-  }
-
-  async function runAIAutoFill() {
-    const statusEl = $("aiFillStatus");
-    const photoFile = $("photo")?.files?.[0] || $("photoLibrary")?.files?.[0];
-
-    if (!photoFile) {
-      alert("請先上傳或拍一張圖片");
-      return;
-    }
-
-    if (!window.kuraAI?.autoFillModel) {
-      alert("AI 未初始化成功");
-      return;
-    }
-
-    statusEl.textContent = "AI 分析中...";
-
-    try {
-      const imagePart = await fileToGenerativePart(photoFile);
-
-      const prompt = `
-你是模型收藏資料整理助手。
-請根據圖片內容，盡量判斷並回傳 JSON。
-規則：
-- name: 模型名稱，盡量完整
-- brand: 品牌 / 廠商
-- series: 系列 / 作品
-- category: 例如 高達、PVC、景品、Figure、Nendoroid、SHF
-- status: 只可用以下其中一個：未開封、已開封、展示中、未取貨、已售出、願望清單
-- note: 用 1 至 2 句簡短描述你點判斷
-如果不確定，欄位可留空，但一定要輸出合法 JSON。
-`;
-
-      const result = await window.kuraAI.autoFillModel.generateContent([prompt, imagePart]);
-      const text = result.response.text();
-      const data = JSON.parse(text);
-
-      if ($("name") && data.name) $("name").value = data.name;
-      if ($("brand") && data.brand) $("brand").value = data.brand;
-      if ($("series") && data.series) $("series").value = data.series;
-      if ($("category") && data.category) $("category").value = data.category;
-      if ($("status") && data.status) $("status").value = data.status;
-      if ($("note") && data.note) $("note").value = data.note;
-
-      statusEl.textContent = "AI 已填入建議資料，請手動確認。";
-    } catch (err) {
-      console.error(err);
-      statusEl.textContent = "AI 讀圖失敗";
-      alert(err.message || "AI 讀圖失敗");
-    }
-  }
-
-  document.addEventListener("click", function (e) {
-    if (e.target.closest("#aiFillBtn")) {
-      runAIAutoFill();
-    }
-  });
-})();
-</script>
-
-    <script>
-(function () {
-  function $(id) {
-    return document.getElementById(id);
-  }
-
-  function makeWrap(className = "mt-3") {
-    const div = document.createElement("div");
-    div.className = className;
-    return div;
-  }
-
-  function makeGrid() {
-    const div = document.createElement("div");
-    div.className = "grid grid-cols-1 gap-3 sm:grid-cols-2 mt-3";
-    return div;
-  }
-
-  function ensureAIBtn() {
-    const saveBtn = $("saveBtn");
-    if (!saveBtn) return null;
-
-    let aiBtn = $("aiFillBtn");
-    if (!aiBtn) {
-      aiBtn = document.createElement("button");
-      aiBtn.id = "aiFillBtn";
-      aiBtn.className = "mt-3 w-full rounded-xl bg-black px-4 py-3 text-sm font-bold text-white";
-      aiBtn.textContent = "AI 拍攝填寫";
-      saveBtn.parentNode.insertBefore(aiBtn, saveBtn);
-    }
-
-    let aiStatus = $("aiFillStatus");
-    if (!aiStatus) {
-      aiStatus = document.createElement("div");
-      aiStatus.id = "aiFillStatus";
-      aiStatus.className = "mt-2 text-xs text-slate-500";
-      aiBtn.parentNode.insertBefore(aiStatus, saveBtn);
-    }
-
-    aiBtn.textContent = "AI 拍攝填寫";
-    return { aiBtn, aiStatus };
-  }
-
-  function patchAddPageLayout() {
-    const pageAdd = $("pageAdd");
-    if (!pageAdd) return;
-
-    const formCard = pageAdd.querySelector(".kv-surface");
-    if (!formCard) return;
-
-    const header = formCard.querySelector(".flex.items-center.justify-between.mb-4");
-    if (!header) return;
-
-    const aiBits = ensureAIBtn();
-    const aiBtn = aiBits?.aiBtn || $("aiFillBtn");
-    const aiStatus = aiBits?.aiStatus || $("aiFillStatus");
-
-    const name = $("name");
-    const brand = $("brand");
-    const series = $("series");
-    const itemCode = $("itemCode");
-    const price = $("price");
-    const date = $("date");
-    const category = $("category");
-    const location = $("location");
-    const status = $("status");
-    const sourceLink = $("sourceLink");
-    const photo = $("photo");
-    const photoLibrary = $("photoLibrary");
-    const cornerLabel = $("cornerLabel");
-    const cornerLabelColor = $("cornerLabelColor");
-    const note = $("note");
-    const saveBtn = $("saveBtn");
-
-    const brandPresetBlock = $("brandPresetPicker")?.parentElement || null;
-    const seriesPresetBlock = $("seriesPresetPicker")?.parentElement || null;
-    const brandLogoRow = $("brandLogoUrl")?.closest(".grid") || null;
-    const seriesLogoRow = $("seriesLogoUrl")?.closest(".grid") || null;
-    const brandScopeWrap = $("brandLogoScopeWrap") || $("brandLogoScope")?.parentElement || null;
-    const seriesScopeWrap = $("seriesLogoScopeWrap") || $("seriesLogoScope")?.parentElement || null;
-    const saveBrandBtn = $("saveBrandLibBtn");
-    const saveSeriesBtn = $("saveSeriesLibBtn");
-
-    if (!name || !price || !category || !status || !saveBtn) return;
-
-    name.placeholder = "產品名稱";
-    if (sourceLink) sourceLink.placeholder = "購買地方";
-
-    if (photo) {
-      photo.setAttribute("accept", "image/*");
-      photo.setAttribute("capture", "environment");
-      photo.style.display = "none";
-    }
-    if (photoLibrary) {
-      const photoLibraryRow = photoLibrary.closest(".grid") || photoLibrary.parentElement;
-      if (photoLibraryRow) photoLibraryRow.style.display = "none";
-      photoLibrary.style.display = "none";
-    }
-
-    if (formCard.dataset.addLayoutPatched === "1") return;
-    formCard.dataset.addLayoutPatched = "1";
-
-    const newLayout = document.createElement("div");
-    newLayout.id = "patchedAddLayout";
-    newLayout.className = "mt-4";
-
-    const rowName = makeWrap("mt-3");
-    rowName.appendChild(name);
-
-    const rowPriceCategory = makeGrid();
-    rowPriceCategory.appendChild(price);
-    rowPriceCategory.appendChild(category);
-
-    const rowAI = makeWrap("mt-3");
-    if (aiBtn) rowAI.appendChild(aiBtn);
-    if (aiStatus) rowAI.appendChild(aiStatus);
-
-    const rowDateStatus = makeGrid();
-    if (date) rowDateStatus.appendChild(date);
-    rowDateStatus.appendChild(status);
-
-    const rowWhere = makeGrid();
-    if (sourceLink) rowWhere.appendChild(sourceLink);
-    if (location) rowWhere.appendChild(location);
-
-    const rowExtra = makeGrid();
-    if (itemCode) rowExtra.appendChild(itemCode);
-    if (cornerLabel) rowExtra.appendChild(cornerLabel);
-
-    const rowExtra2 = makeGrid();
-    if (cornerLabelColor) rowExtra2.appendChild(cornerLabelColor);
-
-    const rowNote = makeWrap("mt-3");
-    if (note) rowNote.appendChild(note);
-
-    const rowSave = makeWrap("mt-5");
-    rowSave.appendChild(saveBtn);
-
-    const brandSection = document.createElement("div");
-    brandSection.className = "mt-6";
-    brandSection.innerHTML = `
-      <div class="text-xs font-bold tracking-widest uppercase text-slate-500 mb-2">品牌 / Logo</div>
-    `;
-    const brandRow = makeWrap("mt-3");
-    if (brand) brandRow.appendChild(brand);
-    brandSection.appendChild(brandRow);
-    if (brandPresetBlock) brandSection.appendChild(brandPresetBlock);
-    if (brandScopeWrap) brandSection.appendChild(brandScopeWrap);
-    if (brandLogoRow) brandSection.appendChild(brandLogoRow);
-    if (saveBrandBtn) {
-      const brandBtnWrap = makeWrap("mt-3");
-      brandBtnWrap.appendChild(saveBrandBtn);
-      brandSection.appendChild(brandBtnWrap);
-    }
-
-    const seriesSection = document.createElement("div");
-    seriesSection.className = "mt-6";
-    seriesSection.innerHTML = `
-      <div class="text-xs font-bold tracking-widest uppercase text-slate-500 mb-2">系列 / Logo</div>
-    `;
-    const seriesRow = makeWrap("mt-3");
-    if (series) seriesRow.appendChild(series);
-    seriesSection.appendChild(seriesRow);
-    if (seriesPresetBlock) seriesSection.appendChild(seriesPresetBlock);
-    if (seriesScopeWrap) seriesSection.appendChild(seriesScopeWrap);
-    if (seriesLogoRow) seriesSection.appendChild(seriesLogoRow);
-    if (saveSeriesBtn) {
-      const seriesBtnWrap = makeWrap("mt-3");
-      seriesBtnWrap.appendChild(saveSeriesBtn);
-      seriesSection.appendChild(seriesBtnWrap);
-    }
-
-    newLayout.appendChild(rowName);
-    newLayout.appendChild(rowPriceCategory);
-    newLayout.appendChild(rowAI);
-    newLayout.appendChild(rowDateStatus);
-    newLayout.appendChild(rowWhere);
-    newLayout.appendChild(rowExtra);
-    newLayout.appendChild(rowExtra2);
-    newLayout.appendChild(rowNote);
-    newLayout.appendChild(brandSection);
-    newLayout.appendChild(seriesSection);
-    newLayout.appendChild(rowSave);
-
-    const allChildren = Array.from(formCard.children);
-    allChildren.forEach((child) => {
-      if (child !== header && child !== newLayout) {
-        child.style.display = "none";
-      }
-    });
-
-    formCard.appendChild(newLayout);
-  }
-
-  function bindAICameraFlow() {
-    const aiBtn = $("aiFillBtn");
-    const photo = $("photo");
-    const aiStatus = $("aiFillStatus");
-    if (!aiBtn || !photo) return;
-
-    if (aiBtn.dataset.cameraBound === "1") return;
-    aiBtn.dataset.cameraBound = "1";
-
-    document.addEventListener("click", function (e) {
-      const btn = e.target.closest("#aiFillBtn");
-      if (!btn) return;
-
-      if (btn.dataset.runAiNow === "1") {
-        btn.dataset.runAiNow = "";
-        return;
-      }
-
-      e.preventDefault();
-      e.stopImmediatePropagation();
-
-      if (aiStatus) aiStatus.textContent = "請拍攝產品圖片...";
-      photo.click();
-    }, true);
-
-    photo.addEventListener("change", function () {
-      if (!photo.files || !photo.files[0]) return;
-      if (aiStatus) aiStatus.textContent = "拍攝完成，AI 分析中...";
-      aiBtn.dataset.runAiNow = "1";
-      setTimeout(() => aiBtn.click(), 50);
-    });
-  }
-
-  function boot() {
-    patchAddPageLayout();
-    bindAICameraFlow();
-  }
-
-  if (document.readyState === "loading") {
-    document.addEventListener("DOMContentLoaded", boot);
-  } else {
-    boot();
-  }
-
-  document.addEventListener("click", function (e) {
-    if (e.target.closest("#navAddCenter")) {
-      setTimeout(boot, 300);
-      setTimeout(boot, 1000);
-    }
-  });
-})();
-</script>
-
-    <script>
-(function () {
-  function $(id) {
-    return document.getElementById(id);
-  }
-
-  function getItemsSafe() {
-    try {
-      if (Array.isArray(items)) return items;
-    } catch (e) {}
-    return Array.isArray(window.items) ? window.items : [];
-  }
-
-  function setItemsSafe(next) {
-    try {
-      items = next;
-    } catch (e) {}
-    window.items = next;
-  }
-
-  function currentUid() {
-    return window.kuraFirebase?.auth?.currentUser?.uid || "";
-  }
-
-  function ensureCoverUrlUI() {
-    const patchedLayout = $("patchedAddLayout");
-    const saveBtn = $("saveBtn");
-    const note = $("note");
-    if (!patchedLayout || !saveBtn) return;
-
-    if (note) {
-      note.rows = 6;
-      note.style.minHeight = "140px";
-    }
-
-    if ($("coverUrlWrap")) return;
-
-    const wrap = document.createElement("div");
-    wrap.id = "coverUrlWrap";
-    wrap.className = "mt-3";
-
-    wrap.innerHTML = `
-      <label class="text-xs font-bold tracking-widest uppercase text-slate-500 mb-2 block">產品圖片連結</label>
-      <div class="grid grid-cols-1 gap-3 sm:grid-cols-[1fr_auto_auto]">
-        <input
-          id="coverImageUrl"
-          type="url"
-          placeholder="貼上圖片網址，例如 https://..."
-          class="kv-input rounded-xl border border-primary/10 bg-background-light/80 px-4 py-3 text-sm placeholder:text-slate-400 focus:border-primary focus:ring-primary"
-        />
-        <button
-          id="applyCoverUrlBtn"
-          type="button"
-          class="rounded-xl bg-black px-4 py-3 text-sm font-bold text-white"
-        >
-          套用做 Cover
-        </button>
-        <button
-          id="clearCoverUrlBtn"
-          type="button"
-          class="rounded-xl bg-black/5 px-4 py-3 text-sm font-bold"
-        >
-          清除
-        </button>
-      </div>
-      <div id="coverUrlStatus" class="mt-2 text-xs text-slate-500"></div>
-      <div class="mt-3 rounded-xl border border-primary/10 bg-background-light/80 p-3">
-        <div class="text-xs font-bold tracking-widest uppercase text-slate-500 mb-2">Cover 預覽</div>
-        <div class="flex items-center justify-center rounded-xl bg-white/80 border border-primary/10 overflow-hidden min-h-[180px]">
-          <img id="coverUrlPreview" class="max-h-[260px] w-full object-contain hidden" alt="Cover Preview">
-          <div id="coverUrlEmpty" class="text-sm text-slate-400 py-10">未套用圖片連結</div>
-        </div>
-      </div>
-    `;
-
-    const coverPickerWrap = $("coverPickerWrap");
-    if (coverPickerWrap) {
-      coverPickerWrap.insertAdjacentElement("afterend", wrap);
-    } else {
-      saveBtn.parentNode.insertBefore(wrap, saveBtn);
-    }
   }
 
   function setCoverPreview(url) {
     const img = $("coverUrlPreview");
     const empty = $("coverUrlEmpty");
     const status = $("coverUrlStatus");
+    const applied = $("coverImageApplied");
 
-    if (!img || !empty) return;
+    if (!img || !empty || !applied) return;
 
     if (!url) {
       img.src = "";
       img.classList.add("hidden");
       empty.classList.remove("hidden");
-      if (status) status.textContent = "已清除圖片連結";
-      window.__kuraCoverImageUrl = "";
+      applied.value = "";
+      if (status) status.textContent = "未套用圖片";
       return;
     }
 
     img.src = url;
     img.classList.remove("hidden");
     empty.classList.add("hidden");
-    if (status) status.textContent = "已套用圖片連結";
-    window.__kuraCoverImageUrl = url;
+    applied.value = url;
+    if (status) status.textContent = "已套用做 Cover";
   }
 
-  function testImageUrl(url) {
+  async function testImageUrl(url) {
     return new Promise((resolve, reject) => {
       const img = new Image();
       img.onload = () => resolve(true);
@@ -3473,14 +3081,12 @@ window.kuraAI = { ai, autoFillModel };
       alert("請先貼上圖片網址");
       return;
     }
-
     if (!/^https?:\/\//i.test(url)) {
       alert("請輸入完整圖片網址（要有 http 或 https）");
       return;
     }
 
     if (status) status.textContent = "檢查圖片連結中...";
-
     try {
       await testImageUrl(url);
       setCoverPreview(url);
@@ -3492,72 +3098,11 @@ window.kuraAI = { ai, autoFillModel };
   }
 
   function clearCoverUrl() {
-    const input = $("coverImageUrl");
-    if (input) input.value = "";
+    if ($("coverImageUrl")) $("coverImageUrl").value = "";
     setCoverPreview("");
   }
 
-  function newestItemGuess(beforeIds) {
-    const list = getItemsSafe();
-    if (!list.length) return null;
-    for (const item of list) {
-      if (!beforeIds.has(item.id)) return item;
-    }
-    return list[0] || null;
-  }
-
-  async function persistCoverUrlToSavedItem(savedItem) {
-    const coverUrl = window.__kuraCoverImageUrl || "";
-    if (!savedItem || !coverUrl) return;
-
-    savedItem.image = coverUrl;
-
-    const list = getItemsSafe().map(item =>
-      item.id === savedItem.id ? { ...item, image: coverUrl } : item
-    );
-    setItemsSafe(list);
-
-    try {
-      if (typeof save === "function") save();
-    } catch (e) {}
-
-    if (typeof render === "function") render();
-    if (typeof renderProfilePage === "function") renderProfilePage();
-
-    const fb = window.kuraFirebase;
-    const uid = savedItem.ownerUid || currentUid();
-    if (fb && uid && savedItem.id) {
-      try {
-        await fb.setDoc(
-          fb.doc(fb.db, "users", uid, "items", savedItem.id),
-          { image: coverUrl, updatedAt: Date.now() },
-          { merge: true }
-        );
-      } catch (err) {
-        console.error("Cloud cover update failed:", err);
-      }
-    }
-  }
-
-  function patchSaveRecordForCoverUrl() {
-    if (window.__kuraCoverSavePatched) return;
-    window.__kuraCoverSavePatched = true;
-
-    const oldSaveRecord = window.saveRecord;
-    if (typeof oldSaveRecord === "function") {
-      window.saveRecord = async function () {
-        const beforeIds = new Set(getItemsSafe().map(i => i.id));
-        await oldSaveRecord.apply(this, arguments);
-        const savedItem = newestItemGuess(beforeIds);
-        await persistCoverUrlToSavedItem(savedItem);
-      };
-
-      const saveBtn = $("saveBtn");
-      if (saveBtn) saveBtn.onclick = window.saveRecord;
-    }
-  }
-
-  function bindCoverUrlButtons() {
+  function bindCoverButtons() {
     const applyBtn = $("applyCoverUrlBtn");
     const clearBtn = $("clearCoverUrlBtn");
 
@@ -3572,511 +3117,118 @@ window.kuraAI = { ai, autoFillModel };
     }
   }
 
-  function boot() {
-    ensureCoverUrlUI();
-    bindCoverUrlButtons();
-    patchSaveRecordForCoverUrl();
+  async function fileToGenerativePart(file) {
+    const base64EncodedData = await new Promise((resolve) => {
+      const reader = new FileReader();
+      reader.onloadend = () => resolve(reader.result.split(",")[1]);
+      reader.readAsDataURL(file);
+    });
 
-    const note = $("note");
-    if (note) {
-      note.rows = 6;
-      note.style.minHeight = "140px";
-    }
-  }
-
-  if (document.readyState === "loading") {
-    document.addEventListener("DOMContentLoaded", boot);
-  } else {
-    boot();
-  }
-
-  document.addEventListener("click", function (e) {
-    if (e.target.closest("#navAddCenter")) {
-      setTimeout(boot, 300);
-      setTimeout(boot, 1000);
-    }
-  });
-})();
-</script>
-
-    <script>
-(function () {
-  function $(id) {
-    return document.getElementById(id);
-  }
-
-  function getItemsSafe() {
-    try {
-      if (Array.isArray(items)) return items;
-    } catch (e) {}
-    return Array.isArray(window.items) ? window.items : [];
-  }
-
-  function setItemsSafe(next) {
-    try {
-      items = next;
-    } catch (e) {}
-    window.items = next;
-  }
-
-  function currentUid() {
-    return window.kuraFirebase?.auth?.currentUser?.uid || "";
-  }
-
-  function normalize(v) {
-    return String(v ?? "").trim();
-  }
-
-  function snapshotFromForm() {
     return {
-      name: normalize($("name")?.value),
-      brand: normalize($("brand")?.value),
-      series: normalize($("series")?.value),
-      price: normalize($("price")?.value),
-      date: normalize($("date")?.value),
-      category: normalize($("category")?.value),
-      status: normalize($("status")?.value),
-      itemCode: normalize($("itemCode")?.value),
-      location: normalize($("location")?.value)
+      inlineData: {
+        data: base64EncodedData,
+        mimeType: file.type
+      }
     };
   }
 
-  function itemMatchesSnapshot(item, snap) {
-    return (
-      normalize(item?.name) === snap.name &&
-      normalize(item?.brand) === snap.brand &&
-      normalize(item?.series) === snap.series &&
-      normalize(item?.price) === snap.price &&
-      normalize(item?.date) === snap.date &&
-      normalize(item?.category) === snap.category &&
-      normalize(item?.status) === snap.status &&
-      normalize(item?.itemCode) === snap.itemCode &&
-      normalize(item?.location) === snap.location
-    );
-  }
-
-  function itemScore(item) {
-    return Number(item?.updatedAt || item?.createdAt || 0);
-  }
-
-  function findSavedItem(beforeItems, afterItems, snap) {
-    const beforeMap = new Map(beforeItems.map(i => [i.id, i]));
-    const beforeIds = new Set(beforeItems.map(i => i.id));
-
-    const newCandidates = afterItems
-      .filter(i => !beforeIds.has(i.id) && itemMatchesSnapshot(i, snap))
-      .sort((a, b) => itemScore(b) - itemScore(a));
-
-    if (newCandidates.length) return newCandidates[0];
-
-    const editedCandidates = afterItems
-      .filter(i => beforeIds.has(i.id) && itemMatchesSnapshot(i, snap))
-      .filter(i => {
-        const old = beforeMap.get(i.id);
-        return JSON.stringify(old || {}) !== JSON.stringify(i || {});
-      })
-      .sort((a, b) => itemScore(b) - itemScore(a));
-
-    if (editedCandidates.length) return editedCandidates[0];
-
-    const fallback = afterItems
-      .filter(i => itemMatchesSnapshot(i, snap))
-      .sort((a, b) => itemScore(b) - itemScore(a));
-
-    return fallback[0] || null;
-  }
-
-  function ensureCoverPickerAndUrlOrder() {
-    const patchedLayout = $("patchedAddLayout");
-    const aiStatus = $("aiFillStatus");
-    const photoLibrary = $("photoLibrary");
-    const note = $("note");
-    const coverUrlWrap = $("coverUrlWrap");
-
-    if (!patchedLayout) return;
-
-    let coverPickerWrap = $("coverPickerWrap");
-    if (!coverPickerWrap) {
-      coverPickerWrap = document.createElement("div");
-      coverPickerWrap.id = "coverPickerWrap";
-      coverPickerWrap.className = "mt-3";
-      coverPickerWrap.innerHTML = `
-        <label class="text-xs font-bold tracking-widest uppercase text-slate-500 mb-2 block">檔案選擇</label>
-      `;
+  async function runAIAutoFill(file) {
+    const statusEl = $("aiFillStatus");
+    if (!file) {
+      alert("請先拍攝產品圖片");
+      return;
+    }
+    if (!window.kuraAI?.autoFillModel) {
+      alert("AI 未初始化成功");
+      return;
     }
 
-    if (photoLibrary) {
-      photoLibrary.style.display = "";
-      photoLibrary.setAttribute("accept", "image/*");
-      photoLibrary.className =
-        "kv-input w-full rounded-xl border border-primary/10 bg-background-light/80 px-4 py-3 text-sm file:mr-3 file:rounded-lg file:border-0 file:bg-primary file:px-3 file:py-2 file:text-sm file:font-semibold file:text-white";
-      if (!coverPickerWrap.contains(photoLibrary)) {
-        coverPickerWrap.appendChild(photoLibrary);
-      }
-    }
-
-    if (aiStatus && aiStatus.parentNode === patchedLayout) {
-      if (aiStatus.nextSibling !== coverPickerWrap) {
-        aiStatus.insertAdjacentElement("afterend", coverPickerWrap);
-      }
-    } else if (!patchedLayout.contains(coverPickerWrap)) {
-      patchedLayout.insertBefore(coverPickerWrap, patchedLayout.firstChild);
-    }
-
-    if (coverUrlWrap) {
-      coverUrlWrap.className = "mt-3";
-      if (coverPickerWrap.nextSibling !== coverUrlWrap) {
-        coverPickerWrap.insertAdjacentElement("afterend", coverUrlWrap);
-      }
-    }
-
-    if (note) {
-      note.rows = 3;
-      note.style.minHeight = "";
-      note.style.height = "";
-      note.style.width = "100%";
-      note.classList.add("w-full");
-
-      const noteWrap = note.parentElement;
-      if (noteWrap) {
-        noteWrap.className = "mt-3 w-full";
-        if (coverUrlWrap && noteWrap.previousSibling !== coverUrlWrap) {
-          coverUrlWrap.insertAdjacentElement("afterend", noteWrap);
-        }
-      }
-    }
-  }
-
-  async function persistCoverUrlToExactItem(savedItem) {
-    const coverUrl = window.__kuraCoverImageUrl || "";
-    if (!savedItem || !coverUrl) return;
-
-    const list = getItemsSafe().map(item =>
-      item.id === savedItem.id ? { ...item, image: coverUrl } : item
-    );
-    setItemsSafe(list);
+    statusEl.textContent = "AI 分析中...";
 
     try {
-      if (typeof save === "function") save();
-    } catch (e) {}
+      const imagePart = await fileToGenerativePart(file);
+      const prompt = [
+        "你是模型收藏資料整理助手。",
+        "請根據圖片內容，盡量判斷並回傳 JSON。",
+        "規則：",
+        "- name: 產品名稱，盡量完整",
+        "- brand: 品牌 / 廠商",
+        "- series: 系列 / 作品",
+        "- category: 例如 高達、PVC、景品、Figure、Nendoroid、SHF",
+        "- status: 只可用以下其中一個：未開封、已開封、展示中、未取貨、已售出、願望清單",
+        "- note: 用 1 至 2 句簡短描述你點判斷",
+        "如果不確定，欄位可留空，但一定要輸出合法 JSON。"
+      ].join("\n");
 
-    if (typeof render === "function") render();
-    if (typeof renderProfilePage === "function") renderProfilePage();
+      const result = await window.kuraAI.autoFillModel.generateContent([prompt, imagePart]);
+      const text = result.response.text();
+      const data = JSON.parse(text);
 
-    const fb = window.kuraFirebase;
-    const ownerUid = savedItem.ownerUid || currentUid();
+      if ($("name") && data.name) $("name").value = data.name;
+      if ($("brand") && data.brand) $("brand").value = data.brand;
+      if ($("series") && data.series) $("series").value = data.series;
+      if ($("category") && data.category) $("category").value = data.category;
+      if ($("status") && data.status) $("status").value = data.status;
+      if ($("note") && data.note) $("note").value = data.note;
 
-    if (fb && ownerUid && savedItem.id) {
-      try {
-        await fb.setDoc(
-          fb.doc(fb.db, "users", ownerUid, "items", savedItem.id),
-          { image: coverUrl, updatedAt: Date.now() },
-          { merge: true }
-        );
-      } catch (err) {
-        console.error("Cloud cover update failed:", err);
-      }
-    }
-
-    const status = $("coverUrlStatus");
-    if (status) status.textContent = "已套用到目前儲存的產品 Cover";
-  }
-
-  function patchSaveRecordForCorrectCover() {
-    if (window.__kuraCoverSavePatchedV2) return;
-    window.__kuraCoverSavePatchedV2 = true;
-
-    const oldSaveRecord = window.saveRecord;
-    if (typeof oldSaveRecord !== "function") return;
-
-    window.saveRecord = async function () {
-      const beforeItems = [...getItemsSafe()];
-      const snap = snapshotFromForm();
-
-      await oldSaveRecord.apply(this, arguments);
-
-      const afterItems = [...getItemsSafe()];
-      const savedItem = findSavedItem(beforeItems, afterItems, snap);
-
-      await persistCoverUrlToExactItem(savedItem);
-    };
-
-    const saveBtn = $("saveBtn");
-    if (saveBtn) saveBtn.onclick = window.saveRecord;
-  }
-
-  function boot() {
-    ensureCoverPickerAndUrlOrder();
-    patchSaveRecordForCorrectCover();
-  }
-
-  if (document.readyState === "loading") {
-    document.addEventListener("DOMContentLoaded", boot);
-  } else {
-    boot();
-  }
-
-  document.addEventListener("click", function (e) {
-    if (e.target.closest("#navAddCenter")) {
-      setTimeout(boot, 300);
-      setTimeout(boot, 1000);
-    }
-  });
-})();
-</script>
-
-<script>
-(function () {
-  function $(id) {
-    return document.getElementById(id);
-  }
-
-  function moveAfter(target, node) {
-    if (!target || !node || target === node) return;
-    target.insertAdjacentElement("afterend", node);
-  }
-
-  function findNoteBlock(note) {
-    if (!note) return null;
-
-    let el = note.parentElement;
-    while (el) {
-      const hasLabel = !!el.querySelector("label");
-      const hasNote = !!el.querySelector("#note");
-      if (hasLabel && hasNote) return el;
-      el = el.parentElement;
-    }
-
-    return note.parentElement;
-  }
-
-  function fixNoteBackToOwnLabel() {
-    const layout = $("patchedAddLayout");
-    const note = $("note");
-    const coverUrlWrap = $("coverUrlWrap");
-    if (!layout || !note) return;
-
-    const noteBlock = findNoteBlock(note);
-    if (!noteBlock) return;
-
-    // 備註欄保持原本高度，只係闊度用盡
-    note.rows = 3;
-    note.style.minHeight = "";
-    note.style.height = "";
-    note.style.width = "100%";
-    note.classList.add("w-full");
-
-    noteBlock.className = "mt-3 w-full";
-
-    // 備註整個區塊放返去 cover 區下面
-    if (coverUrlWrap) {
-      moveAfter(coverUrlWrap, noteBlock);
+      statusEl.textContent = "AI 已填入建議資料，請手動確認。";
+    } catch (err) {
+      console.error(err);
+      statusEl.textContent = "AI 讀圖失敗";
+      alert(err.message || "AI 讀圖失敗");
+    } finally {
+      if ($("photo")) $("photo").value = "";
     }
   }
 
-  function boot() {
-    fixNoteBackToOwnLabel();
-  }
-
-  if (document.readyState === "loading") {
-    document.addEventListener("DOMContentLoaded", boot);
-  } else {
-    boot();
-  }
-
-  document.addEventListener("click", function (e) {
-    if (e.target.closest("#navAddCenter")) {
-      setTimeout(boot, 300);
-      setTimeout(boot, 1000);
-    }
-  });
-})();
-</script>
-
-    <script>
-(function () {
-  let observerStarted = false;
-
-  function $(id) {
-    return document.getElementById(id);
-  }
-
-  function ensureMediaLayout() {
-    const layout = $("patchedAddLayout");
-    if (!layout) return;
-
+  function bindAICamera() {
     const aiBtn = $("aiFillBtn");
-    const aiStatus = $("aiFillStatus");
-    const photoLibrary = $("photoLibrary");
-    const note = $("note");
+    const photo = $("photo");
+    const status = $("aiFillStatus");
+    if (!aiBtn || !photo) return;
 
-    if (!aiBtn || !photoLibrary || !note) return;
-
-    const anchor = aiStatus || aiBtn;
-
-    // ===== 1) 建立固定的媒體區 =====
-    let mediaBlock = $("fixedMediaBlock");
-    if (!mediaBlock) {
-      mediaBlock = document.createElement("div");
-      mediaBlock.id = "fixedMediaBlock";
-      mediaBlock.className = "mt-3";
-      anchor.insertAdjacentElement("afterend", mediaBlock);
-    } else {
-      anchor.insertAdjacentElement("afterend", mediaBlock);
+    if (!aiBtn.dataset.bound) {
+      aiBtn.dataset.bound = "1";
+      aiBtn.addEventListener("click", () => {
+        if (status) status.textContent = "請拍攝產品圖片...";
+        photo.click();
+      });
     }
 
-    // ===== 2) 檔案選擇 =====
-    let fileWrap = $("fixedFileWrap");
-    if (!fileWrap) {
-      fileWrap = document.createElement("div");
-      fileWrap.id = "fixedFileWrap";
-      fileWrap.className = "mt-3";
-      fileWrap.innerHTML = `
-        <label class="text-xs font-bold tracking-widest uppercase text-slate-500 mb-2 block">檔案選擇</label>
-      `;
-      mediaBlock.appendChild(fileWrap);
-    }
-
-    // 強制把 photoLibrary 搬入固定區
-    if (!fileWrap.contains(photoLibrary)) {
-      fileWrap.appendChild(photoLibrary);
-    }
-
-    photoLibrary.style.display = "";
-    photoLibrary.hidden = false;
-    photoLibrary.classList.remove("hidden");
-    photoLibrary.setAttribute("accept", "image/*");
-    photoLibrary.className =
-      "kv-input w-full rounded-xl border border-primary/10 bg-background-light/80 px-4 py-3 text-sm file:mr-3 file:rounded-lg file:border-0 file:bg-primary file:px-3 file:py-2 file:text-sm file:font-semibold file:text-white";
-
-    // ===== 3) 產品圖片連結區搬到檔案選擇下面 =====
-    const coverUrlWrap = $("coverUrlWrap");
-    if (coverUrlWrap) {
-      coverUrlWrap.className = "mt-3";
-      if (coverUrlWrap.parentNode !== mediaBlock) {
-        mediaBlock.appendChild(coverUrlWrap);
-      } else {
-        mediaBlock.appendChild(coverUrlWrap);
-      }
-    }
-
-    // ===== 4) 備註固定區 =====
-    let noteBlock = $("fixedNoteBlock");
-    if (!noteBlock) {
-      noteBlock = document.createElement("div");
-      noteBlock.id = "fixedNoteBlock";
-      noteBlock.className = "mt-3 w-full";
-      noteBlock.innerHTML = `
-        <label class="text-xs font-bold tracking-widest uppercase text-slate-500 mb-2 block">備註</label>
-      `;
-      mediaBlock.insertAdjacentElement("afterend", noteBlock);
-    } else {
-      mediaBlock.insertAdjacentElement("afterend", noteBlock);
-    }
-
-    if (!noteBlock.contains(note)) {
-      noteBlock.appendChild(note);
-    }
-
-    note.style.display = "";
-    note.hidden = false;
-    note.classList.remove("hidden");
-    note.classList.add("w-full");
-    note.style.width = "100%";
-    note.style.minHeight = "";
-    note.style.height = "";
-    // 高度保持原本，不再放大
-    if (!note.getAttribute("rows")) {
-      note.setAttribute("rows", "3");
-    }
-
-    // ===== 5) 把舊位置的包裝器隱藏，避免重複 =====
-    hideOldContainers(photoLibrary, note, mediaBlock, noteBlock);
-  }
-
-  function hideOldContainers(photoLibrary, note, mediaBlock, noteBlock) {
-    // 隱藏舊 file row
-    const oldFileRow = photoLibrary.closest(".grid");
-    if (oldFileRow && oldFileRow !== mediaBlock && !mediaBlock.contains(oldFileRow)) {
-      oldFileRow.style.display = "none";
-    }
-
-    // 如果 note 原本有舊包裝器，而且唔係新 noteBlock，就隱藏
-    let old = note.parentElement;
-    while (old && old !== document.body) {
-      if (old === noteBlock) break;
-      if (old.id === "patchedAddLayout") break;
-      if (old.querySelector && old.querySelector("#note") && old !== noteBlock) {
-        old.style.display = "none";
-      }
-      old = old.parentElement;
+    if (!photo.dataset.bound) {
+      photo.dataset.bound = "1";
+      photo.addEventListener("change", async () => {
+        const file = photo.files?.[0];
+        if (!file) return;
+        await runAIAutoFill(file);
+      });
     }
   }
 
-  function keepAlive() {
-    const photoLibrary = $("photoLibrary");
-    const note = $("note");
-    if (photoLibrary) {
-      photoLibrary.style.display = "";
-      photoLibrary.hidden = false;
-      photoLibrary.classList.remove("hidden");
-    }
-    if (note) {
-      note.style.display = "";
-      note.hidden = false;
-      note.classList.remove("hidden");
-      note.classList.add("w-full");
-      note.style.width = "100%";
-      note.style.minHeight = "";
-      note.style.height = "";
-    }
-    ensureMediaLayout();
+  function setupAddPage() {
+    bindCoverButtons();
+    bindAICamera();
+    if (!$("coverImageApplied")) return;
+    if (!$("coverImageApplied").value) setCoverPreview("");
   }
 
-  function startObserver() {
-    if (observerStarted) return;
-    observerStarted = true;
-
-    const target = document.body;
-    if (!target) return;
-
-    const obs = new MutationObserver(() => {
-      keepAlive();
-    });
-
-    obs.observe(target, {
-      childList: true,
-      subtree: true,
-      attributes: true,
-      attributeFilter: ["style", "class", "hidden"]
-    });
-  }
-
-  function boot() {
-    ensureMediaLayout();
-    keepAlive();
-    startObserver();
-
-    let count = 0;
-    const timer = setInterval(() => {
-      keepAlive();
-      count += 1;
-      if (count > 20) clearInterval(timer);
-    }, 800);
-  }
+  window.setCoverPreview = setCoverPreview;
+  window.resetCoverPreview = clearCoverUrl;
 
   if (document.readyState === "loading") {
-    document.addEventListener("DOMContentLoaded", boot);
+    document.addEventListener("DOMContentLoaded", setupAddPage);
   } else {
-    boot();
+    setupAddPage();
   }
 
   document.addEventListener("click", function (e) {
     if (e.target.closest("#navAddCenter")) {
-      setTimeout(boot, 300);
-      setTimeout(boot, 1000);
+      setTimeout(setupAddPage, 300);
     }
   });
 })();
 </script>
+
+
+</body>
 </html>
