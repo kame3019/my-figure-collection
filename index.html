@@ -197,6 +197,29 @@
             min-height: max(884px, 100dvh);
         }
     </style>
+    <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+
+    <style>
+        .detail-backdrop {
+            backdrop-filter: blur(10px);
+        }
+        .detail-scroll::-webkit-scrollbar {
+            display: none;
+        }
+        .detail-scroll {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+        .share-style-active {
+            background: #fb923c !important;
+            color: #fff !important;
+            border-color: rgba(251,146,60,.35) !important;
+        }
+        .detail-safe-bottom {
+            padding-bottom: max(1rem, env(safe-area-inset-bottom));
+        }
+    </style>
+
 </head>
 <body class="bg-background-light font-display text-slate-900 washi-texture">
     <div class="relative flex min-h-screen flex-col overflow-x-hidden pb-24">
@@ -588,6 +611,121 @@
                 </div>
             </section>
         </main>
+
+
+        <div id="itemDetailModal" class="hidden fixed inset-0 z-[90] bg-black/45 detail-backdrop">
+            <div class="absolute inset-0" onclick="closeItemDetail()"></div>
+            <div class="absolute inset-x-0 bottom-0 max-h-[94vh] rounded-t-[2rem] bg-background-light kv-surface detail-safe-bottom overflow-hidden">
+                <div class="detail-scroll max-h-[94vh] overflow-y-auto px-4 pt-4 pb-6">
+                    <div class="flex items-center justify-between">
+                        <button onclick="closeItemDetail()" class="rounded-full bg-black/5 px-4 py-3 text-sm font-bold">取消</button>
+                        <div class="flex items-center gap-2">
+                            <button id="detailShareBtn" class="size-12 rounded-full bg-black/5 flex items-center justify-center">
+                                <span class="material-symbols-outlined">ios_share</span>
+                            </button>
+                            <button id="detailCloseBtnTop" onclick="closeItemDetail()" class="size-12 rounded-full bg-black/5 flex items-center justify-center">
+                                <span class="material-symbols-outlined">close</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div id="detailImageWrap" class="mt-4 rounded-[1.5rem] overflow-hidden border border-primary/10 bg-white/70">
+                        <div id="detailImage" class="aspect-[4/5] w-full bg-center bg-cover"></div>
+                    </div>
+
+                    <div class="mt-4 grid grid-cols-2 gap-3 text-sm">
+                        <div class="rounded-2xl border border-primary/10 bg-white/70 px-4 py-3">
+                            <div class="text-xs uppercase tracking-widest text-slate-400">分類</div>
+                            <div id="detailCategory" class="mt-2 font-bold">-</div>
+                        </div>
+                        <div class="rounded-2xl border border-primary/10 bg-white/70 px-4 py-3">
+                            <div class="text-xs uppercase tracking-widest text-slate-400">狀態</div>
+                            <div id="detailStatus" class="mt-2 font-bold">-</div>
+                        </div>
+                    </div>
+
+                    <div class="mt-4 rounded-[1.5rem] border border-primary/10 bg-white/70 p-5">
+                        <div class="flex items-start justify-between gap-4">
+                            <div>
+                                <div id="detailCornerLabel" class="inline-flex rounded-xl bg-emerald-400/85 px-3 py-1 text-xs font-bold text-white"></div>
+                                <h2 id="detailName" class="mt-3 text-2xl font-bold leading-tight">未命名收藏</h2>
+                                <p id="detailBrandSeries" class="mt-2 text-sm text-slate-500"></p>
+                            </div>
+                            <div id="detailLogos" class="flex flex-wrap justify-end gap-2"></div>
+                        </div>
+
+                        <div class="mt-5 grid grid-cols-2 gap-4 border-t border-black/10 pt-5 text-sm">
+                            <div>
+                                <div class="text-xs uppercase tracking-widest text-slate-400">Price</div>
+                                <div id="detailPrice" class="mt-2 text-xl font-bold text-primary">$0</div>
+                            </div>
+                            <div>
+                                <div class="text-xs uppercase tracking-widest text-slate-400">Date</div>
+                                <div id="detailDate" class="mt-2 text-xl font-bold">-</div>
+                            </div>
+                            <div>
+                                <div class="text-xs uppercase tracking-widest text-slate-400">Barcode / Code</div>
+                                <div id="detailCode" class="mt-2 text-lg font-bold break-all">-</div>
+                            </div>
+                            <div>
+                                <div class="text-xs uppercase tracking-widest text-slate-400">Location</div>
+                                <div id="detailLocation" class="mt-2 text-lg font-bold">-</div>
+                            </div>
+                        </div>
+
+                        <div class="mt-5 border-t border-black/10 pt-5">
+                            <div class="text-xs uppercase tracking-widest text-slate-400">購買地方</div>
+                            <div id="detailSource" class="mt-2 text-base font-semibold">-</div>
+                        </div>
+
+                        <div class="mt-5 border-t border-black/10 pt-5">
+                            <div class="text-xs uppercase tracking-widest text-slate-400">備註</div>
+                            <div id="detailNote" class="mt-2 text-base leading-relaxed text-slate-700">-</div>
+                        </div>
+                    </div>
+
+                    <div class="mt-5 grid grid-cols-3 gap-3">
+                        <button id="detailDeleteBtn" class="rounded-2xl bg-rose-500 px-4 py-4 text-base font-bold text-white">刪除</button>
+                        <button id="detailEditBtn" class="rounded-2xl bg-emerald-500 px-4 py-4 text-base font-bold text-white">編輯</button>
+                        <button id="detailShareBtnBottom" class="rounded-2xl bg-orange-500 px-4 py-4 text-base font-bold text-white">分享</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="shareCardModal" class="hidden fixed inset-0 z-[95] bg-black/45 detail-backdrop">
+            <div class="absolute inset-0" onclick="closeShareCard()"></div>
+            <div class="absolute inset-x-0 bottom-0 max-h-[94vh] rounded-t-[2rem] bg-background-light kv-surface detail-safe-bottom overflow-hidden">
+                <div class="detail-scroll max-h-[94vh] overflow-y-auto px-4 pt-4 pb-6">
+                    <div class="flex items-center justify-between">
+                        <button onclick="closeShareCard()" class="rounded-full bg-black/5 px-4 py-3 text-sm font-bold">取消</button>
+                        <h3 class="text-2xl font-bold">分享卡片</h3>
+                        <button onclick="closeShareCard()" class="rounded-full bg-black/5 px-4 py-3 text-sm font-bold">完成</button>
+                    </div>
+
+                    <div class="mt-4 rounded-[2rem] border border-primary/10 bg-white/70 p-4">
+                        <div id="shareCardPreviewHost" class="mx-auto max-w-[380px]"></div>
+                    </div>
+
+                    <div class="mt-6">
+                        <div class="text-sm font-bold text-slate-500 mb-3">選擇版型</div>
+                        <div class="grid grid-cols-4 gap-3">
+                            <button class="shareStyleBtn rounded-2xl border border-primary/10 bg-white/70 px-2 py-3 text-center text-sm font-semibold" data-share-style="classic">經典</button>
+                            <button class="shareStyleBtn rounded-2xl border border-primary/10 bg-white/70 px-2 py-3 text-center text-sm font-semibold" data-share-style="polaroid">拍立得</button>
+                            <button class="shareStyleBtn rounded-2xl border border-primary/10 bg-white/70 px-2 py-3 text-center text-sm font-semibold" data-share-style="magazine">雜誌</button>
+                            <button class="shareStyleBtn rounded-2xl border border-primary/10 bg-white/70 px-2 py-3 text-center text-sm font-semibold" data-share-style="minimal">極簡</button>
+                        </div>
+                    </div>
+
+                    <div class="mt-6 grid grid-cols-2 gap-4">
+                        <button id="downloadShareBtn" class="rounded-[1.5rem] bg-black/20 px-5 py-5 text-lg font-bold text-slate-800">儲存圖片</button>
+                        <button id="nativeShareBtn" class="rounded-[1.5rem] bg-orange-500 px-5 py-5 text-lg font-bold text-white">分享</button>
+                    </div>
+                    <div id="shareStatus" class="mt-3 text-center text-xs text-slate-500"></div>
+                </div>
+            </div>
+        </div>
+
 
         <nav class="fixed bottom-0 left-0 right-0 z-50 bg-background-light/90 backdrop-blur-xl border-t border-primary/10 px-6 pt-3 pb-8">
             <div class="flex items-center justify-between max-w-md mx-auto">
@@ -1092,7 +1230,7 @@
             const label = labelConfig(item, index);
 
             return `
-                <div class="flex gap-4 p-3 kv-surface rounded-xl bg-white border border-slate-100 shadow-sm">
+                <div class="flex gap-4 p-3 kv-surface rounded-xl bg-white border border-slate-100 shadow-sm cursor-pointer transition hover:border-primary/20" data-detail-open="1" data-item-id="${item.id}">
                     <div class="relative w-24 h-24 rounded-lg overflow-hidden shrink-0 kv-artframe bg-white bg-center bg-cover" style="background-image:url('${item.image || makeDefaultImage(item.name || "Figure")}')">
                         ${item.cornerLabel ? `<div class="absolute top-1 left-1 ${label.classes} text-[8px] font-bold py-1 px-[3px] vertical-text tracking-widest uppercase rounded-sm">${label.text}</div>` : ""}
                     </div>
@@ -1111,8 +1249,8 @@
                         </div>
 
                         <div class="mt-2 flex gap-2">
-                            <button class="flex-1 rounded-lg bg-black/5 px-3 py-2 text-xs font-semibold" onclick="editItem('${item.id}')">修改</button>
-                            <button class="flex-1 rounded-lg bg-black/5 px-3 py-2 text-xs font-semibold" onclick="deleteItem('${item.id}')">刪除</button>
+                            <button class="flex-1 rounded-lg bg-black/5 px-3 py-2 text-xs font-semibold" onclick="event.stopPropagation(); editItem('${item.id}')">修改</button>
+                            <button class="flex-1 rounded-lg bg-black/5 px-3 py-2 text-xs font-semibold" onclick="event.stopPropagation(); deleteItem('${item.id}')">刪除</button>
                         </div>
                     </div>
                 </div>
@@ -1140,7 +1278,7 @@
                 list.innerHTML = arr.map((item, index) => {
                     const label = labelConfig(item, index);
                     return `
-                        <div class="kv-surface rounded-xl bg-white border border-slate-100 shadow-sm overflow-hidden">
+                        <div class="kv-surface rounded-xl bg-white border border-slate-100 shadow-sm overflow-hidden cursor-pointer transition hover:border-primary/20" data-detail-open="1" data-item-id="${item.id}">
                             <div class="aspect-square w-full kv-artframe kv-artframe bg-white bg-center bg-cover relative" style="background-image:url('${item.image || makeDefaultImage(item.name || "Figure")}')">
                                 <div class="absolute top-3 left-3 ${label.classes} text-[10px] font-bold py-2 px-1 vertical-text uppercase tracking-widest rounded-sm">${label.text}</div>
                             </div>
@@ -1153,8 +1291,8 @@
                                     <span class="text-xs text-slate-400">${item.date || ""}</span>
                                 </div>
                                 <div class="mt-3 flex gap-2">
-                                    <button class="flex-1 rounded-lg bg-black/5 px-3 py-2 text-xs font-semibold" onclick="editItem('${item.id}')">修改</button>
-                                    <button class="flex-1 rounded-lg bg-black/5 px-3 py-2 text-xs font-semibold" onclick="deleteItem('${item.id}')">刪除</button>
+                                    <button class="flex-1 rounded-lg bg-black/5 px-3 py-2 text-xs font-semibold" onclick="event.stopPropagation(); editItem('${item.id}')">修改</button>
+                                    <button class="flex-1 rounded-lg bg-black/5 px-3 py-2 text-xs font-semibold" onclick="event.stopPropagation(); deleteItem('${item.id}')">刪除</button>
                                 </div>
                             </div>
                         </div>
@@ -1166,7 +1304,7 @@
             if (mode === "compact") {
                 list.className = "space-y-3";
                 list.innerHTML = arr.map(item => `
-                    <div class="flex items-center gap-3 p-3 kv-surface rounded-xl bg-white border border-slate-100 shadow-sm">
+                    <div class="flex items-center gap-3 p-3 kv-surface rounded-xl bg-white border border-slate-100 shadow-sm cursor-pointer transition hover:border-primary/20" data-detail-open="1" data-item-id="${item.id}">
                         <div class="h-20 w-20 rounded-lg kv-artframe bg-white bg-center bg-cover shrink-0" style="background-image:url('${item.image || makeDefaultImage(item.name || "Figure")}')"></div>
                         <div class="flex-1 min-w-0">
                             <div class="font-bold truncate">${item.name || "未命名收藏"}</div>
@@ -1174,23 +1312,23 @@
                             ${renderItemLogos(item, "small")}
                             <div class="text-primary font-bold mt-2">${money(item.price)}</div>
                         </div>
-                        <button class="rounded-lg bg-black/5 px-3 py-2 text-xs font-semibold" onclick="editItem('${item.id}')">修改</button>
+                        <button class="rounded-lg bg-black/5 px-3 py-2 text-xs font-semibold" onclick="event.stopPropagation(); editItem('${item.id}')">修改</button>
                     </div>
                 `).join("");
                 return;
             }
 
             if (mode === "wall") {
-                list.className = "grid grid-cols-2 gap-3";
+                list.className = "grid grid-cols-3 sm:grid-cols-4 gap-2";
                 list.innerHTML = arr.map((item, index) => {
                     const label = labelConfig(item, index);
                     return `
-                        <div class="rounded-xl overflow-hidden bg-white border border-slate-100 shadow-sm">
-                            <div class="h-32 kv-artframe kv-artframe bg-white bg-center bg-cover relative" style="background-image:url('${item.image || makeDefaultImage(item.name || "Figure")}')">
+                        <div class="rounded-xl overflow-hidden bg-white border border-slate-100 shadow-sm cursor-pointer transition hover:border-primary/20" data-detail-open="1" data-item-id="${item.id}">
+                            <div class="h-28 sm:h-32 kv-artframe kv-artframe bg-white bg-center bg-cover relative" style="background-image:url('${item.image || makeDefaultImage(item.name || "Figure")}')">
                                 <div class="absolute top-2 left-2 ${label.classes} text-[8px] font-bold py-1 px-[3px] vertical-text tracking-widest uppercase rounded-sm">${label.text}</div>
                             </div>
                             <div class="p-3">
-                                <div class="text-sm font-bold leading-tight">${item.name || "未命名收藏"}</div>
+                                <div class="text-[12px] font-bold leading-tight line-clamp-2">${item.name || "未命名收藏"}</div>
                                 ${renderItemLogos(item, "small")}
                                 <div class="text-primary text-xs font-bold mt-1">${money(item.price)}</div>
                             </div>
@@ -3229,6 +3367,441 @@
 })();
 </script>
 
+
+
+<script>
+(function () {
+  function safeItems() {
+    try { if (Array.isArray(items)) return items; } catch (e) {}
+    return Array.isArray(window.items) ? window.items : [];
+  }
+
+  function findItem(id) {
+    return safeItems().find(item => item.id === id);
+  }
+
+  function labelClass(item) {
+    const cfg = typeof labelConfig === "function" ? labelConfig(item, 0) : null;
+    return cfg && item.cornerLabel ? cfg.classes : "";
+  }
+
+  function logoPills(item) {
+    const pills = [];
+    if (item.brandLogo || item.brand) {
+      pills.push(`
+        <div class="inline-flex items-center gap-2 rounded-full border border-primary/10 bg-white/80 px-3 py-2">
+          ${item.brandLogo ? `<img src="${item.brandLogo}" class="h-7 w-7 rounded-full object-contain bg-white">` : ""}
+          <span class="text-sm font-semibold">${item.brand || "品牌"}</span>
+        </div>
+      `);
+    }
+    if (item.seriesLogo || item.series) {
+      pills.push(`
+        <div class="inline-flex items-center gap-2 rounded-full border border-primary/10 bg-white/80 px-3 py-2">
+          ${item.seriesLogo ? `<img src="${item.seriesLogo}" class="h-7 w-7 rounded-full object-contain bg-white">` : ""}
+          <span class="text-sm font-semibold">${item.series || "系列"}</span>
+        </div>
+      `);
+    }
+    return pills.join("");
+  }
+
+  function renderDetail(item) {
+    const image = item.image || (typeof makeDefaultImage === "function" ? makeDefaultImage(item.name || "Figure") : "");
+    document.getElementById("detailImage").style.backgroundImage = `url('${image}')`;
+    document.getElementById("detailCategory").textContent = item.category || "其他";
+    document.getElementById("detailStatus").textContent = item.status || "-";
+    document.getElementById("detailName").textContent = item.name || "未命名收藏";
+    document.getElementById("detailBrandSeries").textContent = [item.brand, item.series].filter(Boolean).join(" • ") || "未填品牌 / 系列";
+    document.getElementById("detailLogos").innerHTML = logoPills(item);
+    document.getElementById("detailPrice").textContent = typeof money === "function" ? money(item.price) : `$${item.price || 0}`;
+    document.getElementById("detailDate").textContent = item.date || "-";
+    document.getElementById("detailCode").textContent = item.itemCode || "-";
+    document.getElementById("detailLocation").textContent = item.location || "-";
+    document.getElementById("detailSource").textContent = item.sourceLink || "-";
+    document.getElementById("detailNote").textContent = item.note || "未有備註";
+    const label = document.getElementById("detailCornerLabel");
+    if (item.cornerLabel) {
+      label.textContent = item.cornerLabel;
+      label.className = `inline-flex rounded-xl px-3 py-1 text-xs font-bold text-white ${labelClass(item) || "bg-emerald-400/85"}`;
+      label.style.display = "inline-flex";
+    } else {
+      label.style.display = "none";
+    }
+    document.getElementById("detailEditBtn").onclick = function () {
+      closeItemDetail();
+      if (typeof editItem === "function") editItem(item.id);
+    };
+    document.getElementById("detailDeleteBtn").onclick = function () {
+      if (confirm("確定刪除呢件展品？")) {
+        closeItemDetail();
+        if (typeof deleteItem === "function") deleteItem(item.id);
+      }
+    };
+    document.getElementById("detailShareBtn").onclick = function () { openShareCard(item.id); };
+    document.getElementById("detailShareBtnBottom").onclick = function () { openShareCard(item.id); };
+  }
+
+  let currentDetailId = null;
+  let currentShareStyle = "classic";
+
+  window.openItemDetail = function (id) {
+    const item = findItem(id);
+    if (!item) return;
+    currentDetailId = id;
+    renderDetail(item);
+    document.getElementById("itemDetailModal").classList.remove("hidden");
+    document.body.classList.add("overflow-hidden");
+  };
+
+  window.closeItemDetail = function () {
+    document.getElementById("itemDetailModal").classList.add("hidden");
+    if (document.getElementById("shareCardModal").classList.contains("hidden")) {
+      document.body.classList.remove("overflow-hidden");
+    }
+  };
+
+  function shareCardMarkup(item, style) {
+    const image = item.image || (typeof makeDefaultImage === "function" ? makeDefaultImage(item.name || "Figure") : "");
+    const code = item.itemCode || "—";
+    const date = item.date || "—";
+    const category = item.category || "其他";
+    const title = item.name || "未命名收藏";
+
+    if (style === "polaroid") {
+      return `
+        <div id="shareCardCanvas" class="mx-auto w-[320px] rounded-[1.5rem] bg-white p-4 shadow-xl">
+          <div class="overflow-hidden rounded-[1rem] border border-black/10 bg-white">
+            <img src="${image}" class="h-[360px] w-full object-cover">
+          </div>
+          <div class="mt-4 flex items-center justify-between">
+            <div>
+              <div class="inline-flex rounded-full bg-orange-100 px-3 py-1 text-xs font-bold text-orange-600">${category}</div>
+              <div class="mt-3 text-2xl font-bold leading-tight">${title}</div>
+            </div>
+            <div class="text-right text-sm">
+              <div class="text-slate-400">DATE</div>
+              <div class="font-bold">${date}</div>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    if (style === "magazine") {
+      return `
+        <div id="shareCardCanvas" class="mx-auto w-[320px] overflow-hidden rounded-[1.5rem] bg-[#f7f4ef] shadow-xl">
+          <div class="px-5 pt-5 text-[11px] font-bold uppercase tracking-[0.2em] text-slate-500">Kura Archive / Editorial</div>
+          <img src="${image}" class="mt-4 h-[300px] w-full object-cover">
+          <div class="px-5 py-5">
+            <div class="text-xs font-bold uppercase tracking-widest text-orange-500">${category}</div>
+            <div class="mt-2 text-[28px] font-black leading-none">${title}</div>
+            <div class="mt-4 grid grid-cols-2 gap-4 text-sm">
+              <div><div class="text-slate-400">Barcode</div><div class="mt-1 font-bold">${code}</div></div>
+              <div><div class="text-slate-400">Date</div><div class="mt-1 font-bold">${date}</div></div>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    if (style === "minimal") {
+      return `
+        <div id="shareCardCanvas" class="mx-auto w-[320px] overflow-hidden rounded-[1.5rem] bg-white shadow-xl">
+          <img src="${image}" class="h-[280px] w-full object-cover">
+          <div class="px-5 py-5">
+            <div class="text-xs uppercase tracking-widest text-slate-400">${category}</div>
+            <div class="mt-2 text-2xl font-bold leading-tight">${title}</div>
+            <div class="mt-4 flex items-center justify-between text-sm">
+              <div><div class="text-slate-400">CODE</div><div class="font-bold">${code}</div></div>
+              <div class="text-right"><div class="text-slate-400">DATE</div><div class="font-bold">${date}</div></div>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    return `
+      <div id="shareCardCanvas" class="mx-auto w-[320px] overflow-hidden rounded-[1.5rem] bg-black text-white shadow-xl">
+        <img src="${image}" class="h-[300px] w-full object-cover">
+        <div class="px-4 py-4">
+          <div class="inline-flex rounded-lg bg-emerald-400 px-3 py-1 text-sm font-bold text-white">${category}</div>
+          <div class="mt-3 text-[22px] font-black leading-tight">${title}</div>
+          <div class="mt-5 grid grid-cols-2 gap-5 border-t border-white/20 pt-4 text-sm">
+            <div><div class="text-white/60 uppercase tracking-widest text-[10px]">Barcode</div><div class="mt-1 font-bold text-xl">${code}</div></div>
+            <div class="text-right"><div class="text-white/60 uppercase tracking-widest text-[10px]">Date</div><div class="mt-1 font-bold text-xl">${date}</div></div>
+          </div>
+          <div class="mt-5 flex items-center justify-between text-sm text-white/80">
+            <div class="font-semibold">Kura Archive</div>
+            <div>收藏分享卡</div>
+          </div>
+        </div>
+      </div>
+    `;
+  }
+
+  function renderSharePreview() {
+    const item = findItem(currentDetailId);
+    if (!item) return;
+    document.getElementById("shareCardPreviewHost").innerHTML = shareCardMarkup(item, currentShareStyle);
+    document.querySelectorAll(".shareStyleBtn").forEach(btn => {
+      btn.classList.toggle("share-style-active", btn.dataset.shareStyle === currentShareStyle);
+    });
+  }
+
+  window.openShareCard = function (id) {
+    currentDetailId = id || currentDetailId;
+    renderSharePreview();
+    document.getElementById("shareCardModal").classList.remove("hidden");
+    document.body.classList.add("overflow-hidden");
+  };
+
+  window.closeShareCard = function () {
+    document.getElementById("shareCardModal").classList.add("hidden");
+    if (document.getElementById("itemDetailModal").classList.contains("hidden")) {
+      document.body.classList.remove("overflow-hidden");
+    }
+  };
+
+  async function exportShareCanvas(action) {
+    const node = document.getElementById("shareCardCanvas");
+    const status = document.getElementById("shareStatus");
+    if (!node || !window.html2canvas) {
+      status.textContent = "分享卡未準備好";
+      return;
+    }
+    status.textContent = "生成圖片中...";
+    try {
+      const canvas = await window.html2canvas(node, { scale: 2, backgroundColor: null, useCORS: true });
+      const blob = await new Promise(resolve => canvas.toBlob(resolve, "image/png"));
+      const file = new File([blob], "kura-share-card.png", { type: "image/png" });
+
+      if (action === "share" && navigator.canShare && navigator.canShare({ files: [file] })) {
+        await navigator.share({ files: [file], title: "Kura Archive Share Card" });
+        status.textContent = "已開啟分享";
+        return;
+      }
+
+      const a = document.createElement("a");
+      a.href = URL.createObjectURL(blob);
+      a.download = "kura-share-card.png";
+      a.click();
+      setTimeout(() => URL.revokeObjectURL(a.href), 1500);
+      status.textContent = action === "share" ? "此裝置不支援直接分享，已改為下載圖片" : "已儲存圖片";
+    } catch (err) {
+      console.error(err);
+      status.textContent = "生成失敗";
+      alert(err.message || "生成分享卡失敗");
+    }
+  }
+
+  document.addEventListener("click", function (e) {
+    const card = e.target.closest("[data-detail-open='1']");
+    if (card) {
+      const id = card.getAttribute("data-item-id");
+      if (id) openItemDetail(id);
+      return;
+    }
+
+    const styleBtn = e.target.closest(".shareStyleBtn");
+    if (styleBtn) {
+      currentShareStyle = styleBtn.dataset.shareStyle;
+      renderSharePreview();
+      return;
+    }
+
+    if (e.target.closest("#downloadShareBtn")) {
+      exportShareCanvas("download");
+      return;
+    }
+
+    if (e.target.closest("#nativeShareBtn")) {
+      exportShareCanvas("share");
+      return;
+    }
+  });
+})();
+</script>
+
+
+<script>
+(function () {
+  function $(id) { return document.getElementById(id); }
+
+  function createToolsSheet() {
+    if ($("toolsSheetBackdrop")) return;
+
+    const backdrop = document.createElement("div");
+    backdrop.id = "toolsSheetBackdrop";
+    backdrop.className = "hidden fixed inset-0 z-[85] bg-black/35 backdrop-blur-sm";
+
+    const sheet = document.createElement("div");
+    sheet.id = "toolsSheet";
+    sheet.className = "fixed inset-x-0 bottom-0 z-[90] hidden rounded-t-[2rem] border border-primary/10 bg-background-light shadow-2xl";
+
+    sheet.innerHTML = `
+      <div class="mx-auto w-full max-w-md px-6 pt-4 pb-8">
+        <div class="mx-auto mb-4 h-1.5 w-12 rounded-full bg-black/10"></div>
+        <div class="mb-4 flex items-center justify-between">
+          <div>
+            <h3 class="text-lg font-bold">功能面板</h3>
+            <p class="mt-1 text-xs uppercase tracking-widest text-slate-500">Display • Filters • Actions</p>
+          </div>
+          <button id="closeToolsSheetBtn" class="size-10 rounded-full bg-black/5 flex items-center justify-center">
+            <span class="material-symbols-outlined">close</span>
+          </button>
+        </div>
+
+        <div class="space-y-5 max-h-[75vh] overflow-y-auto no-scrollbar pr-1">
+          <div>
+            <div class="mb-2 text-xs font-bold uppercase tracking-widest text-slate-500">搜尋</div>
+            <div id="toolsSearchSlot"></div>
+          </div>
+
+          <div>
+            <div class="mb-2 text-xs font-bold uppercase tracking-widest text-slate-500">篩選</div>
+            <div id="toolsCategorySlot" class="mb-3"></div>
+            <div id="toolsFilterSlot"></div>
+          </div>
+
+          <div>
+            <div class="mb-2 text-xs font-bold uppercase tracking-widest text-slate-500">顯示模式</div>
+            <div id="toolsDisplaySlot"></div>
+          </div>
+
+          <div>
+            <div class="mb-2 text-xs font-bold uppercase tracking-widest text-slate-500">管理</div>
+            <div class="grid grid-cols-1 gap-3">
+              <button id="toolsCategoryManagerBtn" class="rounded-2xl border border-primary/10 bg-white/70 px-4 py-4 text-left">
+                <div class="font-bold">分類管理</div>
+                <div class="mt-1 text-xs text-slate-500">固定分類 / 自訂分類</div>
+              </button>
+              <button id="toolsBulkDeleteBtn" class="rounded-2xl border border-primary/10 bg-white/70 px-4 py-4 text-left">
+                <div class="font-bold">多項目刪除</div>
+                <div class="mt-1 text-xs text-slate-500">批次刪除目前畫面項目</div>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    `;
+
+    document.body.appendChild(backdrop);
+    document.body.appendChild(sheet);
+
+    $("closeToolsSheetBtn").onclick = closeToolsSheet;
+    backdrop.onclick = closeToolsSheet;
+
+    $("toolsCategoryManagerBtn").onclick = function() {
+      alert("下一步會整合分類管理到功能面板。");
+    };
+    $("toolsBulkDeleteBtn").onclick = function() {
+      alert("下一步會整合多項目刪除模式。");
+    };
+  }
+
+  function moveIntoSheet() {
+    createToolsSheet();
+
+    const searchSection = $("searchInput")?.closest("section");
+    const categorySection = $("categoryChips")?.closest("section");
+    const sortSection = $("sortSelect")?.closest("section");
+    const modeSection = document.querySelector(".modeBtn")?.closest("section");
+
+    const searchNode = $("searchInput")?.parentElement || null;
+    const categoryNode = $("categoryChips") || null;
+    const filterNode = $("sortSelect")?.parentElement || null;
+    const displayNode = document.querySelector(".modeBtn")?.parentElement || null;
+
+    if (searchNode && $("toolsSearchSlot") && searchNode.parentElement !== $("toolsSearchSlot")) {
+      $("toolsSearchSlot").appendChild(searchNode);
+    }
+    if (categoryNode && $("toolsCategorySlot") && categoryNode.parentElement !== $("toolsCategorySlot")) {
+      $("toolsCategorySlot").appendChild(categoryNode);
+    }
+    if (filterNode && $("toolsFilterSlot") && filterNode.parentElement !== $("toolsFilterSlot")) {
+      $("toolsFilterSlot").appendChild(filterNode);
+    }
+    if (displayNode && $("toolsDisplaySlot") && displayNode.parentElement !== $("toolsDisplaySlot")) {
+      $("toolsDisplaySlot").appendChild(displayNode);
+    }
+
+    [searchSection, categorySection, sortSection, modeSection].forEach(sec => {
+      if (sec) {
+        sec.style.display = "none";
+        sec.classList.add("hidden");
+      }
+    });
+  }
+
+  function openToolsSheet() {
+    if (typeof showPage === "function") {
+      showPage("pageCollection");
+    }
+    if (typeof setActiveNav === "function") {
+      setActiveNav(view === "wishlist" ? "wishlist" : "collection");
+    }
+
+    moveIntoSheet();
+
+    const backdrop = $("toolsSheetBackdrop");
+    const sheet = $("toolsSheet");
+    if (backdrop) backdrop.classList.remove("hidden");
+    if (sheet) sheet.classList.remove("hidden");
+    document.body.classList.add("overflow-hidden");
+  }
+
+  function closeToolsSheet() {
+    const backdrop = $("toolsSheetBackdrop");
+    const sheet = $("toolsSheet");
+    if (backdrop) backdrop.classList.add("hidden");
+    if (sheet) sheet.classList.add("hidden");
+    document.body.classList.remove("overflow-hidden");
+  }
+
+  function patchHeaderButton() {
+    const btn = $("headerSearchBtn");
+    if (!btn) return;
+
+    const icon = btn.querySelector(".material-symbols-outlined");
+    if (icon) icon.textContent = "tune";
+    btn.onclick = function() {
+      openToolsSheet();
+    };
+  }
+
+  function removeArchiveOverview() {
+    const title = $("overviewTitle");
+    if (!title) return;
+    const wrap = title.parentElement;
+    if (wrap) wrap.style.display = "none";
+    const section = wrap?.parentElement;
+    if (section) {
+      section.classList.remove("py-6");
+      section.classList.add("pt-6", "pb-2");
+    }
+  }
+
+  function boot() {
+    patchHeaderButton();
+    removeArchiveOverview();
+    createToolsSheet();
+    moveIntoSheet();
+  }
+
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", boot);
+  } else {
+    boot();
+  }
+
+  document.addEventListener("click", function (e) {
+    if (e.target.closest("#navCollection") || e.target.closest("#navWishlist")) {
+      setTimeout(moveIntoSheet, 300);
+    }
+  });
+})();
+</script>
 
 </body>
 </html>
