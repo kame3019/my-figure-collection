@@ -3892,4 +3892,191 @@ window.kuraAI = { ai, autoFillModel };
   });
 })();
 </script>
+
+    <script>
+(function () {
+  let observerStarted = false;
+
+  function $(id) {
+    return document.getElementById(id);
+  }
+
+  function ensureMediaLayout() {
+    const layout = $("patchedAddLayout");
+    if (!layout) return;
+
+    const aiBtn = $("aiFillBtn");
+    const aiStatus = $("aiFillStatus");
+    const photoLibrary = $("photoLibrary");
+    const note = $("note");
+
+    if (!aiBtn || !photoLibrary || !note) return;
+
+    const anchor = aiStatus || aiBtn;
+
+    // ===== 1) 建立固定的媒體區 =====
+    let mediaBlock = $("fixedMediaBlock");
+    if (!mediaBlock) {
+      mediaBlock = document.createElement("div");
+      mediaBlock.id = "fixedMediaBlock";
+      mediaBlock.className = "mt-3";
+      anchor.insertAdjacentElement("afterend", mediaBlock);
+    } else {
+      anchor.insertAdjacentElement("afterend", mediaBlock);
+    }
+
+    // ===== 2) 檔案選擇 =====
+    let fileWrap = $("fixedFileWrap");
+    if (!fileWrap) {
+      fileWrap = document.createElement("div");
+      fileWrap.id = "fixedFileWrap";
+      fileWrap.className = "mt-3";
+      fileWrap.innerHTML = `
+        <label class="text-xs font-bold tracking-widest uppercase text-slate-500 mb-2 block">檔案選擇</label>
+      `;
+      mediaBlock.appendChild(fileWrap);
+    }
+
+    // 強制把 photoLibrary 搬入固定區
+    if (!fileWrap.contains(photoLibrary)) {
+      fileWrap.appendChild(photoLibrary);
+    }
+
+    photoLibrary.style.display = "";
+    photoLibrary.hidden = false;
+    photoLibrary.classList.remove("hidden");
+    photoLibrary.setAttribute("accept", "image/*");
+    photoLibrary.className =
+      "kv-input w-full rounded-xl border border-primary/10 bg-background-light/80 px-4 py-3 text-sm file:mr-3 file:rounded-lg file:border-0 file:bg-primary file:px-3 file:py-2 file:text-sm file:font-semibold file:text-white";
+
+    // ===== 3) 產品圖片連結區搬到檔案選擇下面 =====
+    const coverUrlWrap = $("coverUrlWrap");
+    if (coverUrlWrap) {
+      coverUrlWrap.className = "mt-3";
+      if (coverUrlWrap.parentNode !== mediaBlock) {
+        mediaBlock.appendChild(coverUrlWrap);
+      } else {
+        mediaBlock.appendChild(coverUrlWrap);
+      }
+    }
+
+    // ===== 4) 備註固定區 =====
+    let noteBlock = $("fixedNoteBlock");
+    if (!noteBlock) {
+      noteBlock = document.createElement("div");
+      noteBlock.id = "fixedNoteBlock";
+      noteBlock.className = "mt-3 w-full";
+      noteBlock.innerHTML = `
+        <label class="text-xs font-bold tracking-widest uppercase text-slate-500 mb-2 block">備註</label>
+      `;
+      mediaBlock.insertAdjacentElement("afterend", noteBlock);
+    } else {
+      mediaBlock.insertAdjacentElement("afterend", noteBlock);
+    }
+
+    if (!noteBlock.contains(note)) {
+      noteBlock.appendChild(note);
+    }
+
+    note.style.display = "";
+    note.hidden = false;
+    note.classList.remove("hidden");
+    note.classList.add("w-full");
+    note.style.width = "100%";
+    note.style.minHeight = "";
+    note.style.height = "";
+    // 高度保持原本，不再放大
+    if (!note.getAttribute("rows")) {
+      note.setAttribute("rows", "3");
+    }
+
+    // ===== 5) 把舊位置的包裝器隱藏，避免重複 =====
+    hideOldContainers(photoLibrary, note, mediaBlock, noteBlock);
+  }
+
+  function hideOldContainers(photoLibrary, note, mediaBlock, noteBlock) {
+    // 隱藏舊 file row
+    const oldFileRow = photoLibrary.closest(".grid");
+    if (oldFileRow && oldFileRow !== mediaBlock && !mediaBlock.contains(oldFileRow)) {
+      oldFileRow.style.display = "none";
+    }
+
+    // 如果 note 原本有舊包裝器，而且唔係新 noteBlock，就隱藏
+    let old = note.parentElement;
+    while (old && old !== document.body) {
+      if (old === noteBlock) break;
+      if (old.id === "patchedAddLayout") break;
+      if (old.querySelector && old.querySelector("#note") && old !== noteBlock) {
+        old.style.display = "none";
+      }
+      old = old.parentElement;
+    }
+  }
+
+  function keepAlive() {
+    const photoLibrary = $("photoLibrary");
+    const note = $("note");
+    if (photoLibrary) {
+      photoLibrary.style.display = "";
+      photoLibrary.hidden = false;
+      photoLibrary.classList.remove("hidden");
+    }
+    if (note) {
+      note.style.display = "";
+      note.hidden = false;
+      note.classList.remove("hidden");
+      note.classList.add("w-full");
+      note.style.width = "100%";
+      note.style.minHeight = "";
+      note.style.height = "";
+    }
+    ensureMediaLayout();
+  }
+
+  function startObserver() {
+    if (observerStarted) return;
+    observerStarted = true;
+
+    const target = document.body;
+    if (!target) return;
+
+    const obs = new MutationObserver(() => {
+      keepAlive();
+    });
+
+    obs.observe(target, {
+      childList: true,
+      subtree: true,
+      attributes: true,
+      attributeFilter: ["style", "class", "hidden"]
+    });
+  }
+
+  function boot() {
+    ensureMediaLayout();
+    keepAlive();
+    startObserver();
+
+    let count = 0;
+    const timer = setInterval(() => {
+      keepAlive();
+      count += 1;
+      if (count > 20) clearInterval(timer);
+    }, 800);
+  }
+
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", boot);
+  } else {
+    boot();
+  }
+
+  document.addEventListener("click", function (e) {
+    if (e.target.closest("#navAddCenter")) {
+      setTimeout(boot, 300);
+      setTimeout(boot, 1000);
+    }
+  });
+})();
+</script>
 </html>
