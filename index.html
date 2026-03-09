@@ -3598,4 +3598,230 @@ window.kuraAI = { ai, autoFillModel };
   });
 })();
 </script>
+
+    <script>
+(function () {
+  function $(id) {
+    return document.getElementById(id);
+  }
+
+  function getItemsSafe() {
+    try {
+      if (Array.isArray(items)) return items;
+    } catch (e) {}
+    return Array.isArray(window.items) ? window.items : [];
+  }
+
+  function setItemsSafe(next) {
+    try {
+      items = next;
+    } catch (e) {}
+    window.items = next;
+  }
+
+  function currentUid() {
+    return window.kuraFirebase?.auth?.currentUser?.uid || "";
+  }
+
+  function normalize(v) {
+    return String(v ?? "").trim();
+  }
+
+  function snapshotFromForm() {
+    return {
+      name: normalize($("name")?.value),
+      brand: normalize($("brand")?.value),
+      series: normalize($("series")?.value),
+      price: normalize($("price")?.value),
+      date: normalize($("date")?.value),
+      category: normalize($("category")?.value),
+      status: normalize($("status")?.value),
+      itemCode: normalize($("itemCode")?.value),
+      location: normalize($("location")?.value)
+    };
+  }
+
+  function itemMatchesSnapshot(item, snap) {
+    return (
+      normalize(item?.name) === snap.name &&
+      normalize(item?.brand) === snap.brand &&
+      normalize(item?.series) === snap.series &&
+      normalize(item?.price) === snap.price &&
+      normalize(item?.date) === snap.date &&
+      normalize(item?.category) === snap.category &&
+      normalize(item?.status) === snap.status &&
+      normalize(item?.itemCode) === snap.itemCode &&
+      normalize(item?.location) === snap.location
+    );
+  }
+
+  function itemScore(item) {
+    return Number(item?.updatedAt || item?.createdAt || 0);
+  }
+
+  function findSavedItem(beforeItems, afterItems, snap) {
+    const beforeMap = new Map(beforeItems.map(i => [i.id, i]));
+    const beforeIds = new Set(beforeItems.map(i => i.id));
+
+    const newCandidates = afterItems
+      .filter(i => !beforeIds.has(i.id) && itemMatchesSnapshot(i, snap))
+      .sort((a, b) => itemScore(b) - itemScore(a));
+
+    if (newCandidates.length) return newCandidates[0];
+
+    const editedCandidates = afterItems
+      .filter(i => beforeIds.has(i.id) && itemMatchesSnapshot(i, snap))
+      .filter(i => {
+        const old = beforeMap.get(i.id);
+        return JSON.stringify(old || {}) !== JSON.stringify(i || {});
+      })
+      .sort((a, b) => itemScore(b) - itemScore(a));
+
+    if (editedCandidates.length) return editedCandidates[0];
+
+    const fallback = afterItems
+      .filter(i => itemMatchesSnapshot(i, snap))
+      .sort((a, b) => itemScore(b) - itemScore(a));
+
+    return fallback[0] || null;
+  }
+
+  function ensureCoverPickerAndUrlOrder() {
+    const patchedLayout = $("patchedAddLayout");
+    const aiStatus = $("aiFillStatus");
+    const photoLibrary = $("photoLibrary");
+    const note = $("note");
+    const coverUrlWrap = $("coverUrlWrap");
+
+    if (!patchedLayout) return;
+
+    let coverPickerWrap = $("coverPickerWrap");
+    if (!coverPickerWrap) {
+      coverPickerWrap = document.createElement("div");
+      coverPickerWrap.id = "coverPickerWrap";
+      coverPickerWrap.className = "mt-3";
+      coverPickerWrap.innerHTML = `
+        <label class="text-xs font-bold tracking-widest uppercase text-slate-500 mb-2 block">檔案選擇</label>
+      `;
+    }
+
+    if (photoLibrary) {
+      photoLibrary.style.display = "";
+      photoLibrary.setAttribute("accept", "image/*");
+      photoLibrary.className =
+        "kv-input w-full rounded-xl border border-primary/10 bg-background-light/80 px-4 py-3 text-sm file:mr-3 file:rounded-lg file:border-0 file:bg-primary file:px-3 file:py-2 file:text-sm file:font-semibold file:text-white";
+      if (!coverPickerWrap.contains(photoLibrary)) {
+        coverPickerWrap.appendChild(photoLibrary);
+      }
+    }
+
+    if (aiStatus && aiStatus.parentNode === patchedLayout) {
+      if (aiStatus.nextSibling !== coverPickerWrap) {
+        aiStatus.insertAdjacentElement("afterend", coverPickerWrap);
+      }
+    } else if (!patchedLayout.contains(coverPickerWrap)) {
+      patchedLayout.insertBefore(coverPickerWrap, patchedLayout.firstChild);
+    }
+
+    if (coverUrlWrap) {
+      coverUrlWrap.className = "mt-3";
+      if (coverPickerWrap.nextSibling !== coverUrlWrap) {
+        coverPickerWrap.insertAdjacentElement("afterend", coverUrlWrap);
+      }
+    }
+
+    if (note) {
+      note.rows = 3;
+      note.style.minHeight = "";
+      note.style.height = "";
+      note.style.width = "100%";
+      note.classList.add("w-full");
+
+      const noteWrap = note.parentElement;
+      if (noteWrap) {
+        noteWrap.className = "mt-3 w-full";
+        if (coverUrlWrap && noteWrap.previousSibling !== coverUrlWrap) {
+          coverUrlWrap.insertAdjacentElement("afterend", noteWrap);
+        }
+      }
+    }
+  }
+
+  async function persistCoverUrlToExactItem(savedItem) {
+    const coverUrl = window.__kuraCoverImageUrl || "";
+    if (!savedItem || !coverUrl) return;
+
+    const list = getItemsSafe().map(item =>
+      item.id === savedItem.id ? { ...item, image: coverUrl } : item
+    );
+    setItemsSafe(list);
+
+    try {
+      if (typeof save === "function") save();
+    } catch (e) {}
+
+    if (typeof render === "function") render();
+    if (typeof renderProfilePage === "function") renderProfilePage();
+
+    const fb = window.kuraFirebase;
+    const ownerUid = savedItem.ownerUid || currentUid();
+
+    if (fb && ownerUid && savedItem.id) {
+      try {
+        await fb.setDoc(
+          fb.doc(fb.db, "users", ownerUid, "items", savedItem.id),
+          { image: coverUrl, updatedAt: Date.now() },
+          { merge: true }
+        );
+      } catch (err) {
+        console.error("Cloud cover update failed:", err);
+      }
+    }
+
+    const status = $("coverUrlStatus");
+    if (status) status.textContent = "已套用到目前儲存的產品 Cover";
+  }
+
+  function patchSaveRecordForCorrectCover() {
+    if (window.__kuraCoverSavePatchedV2) return;
+    window.__kuraCoverSavePatchedV2 = true;
+
+    const oldSaveRecord = window.saveRecord;
+    if (typeof oldSaveRecord !== "function") return;
+
+    window.saveRecord = async function () {
+      const beforeItems = [...getItemsSafe()];
+      const snap = snapshotFromForm();
+
+      await oldSaveRecord.apply(this, arguments);
+
+      const afterItems = [...getItemsSafe()];
+      const savedItem = findSavedItem(beforeItems, afterItems, snap);
+
+      await persistCoverUrlToExactItem(savedItem);
+    };
+
+    const saveBtn = $("saveBtn");
+    if (saveBtn) saveBtn.onclick = window.saveRecord;
+  }
+
+  function boot() {
+    ensureCoverPickerAndUrlOrder();
+    patchSaveRecordForCorrectCover();
+  }
+
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", boot);
+  } else {
+    boot();
+  }
+
+  document.addEventListener("click", function (e) {
+    if (e.target.closest("#navAddCenter")) {
+      setTimeout(boot, 300);
+      setTimeout(boot, 1000);
+    }
+  });
+})();
+</script>
 </html>
