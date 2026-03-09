@@ -239,6 +239,61 @@
   #itemDetailModal .detail-scroll{max-height:90vh!important;}
 }
 </style>
+
+<style id="detail-popup-v11-patch-2">
+/* stronger popup layering + closer to reference card */
+#itemDetailModal{padding:18px;backdrop-filter:saturate(1.05);}
+#itemDetailModal > .absolute.inset-0{z-index:0!important;pointer-events:auto!important;}
+#itemDetailModal > .absolute.left-1\/2.top-1\/2{
+  z-index:5!important;
+  pointer-events:auto!important;
+  width:min(88vw,560px)!important;
+  max-height:min(86vh,860px)!important;
+  border-radius:28px!important;
+  border:1px solid rgba(140,93,57,.10)!important;
+  background:rgba(247,244,239,.98)!important;
+  box-shadow:0 24px 80px rgba(0,0,0,.24)!important;
+  overflow:hidden!important;
+}
+#itemDetailModal .detail-scroll{
+  position:relative!important;
+  z-index:1!important;
+  max-height:min(86vh,860px)!important;
+  overflow-y:auto!important;
+  padding:0 18px 20px!important;
+}
+#itemDetailModal .detail-scroll > .sticky{
+  position:sticky!important;
+  top:0!important;
+  z-index:20!important;
+  margin:0 -18px 10px!important;
+  padding:14px 18px 12px!important;
+  background:rgba(247,244,239,.98)!important;
+  border-bottom:1px solid rgba(140,93,57,.08)!important;
+  backdrop-filter:blur(10px)!important;
+  pointer-events:auto!important;
+}
+#itemDetailModal .detail-scroll > .sticky *{pointer-events:auto!important;}
+#itemDetailModal .detail-scroll > .sticky button{
+  position:relative!important;
+  z-index:21!important;
+  pointer-events:auto!important;
+  cursor:pointer!important;
+  touch-action:manipulation!important;
+}
+#itemDetailModal #detailImageWrap{
+  margin-top:8px!important;
+  transform:none!important;
+  pointer-events:none!important;
+}
+#itemDetailModal #detailImageWrap *{pointer-events:none!important;}
+@media (max-width:640px){
+  #itemDetailModal{padding:12px!important;}
+  #itemDetailModal > .absolute.left-1\/2.top-1\/2{width:min(94vw,560px)!important;max-height:88vh!important;border-radius:24px!important;}
+  #itemDetailModal .detail-scroll{max-height:88vh!important;padding:0 14px 18px!important;}
+  #itemDetailModal .detail-scroll > .sticky{margin:0 -14px 8px!important;padding:12px 14px 10px!important;}
+}
+</style>
 </head>
 <body class="bg-background-light font-display text-slate-900 washi-texture">
 <div class="relative flex min-h-screen flex-col overflow-x-hidden pb-24">
@@ -4798,82 +4853,53 @@
 
   function patchDetailHeaderClick(){
     const modal = $('itemDetailModal');
-    if(!modal || modal.dataset.topbarPatched==='1') return;
-    const scroll = modal.querySelector('.detail-scroll');
-    const topBar = scroll && scroll.querySelector('.sticky');
-    if(!scroll || !topBar) return;
+    if(!modal || modal.dataset.topbarPatched==='2') return;
+    const popup = modal.querySelector('.absolute.left-1\/2.top-1\/2') || modal.children[1];
+    const topBar = modal.querySelector('.detail-scroll > .sticky');
+    if(!popup || !topBar) return;
 
-    topBar.style.position = 'sticky';
-    topBar.style.top = '0';
-    topBar.style.zIndex = '260';
+    popup.style.zIndex = '5';
+    popup.style.pointerEvents = 'auto';
+    topBar.style.zIndex = '20';
     topBar.style.pointerEvents = 'auto';
-    topBar.style.isolation = 'isolate';
 
-    // keep the original visible top bar, only harden click handling
-    const shareTop = topBar.querySelector('#detailShareBtn');
-    const closeTop = topBar.querySelector('#detailCloseBtnTop');
-    const buttons = topBar.querySelectorAll('button');
-    topBar.addEventListener('click', function(ev){ ev.stopPropagation(); }, true);
-    buttons.forEach(btn => {
+    const bind = (btn, handler) => {
+      if(!btn || btn.dataset.clickBound==='1') return;
       btn.type = 'button';
+      btn.dataset.clickBound='1';
       btn.style.pointerEvents = 'auto';
       btn.style.position = 'relative';
-      btn.style.zIndex = '261';
-      btn.style.touchAction = 'manipulation';
-    });
-    if(shareTop){
-      shareTop.addEventListener('click', function(ev){
-        ev.preventDefault();
-        ev.stopPropagation();
-        if(window.currentDetailId) window.openShareCard?.(window.currentDetailId);
-      });
-    }
-    if(closeTop){
-      closeTop.addEventListener('click', function(ev){
-        ev.preventDefault();
-        ev.stopPropagation();
-        window.closeItemDetail?.();
-      });
-    }
-    const cancelTop = Array.from(topBar.querySelectorAll('button')).find(btn => (btn.textContent||'').trim().includes('取消'));
-    if(cancelTop){
-      cancelTop.addEventListener('click', function(ev){
-        ev.preventDefault();
-        ev.stopPropagation();
-        window.closeItemDetail?.();
-      });
-    }
+      btn.style.zIndex = '21';
+      const run = function(ev){ ev.preventDefault(); ev.stopPropagation(); handler(); };
+      btn.onclick = run;
+      btn.addEventListener('click', run, true);
+      btn.addEventListener('pointerdown', function(ev){ ev.stopPropagation(); }, true);
+      btn.addEventListener('touchstart', function(ev){ ev.stopPropagation(); }, {capture:true, passive:true});
+    };
 
-    modal.dataset.topbarPatched='1';
+    const shareTop = topBar.querySelector('#detailShareBtn');
+    const closeTop = topBar.querySelector('#detailCloseBtnTop');
+    const cancelTop = Array.from(topBar.querySelectorAll('button')).find(btn => (btn.textContent||'').trim().includes('取消'));
+
+    bind(shareTop, function(){
+      if(typeof openShareCard === 'function') openShareCard(currentDetailId);
+    });
+    bind(closeTop, function(){ window.closeItemDetail?.(); });
+    bind(cancelTop, function(){ window.closeItemDetail?.(); });
+
+    modal.dataset.topbarPatched='2';
   }
 
   function strengthenDetailLayers(){
     const style = document.createElement('style');
     style.textContent = `
       #itemDetailModal > .absolute.inset-0{z-index:0!important}
-      #itemDetailModal > .absolute.inset-x-0.bottom-0{z-index:2!important}
-      #itemDetailModal .detail-scroll > .sticky, #itemDetailModal .detail-scroll > .sticky *{pointer-events:auto!important}
-      #itemDetailModal .detail-scroll > .sticky{
-        position:sticky!important;
-        top:0!important;
-        z-index:260!important;
-        isolation:isolate;
-        background:var(--color-background-light,#fdfcf0)!important;
-        padding-top:4px!important;
-        padding-bottom:6px!important;
-      }
-      #itemDetailModal .detail-scroll{position:relative; z-index:1; padding-top:0!important;}
-      #itemDetailModal .detail-scroll > :not(.sticky){position:relative; z-index:1!important;}
-      #itemDetailModal .detail-scroll > .sticky button{cursor:pointer!important;}
-      #itemDetailModal #detailImageWrap{
-        pointer-events:none!important;
-        margin-top:16px!important;
-        transform:scale(.94)!important;
-        transform-origin:top center!important;
-      }
-      #itemDetailModal #detailImageWrap *{pointer-events:none!important}
-      #itemDetailModal #detailImage{min-height:0!important;}
-      #itemDetailModal .detail-scroll > :not(.sticky):first-of-type{margin-top:16px!important}
+      #itemDetailModal > .absolute.left-1\/2.top-1\/2{z-index:5!important; pointer-events:auto!important}
+      #itemDetailModal .detail-scroll{position:relative; z-index:1!important;}
+      #itemDetailModal .detail-scroll > .sticky{z-index:20!important; pointer-events:auto!important}
+      #itemDetailModal .detail-scroll > .sticky *{pointer-events:auto!important}
+      #itemDetailModal .detail-scroll > .sticky button{cursor:pointer!important}
+      #itemDetailModal #detailImageWrap, #itemDetailModal #detailImageWrap *{pointer-events:none!important}
     `;
     document.head.appendChild(style);
   }
