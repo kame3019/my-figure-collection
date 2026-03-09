@@ -3718,6 +3718,7 @@
 })();
 </script>
 
+<script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.3/Sortable.min.js"></script>
 <script>
 (function(){
   const MATERIAL_ICON_LIBRARY = [{"id": "checkroom", "label": "Checkroom", "zh": "衣櫥"}, {"id": "weekend", "label": "Weekend", "zh": "場景"}, {"id": "hiking", "label": "Hiking", "zh": "戶外"}, {"id": "steps", "label": "Shoes", "zh": "鞋款"}, {"id": "watch", "label": "Watch", "zh": "手錶"}, {"id": "ramen_dining", "label": "Japanese Curry", "zh": "日式咖喱"}, {"id": "restaurant", "label": "Restaurant", "zh": "餐廳"}, {"id": "menu_book", "label": "Menu Book", "zh": "書本 / 菜單"}, {"id": "pets", "label": "Pets", "zh": "寵物"}, {"id": "shopping_bag", "label": "Shopping Bag", "zh": "購物袋"}, {"id": "face", "label": "Face", "zh": "人物"}, {"id": "fastfood", "label": "Fastfood", "zh": "快餐 / 食物"}, {"id": "stadia_controller", "label": "Stadia Controller", "zh": "遊戲控制器"}, {"id": "devices", "label": "Devices", "zh": "數碼產品"}, {"id": "electrical_services", "label": "Electrical Services", "zh": "電器"}, {"id": "local_activity", "label": "Admission", "zh": "門票 / 活動"}, {"id": "star", "label": "Star", "zh": "星級 / 收藏"}, {"id": "toys", "label": "Toys", "zh": "玩具"}, {"id": "directions_car", "label": "Car", "zh": "汽車模型"}, {"id": "flight", "label": "Flight", "zh": "飛機"}, {"id": "directions_boat", "label": "Boat", "zh": "船舶"}, {"id": "train", "label": "Train", "zh": "火車"}, {"id": "two_wheeler", "label": "Motorcycle", "zh": "機車"}, {"id": "category", "label": "Category", "zh": "其他"}, {"id": "extension", "label": "Blocks", "zh": "積木"}];
@@ -3737,7 +3738,9 @@
   let fixedCategories = [];
   let customCategories = [];
   let enabledFixedCategoryIds = [];
+  let orderedCategoryKeys = [];
   let categoryEditorState = null;
+  let categoryGridSortable = null;
 
   function fb(){ return window.kuraFirebase || null; }
   function $(id){ return document.getElementById(id); }
@@ -3768,10 +3771,32 @@
     if(!api||!uid) return false;
     try { const snap=await api.getDoc(api.doc(api.db,'admins',uid)); return snap.exists(); } catch(e){ return false; }
   }
+  function categoryOrderKey(cat){
+    const scope = cat._scope || cat.scope || (fixedCategories.some(x=>x.id===cat.id) ? 'fixed' : 'custom');
+    return `${scope}:${cat.id}`;
+  }
+  function refreshOrderedCategoryKeys(){
+    const active = [
+      ...fixedCategories.filter(c => enabledFixedCategoryIds.includes(c.id) && c.isActive !== false).map(c=>({ ...c, _scope:'fixed' })),
+      ...customCategories.filter(c => c.enabled !== false).map(c=>({ ...c, _scope:'custom' }))
+    ];
+    const activeKeys = active.map(categoryOrderKey);
+    orderedCategoryKeys = [
+      ...orderedCategoryKeys.filter(key => activeKeys.includes(key)),
+      ...activeKeys.filter(key => !orderedCategoryKeys.includes(key))
+    ];
+  }
   function getCombinedCategories(){
-    const fixedEnabled = fixedCategories.filter(c => enabledFixedCategoryIds.includes(c.id) && c.isActive !== false);
-    const customEnabled = customCategories.filter(c => c.enabled !== false);
-    return [...fixedEnabled, ...customEnabled].sort((a,b)=>(a.sortOrder??0)-(b.sortOrder??0) || (a.name||'').localeCompare(b.name||''));
+    const fixedEnabled = fixedCategories.filter(c => enabledFixedCategoryIds.includes(c.id) && c.isActive !== false).map(c=>({ ...c, _scope:'fixed' }));
+    const customEnabled = customCategories.filter(c => c.enabled !== false).map(c=>({ ...c, _scope:'custom' }));
+    refreshOrderedCategoryKeys();
+    return [...fixedEnabled, ...customEnabled].sort((a,b)=>{
+      const ia = orderedCategoryKeys.indexOf(categoryOrderKey(a));
+      const ib = orderedCategoryKeys.indexOf(categoryOrderKey(b));
+      const va = ia === -1 ? 9999 : ia;
+      const vb = ib === -1 ? 9999 : ib;
+      return va - vb || (a.sortOrder??0)-(b.sortOrder??0) || (a.name||'').localeCompare(b.name||'');
+    });
   }
   async function loadCategories(){
     const api=fb();
@@ -3791,19 +3816,23 @@
           const data=setSnap.data()||{};
           if(Array.isArray(data.enabledFixedCategoryIds)) enabledFixedCategoryIds = data.enabledFixedCategoryIds;
           if(Array.isArray(data.customCategories)) customCategories = data.customCategories.map(cat=>ensureCategoryShape(cat,'custom'));
+          if(Array.isArray(data.orderedCategoryKeys)) orderedCategoryKeys = data.orderedCategoryKeys;
         } else {
           enabledFixedCategoryIds = fixedCategories.filter(c=>c.isActive!==false).map(c=>c.id);
         }
       }
     } catch(err){ console.error('loadCategories failed', err); }
+    refreshOrderedCategoryKeys();
     renderCategoryPage();
     updateCategoryDatalist();
   }
   async function saveUserCategorySettings(){
     const api=fb(); const uid=api?.auth?.currentUser?.uid; if(!api||!uid) return;
+    refreshOrderedCategoryKeys();
     await api.setDoc(api.doc(api.db,'users',uid,'categorySettings','main'), {
       enabledFixedCategoryIds,
       customCategories: customCategories.map(cat=>ensureCategoryShape(cat,'custom')),
+      orderedCategoryKeys,
       updatedAt: Date.now()
     }, {merge:true});
   }
@@ -3985,20 +4014,59 @@
     renderCategoryPage();
     updateCategoryDatalist();
   }
+  function destroyCategoryGridSortable(){
+    if(categoryGridSortable){
+      try { categoryGridSortable.destroy(); } catch(e){}
+      categoryGridSortable = null;
+    }
+  }
+  async function persistGridCategoryOrder(keys){
+    const activeCats = getCombinedCategories();
+    const activeKeys = activeCats.map(categoryOrderKey);
+    orderedCategoryKeys = [...keys.filter(k=>activeKeys.includes(k)), ...activeKeys.filter(k=>!keys.includes(k))];
+    await saveUserCategorySettings();
+  }
+  function initCategoryGridSortable(){
+    const grid = $('categoryCardGrid');
+    if(!grid || !window.Sortable) return;
+    destroyCategoryGridSortable();
+    categoryGridSortable = new Sortable(grid, {
+      animation: 180,
+      delay: 280,
+      delayOnTouchOnly: true,
+      touchStartThreshold: 4,
+      draggable: '[data-order-key]',
+      ghostClass: 'category-sort-ghost',
+      chosenClass: 'category-sort-chosen',
+      dragClass: 'category-sort-drag',
+      onEnd: async function(){
+        const keys = [...grid.querySelectorAll('[data-order-key]')].map(el => el.getAttribute('data-order-key')).filter(Boolean);
+        await persistGridCategoryOrder(keys);
+        renderCategoryPage();
+        updateCategoryDatalist();
+      }
+    });
+  }
   async function renderCategoryPage(){
     const grid = $('categoryCardGrid'); const myList=$('myCategoryList'); const fixedList=$('fixedCategoryList'); const addFixedBtn=$('addFixedCategoryBtn'); const page=$('pageCategory');
     if(!grid || !myList || !fixedList) return;
+    destroyCategoryGridSortable();
     if(page && !page.dataset.ready){ page.style.opacity='0'; }
     const admin = await isAdmin();
     if(addFixedBtn) addFixedBtn.classList.toggle('hidden', !admin);
     const cards = getCombinedCategories();
     grid.innerHTML = cards.map(cat => `
-      <button data-open-category="${cat.id}" class="relative aspect-[3/4] bg-white/90 border border-primary/10 rounded-[24px] flex flex-col items-center justify-center p-3 text-center hover:border-primary/30 transition-colors overflow-hidden shadow-sm">
-        <div class="mb-3">${renderCategoryIconHTML(cat, 'w-16 h-16')}</div>
-        <h3 class="text-sm font-bold leading-tight">${cat.name}</h3>
-        <p class="text-[9px] text-slate-400 uppercase tracking-[0.18em] mt-1">${cat.en || cat.name}</p>
-        <div class="mt-3 text-[10px] text-slate-400">${categoryCount(cat.name)} items</div>
-      </button>
+      <div data-order-key="${categoryOrderKey(cat)}" class="category-card-shell relative aspect-[3/4]">
+        <button data-open-category="${cat.id}" class="relative h-full w-full bg-white/90 border border-primary/10 rounded-[24px] flex flex-col items-center justify-center p-3 text-center hover:border-primary/30 transition-colors overflow-hidden shadow-sm select-none touch-none">
+          <div class="absolute right-2 top-2 inline-flex items-center justify-center rounded-full bg-black/5 px-2 py-1 text-[10px] font-bold text-slate-400">
+            <span class="material-symbols-outlined text-[14px]">drag_indicator</span>
+          </div>
+          <div class="mb-3">${renderCategoryIconHTML(cat, 'w-16 h-16')}</div>
+          <h3 class="text-sm font-bold leading-tight">${cat.name}</h3>
+          <p class="text-[9px] text-slate-400 uppercase tracking-[0.18em] mt-1">${cat.en || cat.name}</p>
+          <div class="mt-3 text-[10px] text-slate-400">${categoryCount(cat.name)} items</div>
+        </button>
+      </div>
     `).join('') || '<div class="col-span-3 rounded-xl border border-primary/10 bg-white/60 p-6 text-center text-slate-400">未有可用分類</div>';
 
     const sortedFixed = [...fixedCategories].sort((a,b)=>(a.sortOrder??0)-(b.sortOrder??0));
@@ -4042,6 +4110,7 @@
       </div>
     `).join('') : '<div class="rounded-xl border border-primary/10 bg-background-light/70 p-4 text-center text-slate-400">未有自訂分類</div>';
     if(page){ page.dataset.ready='1'; page.style.opacity=''; }
+    initCategoryGridSortable();
   }
   function updateCategoryDatalist(){
     const dl = $('categoryOptions'); const input=$('category'); if(!dl || !input) return;
