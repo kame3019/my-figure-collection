@@ -4410,7 +4410,10 @@
     const title = $('archiveTitle');
     const result = $('resultNote');
     const lang = getLang();
-    const currentView = (window.view === 'wishlist') ? 'wishlist' : 'archive';
+    const navWishlist = $('navWishlist');
+    const navCollection = $('navCollection');
+    const onWishlist = !!(navWishlist && navWishlist.className.includes('text-primary') && (!navCollection || !navCollection.className.includes('text-primary')));
+    const currentView = onWishlist ? 'wishlist' : 'archive';
     if(title){
       title.textContent = currentView === 'wishlist' ? textFor('pageWishlist') : textFor('pageArchive');
     }
@@ -4444,7 +4447,9 @@
   function updateEmptyStates(){
     const list = $('collectionList');
     if(!list) return;
-    const currentView = (window.view === 'wishlist') ? 'wishlist' : 'archive';
+    const navWishlist = $('navWishlist');
+    const navCollection = $('navCollection');
+    const currentView = !!(navWishlist && navWishlist.className.includes('text-primary') && (!navCollection || !navCollection.className.includes('text-primary'))) ? 'wishlist' : 'archive';
     const text = currentView === 'wishlist' ? textFor('noWish') : textFor('noArchive');
     Array.from(list.querySelectorAll('div,p,span')).forEach(el=>{
       const t = (el.textContent || '').trim();
