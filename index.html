@@ -4057,10 +4057,7 @@
     const cards = getCombinedCategories();
     grid.innerHTML = cards.map(cat => `
       <div data-order-key="${categoryOrderKey(cat)}" class="category-card-shell relative aspect-[3/4]">
-        <button data-open-category="${cat.id}" class="relative h-full w-full bg-white/90 border border-primary/10 rounded-[24px] flex flex-col items-center justify-center p-3 text-center hover:border-primary/30 transition-colors overflow-hidden shadow-sm select-none touch-none">
-          <div class="absolute right-2 top-2 inline-flex items-center justify-center rounded-full bg-black/5 px-2 py-1 text-[10px] font-bold text-slate-400">
-            <span class="material-symbols-outlined text-[14px]">drag_indicator</span>
-          </div>
+        <button data-open-category="${cat.id}" class="relative h-full w-full bg-white/90 border border-primary/10 rounded-[24px] flex flex-col items-center justify-center p-3 text-center hover:border-primary/30 transition-colors overflow-hidden shadow-sm select-none touch-none cursor-grab active:cursor-grabbing">
           <div class="mb-3">${renderCategoryIconHTML(cat, 'w-16 h-16')}</div>
           <h3 class="text-sm font-bold leading-tight">${cat.name}</h3>
           <p class="text-[9px] text-slate-400 uppercase tracking-[0.18em] mt-1">${cat.en || cat.name}</p>
@@ -4084,8 +4081,6 @@
             </div>
           </div>
           <div class="flex items-center gap-2 shrink-0 flex-wrap justify-end">
-            <button data-move-fixed="${cat.id}" data-dir="up" class="rounded-full bg-black/5 px-3 py-1 text-[10px] font-bold ${index===0?'opacity-40 pointer-events-none':''}">↑</button>
-            <button data-move-fixed="${cat.id}" data-dir="down" class="rounded-full bg-black/5 px-3 py-1 text-[10px] font-bold ${index===sortedFixed.length-1?'opacity-40 pointer-events-none':''}">↓</button>
             <button data-toggle-fixed="${cat.id}" class="rounded-full px-3 py-1 text-[10px] font-bold ${enabled ? 'bg-primary text-white' : 'bg-black/5 text-slate-500'}">${enabled ? 'ON' : 'OFF'}</button>
             ${admin ? `<button data-edit-fixed="${cat.id}" class="rounded-full bg-black/5 px-3 py-1 text-[10px] font-bold">編輯</button><button data-delete-fixed="${cat.id}" class="rounded-full bg-black/5 px-3 py-1 text-[10px] font-bold">刪除</button>` : ''}
           </div>
@@ -4101,8 +4096,6 @@
           </div>
         </div>
         <div class="flex items-center gap-2 shrink-0 flex-wrap justify-end">
-          <button data-move-custom="${cat.id}" data-dir="up" class="rounded-full bg-black/5 px-3 py-1 text-[10px] font-bold ${index===0?'opacity-40 pointer-events-none':''}">↑</button>
-          <button data-move-custom="${cat.id}" data-dir="down" class="rounded-full bg-black/5 px-3 py-1 text-[10px] font-bold ${index===sortedCustom.length-1?'opacity-40 pointer-events-none':''}">↓</button>
           <button data-toggle-custom="${cat.id}" class="rounded-full px-3 py-1 text-[10px] font-bold ${cat.enabled !== false ? 'bg-primary text-white' : 'bg-black/5 text-slate-500'}">${cat.enabled !== false ? 'ON' : 'OFF'}</button>
           <button data-edit-custom="${cat.id}" class="rounded-full bg-black/5 px-3 py-1 text-[10px] font-bold">編輯</button>
           <button data-delete-custom="${cat.id}" class="rounded-full bg-black/5 px-3 py-1 text-[10px] font-bold">刪除</button>
