@@ -3347,4 +3347,255 @@ window.kuraAI = { ai, autoFillModel };
   });
 })();
 </script>
+
+    <script>
+(function () {
+  function $(id) {
+    return document.getElementById(id);
+  }
+
+  function getItemsSafe() {
+    try {
+      if (Array.isArray(items)) return items;
+    } catch (e) {}
+    return Array.isArray(window.items) ? window.items : [];
+  }
+
+  function setItemsSafe(next) {
+    try {
+      items = next;
+    } catch (e) {}
+    window.items = next;
+  }
+
+  function currentUid() {
+    return window.kuraFirebase?.auth?.currentUser?.uid || "";
+  }
+
+  function ensureCoverUrlUI() {
+    const patchedLayout = $("patchedAddLayout");
+    const saveBtn = $("saveBtn");
+    const note = $("note");
+    if (!patchedLayout || !saveBtn) return;
+
+    if (note) {
+      note.rows = 6;
+      note.style.minHeight = "140px";
+    }
+
+    if ($("coverUrlWrap")) return;
+
+    const wrap = document.createElement("div");
+    wrap.id = "coverUrlWrap";
+    wrap.className = "mt-3";
+
+    wrap.innerHTML = `
+      <label class="text-xs font-bold tracking-widest uppercase text-slate-500 mb-2 block">產品圖片連結</label>
+      <div class="grid grid-cols-1 gap-3 sm:grid-cols-[1fr_auto_auto]">
+        <input
+          id="coverImageUrl"
+          type="url"
+          placeholder="貼上圖片網址，例如 https://..."
+          class="kv-input rounded-xl border border-primary/10 bg-background-light/80 px-4 py-3 text-sm placeholder:text-slate-400 focus:border-primary focus:ring-primary"
+        />
+        <button
+          id="applyCoverUrlBtn"
+          type="button"
+          class="rounded-xl bg-black px-4 py-3 text-sm font-bold text-white"
+        >
+          套用做 Cover
+        </button>
+        <button
+          id="clearCoverUrlBtn"
+          type="button"
+          class="rounded-xl bg-black/5 px-4 py-3 text-sm font-bold"
+        >
+          清除
+        </button>
+      </div>
+      <div id="coverUrlStatus" class="mt-2 text-xs text-slate-500"></div>
+      <div class="mt-3 rounded-xl border border-primary/10 bg-background-light/80 p-3">
+        <div class="text-xs font-bold tracking-widest uppercase text-slate-500 mb-2">Cover 預覽</div>
+        <div class="flex items-center justify-center rounded-xl bg-white/80 border border-primary/10 overflow-hidden min-h-[180px]">
+          <img id="coverUrlPreview" class="max-h-[260px] w-full object-contain hidden" alt="Cover Preview">
+          <div id="coverUrlEmpty" class="text-sm text-slate-400 py-10">未套用圖片連結</div>
+        </div>
+      </div>
+    `;
+
+    const coverPickerWrap = $("coverPickerWrap");
+    if (coverPickerWrap) {
+      coverPickerWrap.insertAdjacentElement("afterend", wrap);
+    } else {
+      saveBtn.parentNode.insertBefore(wrap, saveBtn);
+    }
+  }
+
+  function setCoverPreview(url) {
+    const img = $("coverUrlPreview");
+    const empty = $("coverUrlEmpty");
+    const status = $("coverUrlStatus");
+
+    if (!img || !empty) return;
+
+    if (!url) {
+      img.src = "";
+      img.classList.add("hidden");
+      empty.classList.remove("hidden");
+      if (status) status.textContent = "已清除圖片連結";
+      window.__kuraCoverImageUrl = "";
+      return;
+    }
+
+    img.src = url;
+    img.classList.remove("hidden");
+    empty.classList.add("hidden");
+    if (status) status.textContent = "已套用圖片連結";
+    window.__kuraCoverImageUrl = url;
+  }
+
+  function testImageUrl(url) {
+    return new Promise((resolve, reject) => {
+      const img = new Image();
+      img.onload = () => resolve(true);
+      img.onerror = () => reject(new Error("圖片連結無法載入"));
+      img.src = url;
+    });
+  }
+
+  async function applyCoverUrl() {
+    const input = $("coverImageUrl");
+    const status = $("coverUrlStatus");
+    if (!input) return;
+
+    const url = (input.value || "").trim();
+    if (!url) {
+      alert("請先貼上圖片網址");
+      return;
+    }
+
+    if (!/^https?:\/\//i.test(url)) {
+      alert("請輸入完整圖片網址（要有 http 或 https）");
+      return;
+    }
+
+    if (status) status.textContent = "檢查圖片連結中...";
+
+    try {
+      await testImageUrl(url);
+      setCoverPreview(url);
+    } catch (err) {
+      console.error(err);
+      if (status) status.textContent = "圖片連結無法載入";
+      alert("圖片連結無法載入，請換另一個網址");
+    }
+  }
+
+  function clearCoverUrl() {
+    const input = $("coverImageUrl");
+    if (input) input.value = "";
+    setCoverPreview("");
+  }
+
+  function newestItemGuess(beforeIds) {
+    const list = getItemsSafe();
+    if (!list.length) return null;
+    for (const item of list) {
+      if (!beforeIds.has(item.id)) return item;
+    }
+    return list[0] || null;
+  }
+
+  async function persistCoverUrlToSavedItem(savedItem) {
+    const coverUrl = window.__kuraCoverImageUrl || "";
+    if (!savedItem || !coverUrl) return;
+
+    savedItem.image = coverUrl;
+
+    const list = getItemsSafe().map(item =>
+      item.id === savedItem.id ? { ...item, image: coverUrl } : item
+    );
+    setItemsSafe(list);
+
+    try {
+      if (typeof save === "function") save();
+    } catch (e) {}
+
+    if (typeof render === "function") render();
+    if (typeof renderProfilePage === "function") renderProfilePage();
+
+    const fb = window.kuraFirebase;
+    const uid = savedItem.ownerUid || currentUid();
+    if (fb && uid && savedItem.id) {
+      try {
+        await fb.setDoc(
+          fb.doc(fb.db, "users", uid, "items", savedItem.id),
+          { image: coverUrl, updatedAt: Date.now() },
+          { merge: true }
+        );
+      } catch (err) {
+        console.error("Cloud cover update failed:", err);
+      }
+    }
+  }
+
+  function patchSaveRecordForCoverUrl() {
+    if (window.__kuraCoverSavePatched) return;
+    window.__kuraCoverSavePatched = true;
+
+    const oldSaveRecord = window.saveRecord;
+    if (typeof oldSaveRecord === "function") {
+      window.saveRecord = async function () {
+        const beforeIds = new Set(getItemsSafe().map(i => i.id));
+        await oldSaveRecord.apply(this, arguments);
+        const savedItem = newestItemGuess(beforeIds);
+        await persistCoverUrlToSavedItem(savedItem);
+      };
+
+      const saveBtn = $("saveBtn");
+      if (saveBtn) saveBtn.onclick = window.saveRecord;
+    }
+  }
+
+  function bindCoverUrlButtons() {
+    const applyBtn = $("applyCoverUrlBtn");
+    const clearBtn = $("clearCoverUrlBtn");
+
+    if (applyBtn && !applyBtn.dataset.bound) {
+      applyBtn.dataset.bound = "1";
+      applyBtn.addEventListener("click", applyCoverUrl);
+    }
+
+    if (clearBtn && !clearBtn.dataset.bound) {
+      clearBtn.dataset.bound = "1";
+      clearBtn.addEventListener("click", clearCoverUrl);
+    }
+  }
+
+  function boot() {
+    ensureCoverUrlUI();
+    bindCoverUrlButtons();
+    patchSaveRecordForCoverUrl();
+
+    const note = $("note");
+    if (note) {
+      note.rows = 6;
+      note.style.minHeight = "140px";
+    }
+  }
+
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", boot);
+  } else {
+    boot();
+  }
+
+  document.addEventListener("click", function (e) {
+    if (e.target.closest("#navAddCenter")) {
+      setTimeout(boot, 300);
+      setTimeout(boot, 1000);
+    }
+  });
+})();
+</script>
 </html>
