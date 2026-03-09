@@ -4844,9 +4844,25 @@
       #itemDetailModal > .absolute.inset-0{z-index:0!important}
       #itemDetailModal > .absolute.inset-x-0.bottom-0{z-index:2!important}
       #itemDetailModal .detail-scroll > .sticky, #itemDetailModal .detail-scroll > .sticky *{pointer-events:auto!important}
-      #itemDetailModal .detail-scroll > .sticky{position:sticky!important; top:0!important; z-index:260!important; isolation:isolate;}
-      #itemDetailModal .detail-scroll{position:relative; z-index:1;}
-      #itemDetailModal #detailImageWrap, #itemDetailModal #detailImageWrap *{pointer-events:none!important}
+      #itemDetailModal .detail-scroll > .sticky{
+        position:sticky!important;
+        top:0!important;
+        z-index:260!important;
+        isolation:isolate;
+        background:var(--color-background-light,#fdfcf0)!important;
+        padding-top:4px!important;
+        padding-bottom:6px!important;
+      }
+      #itemDetailModal .detail-scroll{position:relative; z-index:1; padding-top:0!important;}
+      #itemDetailModal #detailImageWrap{
+        pointer-events:none!important;
+        margin-top:16px!important;
+        transform:scale(.94)!important;
+        transform-origin:top center!important;
+      }
+      #itemDetailModal #detailImageWrap *{pointer-events:none!important}
+      #itemDetailModal #detailImage{min-height:0!important;}
+      #itemDetailModal .detail-scroll > :not(.sticky):first-of-type{margin-top:16px!important}
     `;
     document.head.appendChild(style);
   }
