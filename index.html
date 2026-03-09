@@ -4789,33 +4789,51 @@
   function patchDetailHeaderClick(){
     const modal = $('itemDetailModal');
     if(!modal || modal.dataset.topbarPatched==='1') return;
-    const sheet = modal.querySelector('.absolute.inset-x-0.bottom-0');
     const scroll = modal.querySelector('.detail-scroll');
-    const oldBar = scroll && scroll.firstElementChild;
-    if(!sheet || !scroll || !oldBar) return;
-    if(!oldBar.classList.contains('sticky')) return;
+    const topBar = scroll && scroll.querySelector('.sticky');
+    if(!scroll || !topBar) return;
 
-    const holder = document.createElement('div');
-    holder.id = 'detailTopBarFixed';
-    holder.className = 'relative z-[260] flex items-center justify-between bg-background-light/95 px-4 py-2 backdrop-blur-md border-b border-primary/10';
-    holder.innerHTML = oldBar.innerHTML;
-    sheet.insertBefore(holder, scroll);
-    oldBar.remove();
+    topBar.style.position = 'sticky';
+    topBar.style.top = '0';
+    topBar.style.zIndex = '260';
+    topBar.style.pointerEvents = 'auto';
+    topBar.style.isolation = 'isolate';
 
-    scroll.classList.remove('detail-safe-top');
-    scroll.style.paddingTop = '0.75rem';
-    sheet.style.display = 'flex';
-    sheet.style.flexDirection = 'column';
-    scroll.style.flex = '1 1 auto';
-
-    const shareTop = holder.querySelector('#detailShareBtn');
-    const closeTop = holder.querySelector('#detailCloseBtnTop');
-    const cancelTop = holder.querySelector('button[onclick="closeItemDetail()"]');
-    if(shareTop) shareTop.onclick = function(){
-      if(window.currentDetailId) window.openShareCard?.(window.currentDetailId);
-    };
-    if(closeTop) closeTop.onclick = function(){ window.closeItemDetail?.(); };
-    if(cancelTop) cancelTop.onclick = function(){ window.closeItemDetail?.(); };
+    // keep the original visible top bar, only harden click handling
+    const shareTop = topBar.querySelector('#detailShareBtn');
+    const closeTop = topBar.querySelector('#detailCloseBtnTop');
+    const buttons = topBar.querySelectorAll('button');
+    buttons.forEach(btn => {
+      btn.style.pointerEvents = 'auto';
+      btn.style.position = 'relative';
+      btn.style.zIndex = '261';
+      btn.addEventListener('click', function(ev){
+        ev.preventDefault();
+        ev.stopPropagation();
+      }, true);
+    });
+    if(shareTop){
+      shareTop.onclick = function(ev){
+        ev.preventDefault();
+        ev.stopPropagation();
+        if(window.currentDetailId) window.openShareCard?.(window.currentDetailId);
+      };
+    }
+    if(closeTop){
+      closeTop.onclick = function(ev){
+        ev.preventDefault();
+        ev.stopPropagation();
+        window.closeItemDetail?.();
+      };
+    }
+    const cancelTop = Array.from(topBar.querySelectorAll('button')).find(btn => (btn.textContent||'').trim().includes('取消'));
+    if(cancelTop){
+      cancelTop.onclick = function(ev){
+        ev.preventDefault();
+        ev.stopPropagation();
+        window.closeItemDetail?.();
+      };
+    }
 
     modal.dataset.topbarPatched='1';
   }
@@ -4825,8 +4843,8 @@
     style.textContent = `
       #itemDetailModal > .absolute.inset-0{z-index:0!important}
       #itemDetailModal > .absolute.inset-x-0.bottom-0{z-index:2!important}
-      #detailTopBarFixed, #detailTopBarFixed *{pointer-events:auto!important}
-      #detailTopBarFixed{position:relative!important; isolation:isolate;}
+      #itemDetailModal .detail-scroll > .sticky, #itemDetailModal .detail-scroll > .sticky *{pointer-events:auto!important}
+      #itemDetailModal .detail-scroll > .sticky{position:sticky!important; top:0!important; z-index:260!important; isolation:isolate;}
       #itemDetailModal .detail-scroll{position:relative; z-index:1;}
       #itemDetailModal #detailImageWrap, #itemDetailModal #detailImageWrap *{pointer-events:none!important}
     `;
