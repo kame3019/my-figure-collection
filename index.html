@@ -381,7 +381,6 @@
             box-shadow: 0 12px 28px rgba(88,129,87,.16) !important;
         }
 
-
         body.theme-blackgold #pageCategory .text-slate-500,
         body.theme-blackgold #pageCategory .text-slate-400,
         body.theme-blackgold #pageCategory .text-slate-600,
@@ -573,6 +572,22 @@ html[data-typography="ja"] h6 {
           }
         }
     </style>
+<style>
+
+/* === Stable release: normalize tool label weight === */
+#pageProfile .tool-btn,
+#pageProfile .tool-btn span,
+#pageProfile .tool-card,
+#pageProfile .tool-card span,
+#pageProfile button[id^="tool"],
+#pageProfile button[id^="tool"] span,
+#pageProfile [data-tool] span,
+#profileToolModal .tool-modal-title,
+#profileToolModal .tool-modal-close {
+  font-weight: 400 !important;
+}
+
+</style>
 </head>
 <body class="bg-background-light font-display text-slate-900 washi-texture">
 <script>
@@ -1619,7 +1634,6 @@ html[data-typography="ja"] h6 {
                             ${statusBadge(item)}
                         </div>
 
-
                     </div>
                 </div>
             `;
@@ -2297,7 +2311,6 @@ function syncMuseumModeLabel(){
   const isWall = (typeof mode !== 'undefined' && mode === 'wall');
   label.classList.toggle('hidden', !isWall);
 }
-
 
         syncMuseumModeLabel();
         document.querySelectorAll(".modeBtn").forEach(btn => {
@@ -4646,8 +4659,6 @@ function syncMuseumModeLabel(){
 })();
 </script>
 
-
-
 <script>
 (function(){
   function $(id){ return document.getElementById(id); }
@@ -5126,7 +5137,6 @@ function syncMuseumModeLabel(){
 })();
 </script>
 
-
 <script>
 (function(){
   function $(id){ return document.getElementById(id); }
@@ -5327,9 +5337,7 @@ function syncMuseumModeLabel(){
   window.addEventListener("pageshow", reapplySavedTheme);
 })();
 
-
 </script>
-
 
 <style id="typography-final-system">
 :root{
@@ -5461,7 +5469,6 @@ html[data-typography] :is(.font-bold,.font-semibold,strong,b):not(h1):not(h2):no
 })();
 </script>
 
-
 <style id="typography-final-v3-overrides">
 /* Chinese: all pages regular weight */
 html[data-typography="zh"] body,
@@ -5592,7 +5599,6 @@ html[data-typography="ja"] :is(h1,h2,h3,h4,h5,h6,#pageCategoryTitle,.page-title,
 })();
 </script>
 
-
 <style id="typography-final-v4-stable-overrides">
 html[data-typography="zh"] :is(h1,h2,h3,h4,h5,h6,#pageCategoryTitle,.page-title,.section-title,.header-title,.modal-title,.sheet-title,.panel-title,[data-page-title]),
 html[data-typography="ja"] :is(h1,h2,h3,h4,h5,h6,#pageCategoryTitle,.page-title,.section-title,.header-title,.modal-title,.sheet-title,.panel-title,[data-page-title]) {
@@ -5681,7 +5687,6 @@ html[data-typography="ja"] #pageCategoryTitle {
   window.addEventListener('pageshow', stabilize);
 })();
 </script>
-
 
 <style id="typography-final-v6-regular-all">
 html[data-typography] :is(h1,h2,h3,h4,h5,h6,.page-title,.section-title,.header-title,.modal-title,.sheet-title,.panel-title,[data-page-title],#pageCategoryTitle,strong,b,.font-bold,.font-semibold){
