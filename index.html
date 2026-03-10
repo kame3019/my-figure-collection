@@ -961,6 +961,7 @@ details[open] input[type="text"]#seriesLogoUrl{
     </div>
   </div>
   <div class="mt-2 text-[11px] text-slate-400">Suggested by brand name · searchable picker · recent logos</div>
+
   <div class="mt-3 rounded-2xl border border-primary/10 bg-white/50 p-3">
     <div class="text-[10px] uppercase tracking-[0.18em] text-slate-400">Logo Scope</div>
     <div class="mt-3">
@@ -969,8 +970,8 @@ details[open] input[type="text"]#seriesLogoUrl{
     <div class="mt-3">
       <input accept="image/*" class="kv-input w-full rounded-xl border border-primary/10 bg-background-light/80 px-4 py-3 text-sm file:mr-3 file:rounded-lg file:border-0 file:bg-primary file:px-3 file:py-2 file:text-sm file:font-semibold file:text-white" id="brandLogoFile" type="file"/>
     </div>
-    <div class="mt-3 grid grid-cols-1 gap-2 sm:grid-cols-2" id="brandLogoActionWrap">
-      <button class="rounded-xl bg-primary px-4 py-3 text-sm font-bold text-white" id="saveBrandLibMyBtn" type="button">加入 Logo (My)</button>
+    <div class="mt-3 grid grid-cols-1 gap-2 sm:grid-cols-2">
+      <button class="rounded-xl bg-primary px-4 py-3 text-sm font-bold text-white" id="saveBrandLibBtn" type="button">加入 Logo (My)</button>
       <button class="hidden rounded-xl bg-black/5 px-4 py-3 text-sm font-bold text-slate-700" id="saveBrandLibGlobalBtn" type="button">加入 Logo (Global)</button>
     </div>
   </div>
@@ -1000,6 +1001,7 @@ details[open] input[type="text"]#seriesLogoUrl{
     </div>
   </div>
   <div class="mt-2 text-[11px] text-slate-400">Suggested by series name · searchable picker · recent logos</div>
+
   <div class="mt-3 rounded-2xl border border-primary/10 bg-white/50 p-3">
     <div class="text-[10px] uppercase tracking-[0.18em] text-slate-400">Logo Scope</div>
     <div class="mt-3">
@@ -1008,8 +1010,8 @@ details[open] input[type="text"]#seriesLogoUrl{
     <div class="mt-3">
       <input accept="image/*" class="kv-input w-full rounded-xl border border-primary/10 bg-background-light/80 px-4 py-3 text-sm file:mr-3 file:rounded-lg file:border-0 file:bg-primary file:px-3 file:py-2 file:text-sm file:font-semibold file:text-white" id="seriesLogoFile" type="file"/>
     </div>
-    <div class="mt-3 grid grid-cols-1 gap-2 sm:grid-cols-2" id="seriesLogoActionWrap">
-      <button class="rounded-xl bg-primary px-4 py-3 text-sm font-bold text-white" id="saveSeriesLibMyBtn" type="button">加入 Logo (My)</button>
+    <div class="mt-3 grid grid-cols-1 gap-2 sm:grid-cols-2">
+      <button class="rounded-xl bg-primary px-4 py-3 text-sm font-bold text-white" id="saveSeriesLibBtn" type="button">加入 Logo (My)</button>
       <button class="hidden rounded-xl bg-black/5 px-4 py-3 text-sm font-bold text-slate-700" id="saveSeriesLibGlobalBtn" type="button">加入 Logo (Global)</button>
     </div>
   </div>
@@ -1420,8 +1422,6 @@ details[open] input[type="text"]#seriesLogoUrl{
             localStorage.setItem(STABLE_KEY, JSON.stringify(items));
             localStorage.setItem(BRAND_LIB_KEY, JSON.stringify(brandLibrary));
             localStorage.setItem(SERIES_LIB_KEY, JSON.stringify(seriesLibrary));
-            localStorage.setItem("KURA_BRAND_LIB_SCOPED", JSON.stringify(brandLibrary));
-            localStorage.setItem("KURA_SERIES_LIB_SCOPED", JSON.stringify(seriesLibrary));
         }
 
         function normalizeRecord(raw) {
@@ -1461,21 +1461,19 @@ details[open] input[type="text"]#seriesLogoUrl{
         function loadData() {
             try {
                 brandLibrary = JSON.parse(localStorage.getItem(BRAND_LIB_KEY) || "[]");
+                brandLibrary = (brandLibrary || []).map(item => ({ ...item, scope: item.scope || "global", ownerUid: item.ownerUid || "" }));
             } catch (e) {
                 brandLibrary = [];
             }
 
             try {
                 seriesLibrary = JSON.parse(localStorage.getItem(SERIES_LIB_KEY) || "[]");
+                seriesLibrary = (seriesLibrary || []).map(item => ({ ...item, scope: item.scope || "global", ownerUid: item.ownerUid || "" }));
             } catch (e) {
                 seriesLibrary = [];
             }
 
-            brandLibrary = (brandLibrary || []).map(item => ({ ...item, scope: item.scope || "global", ownerUid: item.ownerUid || "" }));
-            seriesLibrary = (seriesLibrary || []).map(item => ({ ...item, scope: item.scope || "global", ownerUid: item.ownerUid || "" }));
             seedDefaultsIfNeeded();
-            brandLibrary = (brandLibrary || []).map(item => ({ ...item, scope: item.scope || "global", ownerUid: item.ownerUid || "" }));
-            seriesLibrary = (seriesLibrary || []).map(item => ({ ...item, scope: item.scope || "global", ownerUid: item.ownerUid || "" }));
 
             const stable = localStorage.getItem(STABLE_KEY);
             if (stable) {
@@ -2328,7 +2326,7 @@ function renderOverviewCards() {
             render();
         };
 
-        async function addBrandLibrary() {
+        async function addBrandLibrary(scope = "my") {
             const name = document.getElementById("brand").value.trim();
             const url = document.getElementById("brandLogoUrl").value.trim();
             const file = document.getElementById("brandLogoFile").files[0];
@@ -2339,16 +2337,19 @@ function renderOverviewCards() {
             }
 
             const logo = file ? await fileToDataURL(file) : url;
-            brandLibrary = brandLibrary.filter(item => item.name !== name);
-            brandLibrary.unshift({ name, logo });
+            const currentUid = window.kuraFirebase?.auth?.currentUser?.uid || "";
+            const nextItem = { name, logo, scope: scope.toLowerCase(), ownerUid: scope.toLowerCase() === "my" ? currentUid : "" };
+
+            brandLibrary = brandLibrary.filter(item => !(item.name === name && (item.scope || "global") === nextItem.scope && (item.ownerUid || "") === nextItem.ownerUid));
+            brandLibrary.unshift(nextItem);
 
             save();
             renderPresetPickers();
             renderLogoManagers();
-            document.getElementById("backupStatus").textContent = "已加入品牌 Logo 庫";
+            document.getElementById("backupStatus").textContent = `已加入品牌 Logo 庫 (${scope})`;
         }
 
-        async function addSeriesLibrary() {
+        async function addSeriesLibrary(scope = "my") {
             const name = document.getElementById("series").value.trim();
             const url = document.getElementById("seriesLogoUrl").value.trim();
             const file = document.getElementById("seriesLogoFile").files[0];
@@ -2359,21 +2360,24 @@ function renderOverviewCards() {
             }
 
             const logo = file ? await fileToDataURL(file) : url;
-            seriesLibrary = seriesLibrary.filter(item => item.name !== name);
-            seriesLibrary.unshift({ name, logo });
+            const currentUid = window.kuraFirebase?.auth?.currentUser?.uid || "";
+            const nextItem = { name, logo, scope: scope.toLowerCase(), ownerUid: scope.toLowerCase() === "my" ? currentUid : "" };
+
+            seriesLibrary = seriesLibrary.filter(item => !(item.name === name && (item.scope || "global") === nextItem.scope && (item.ownerUid || "") === nextItem.ownerUid));
+            seriesLibrary.unshift(nextItem);
 
             save();
             renderPresetPickers();
             renderLogoManagers();
-            document.getElementById("backupStatus").textContent = "已加入系列 Logo 庫";
+            document.getElementById("backupStatus").textContent = `已加入系列 Logo 庫 (${scope})`;
         }
 
         function renderLogoManagers() {
             const currentUid = window.kuraFirebase?.auth?.currentUser?.uid || "";
             const canDelete = (item) => {
-              const isGlobal = (item.scope || "global") === "global";
-              if (isGlobal) return !!window.__kuraAdminLogoFlag;
-              return !item.ownerUid || item.ownerUid === currentUid || !!window.__kuraAdminLogoFlag;
+                const scope = (item.scope || "global").toLowerCase();
+                if (scope === "global") return !!window.__kuraAdminLogoFlag;
+                return !item.ownerUid || item.ownerUid === currentUid || !!window.__kuraAdminLogoFlag;
             };
 
             document.getElementById("brandLibCount").textContent = brandLibrary.length + " 個";
@@ -2384,8 +2388,8 @@ function renderOverviewCards() {
                     <div class="flex items-center gap-3 min-w-0">
                         <span class="h-8 w-8 rounded-lg overflow-hidden bg-white border border-primary/10 shrink-0"><img class="h-full w-full object-contain" src="${item.logo}" alt=""></span>
                         <div class="min-w-0">
-                          <span class="font-medium truncate block">${item.name}</span>
-                          <span class="text-[10px] uppercase tracking-[0.14em] text-slate-400">${(item.scope || "global") === "global" ? "Global" : "My"}</span>
+                            <span class="font-medium truncate block">${item.name}</span>
+                            <span class="text-[10px] uppercase tracking-[0.14em] text-slate-400">${(item.scope || "global") === "global" ? "Global" : "My"}</span>
                         </div>
                     </div>
                     ${canDelete(item) ? `<button class="rounded-lg bg-black/5 px-3 py-2 text-xs font-semibold shrink-0" onclick="deleteBrandLogo(${index})">刪除</button>` : ``}
@@ -2397,8 +2401,8 @@ function renderOverviewCards() {
                     <div class="flex items-center gap-3 min-w-0">
                         <span class="h-8 w-8 rounded-lg overflow-hidden bg-white border border-primary/10 shrink-0"><img class="h-full w-full object-contain" src="${item.logo}" alt=""></span>
                         <div class="min-w-0">
-                          <span class="font-medium truncate block">${item.name}</span>
-                          <span class="text-[10px] uppercase tracking-[0.14em] text-slate-400">${(item.scope || "global") === "global" ? "Global" : "My"}</span>
+                            <span class="font-medium truncate block">${item.name}</span>
+                            <span class="text-[10px] uppercase tracking-[0.14em] text-slate-400">${(item.scope || "global") === "global" ? "Global" : "My"}</span>
                         </div>
                     </div>
                     ${canDelete(item) ? `<button class="rounded-lg bg-black/5 px-3 py-2 text-xs font-semibold shrink-0" onclick="deleteSeriesLogo(${index})">刪除</button>` : ``}
@@ -2410,9 +2414,9 @@ function renderOverviewCards() {
             const item = brandLibrary[index];
             const currentUid = window.kuraFirebase?.auth?.currentUser?.uid || "";
             if (!item) return;
-            const isGlobal = (item.scope || "global") === "global";
-            if (isGlobal && !window.__kuraAdminLogoFlag) return;
-            if (!isGlobal && item.ownerUid && item.ownerUid !== currentUid && !window.__kuraAdminLogoFlag) return;
+            const scope = (item.scope || "global").toLowerCase();
+            if (scope === "global" && !window.__kuraAdminLogoFlag) return;
+            if (scope === "my" && item.ownerUid && item.ownerUid !== currentUid && !window.__kuraAdminLogoFlag) return;
             if (!confirm("確定刪除品牌 Logo：" + item.name + "？")) return;
             brandLibrary.splice(index, 1);
             save();
@@ -2425,9 +2429,9 @@ function renderOverviewCards() {
             const item = seriesLibrary[index];
             const currentUid = window.kuraFirebase?.auth?.currentUser?.uid || "";
             if (!item) return;
-            const isGlobal = (item.scope || "global") === "global";
-            if (isGlobal && !window.__kuraAdminLogoFlag) return;
-            if (!isGlobal && item.ownerUid && item.ownerUid !== currentUid && !window.__kuraAdminLogoFlag) return;
+            const scope = (item.scope || "global").toLowerCase();
+            if (scope === "global" && !window.__kuraAdminLogoFlag) return;
+            if (scope === "my" && item.ownerUid && item.ownerUid !== currentUid && !window.__kuraAdminLogoFlag) return;
             if (!confirm("確定刪除系列 Logo：" + item.name + "？")) return;
             seriesLibrary.splice(index, 1);
             save();
@@ -2821,8 +2825,10 @@ function syncMuseumModeLabel(){
 
         document.getElementById("statsYearFilter").onchange = renderStats;
         document.getElementById("saveBtn").onclick = saveRecord;
-        document.getElementById("saveBrandLibBtn").onclick = addBrandLibrary;
-        document.getElementById("saveSeriesLibBtn").onclick = addSeriesLibrary;
+        document.getElementById("saveBrandLibBtn").onclick = function(){ addBrandLibrary("my"); };
+        if (document.getElementById("saveBrandLibGlobalBtn")) document.getElementById("saveBrandLibGlobalBtn").onclick = function(){ addBrandLibrary("global"); };
+        document.getElementById("saveSeriesLibBtn").onclick = function(){ addSeriesLibrary("my"); };
+        if (document.getElementById("saveSeriesLibGlobalBtn")) document.getElementById("saveSeriesLibGlobalBtn").onclick = function(){ addSeriesLibrary("global"); };
         document.getElementById("exportBtn").onclick = exportBackup;
         document.getElementById("importBtn").onclick = function() {
             document.getElementById("importFile").click();
@@ -6544,7 +6550,14 @@ html[data-typography] :is(h1,h2,h3,h4,h5,h6,.page-title,.section-title,.header-t
   const state = { kind: 'brand' };
 
   function getLibrary(kind){
-    return kind === 'brand' ? (window.__kuraVisibleBrandLibrary || window.brandLibrary || brandLibrary || []) : (window.__kuraVisibleSeriesLibrary || window.seriesLibrary || seriesLibrary || []);
+    const currentUid = window.kuraFirebase?.auth?.currentUser?.uid || '';
+    const raw = kind === 'brand' ? (window.brandLibrary || brandLibrary || []) : (window.seriesLibrary || seriesLibrary || []);
+    return (raw || []).filter(item => {
+      const scope = (item.scope || 'global').toLowerCase();
+      if (scope === 'global') return true;
+      if (window.__kuraAdminLogoFlag) return true;
+      return !item.ownerUid || item.ownerUid === currentUid;
+    });
   }
 
   function getInput(kind){
@@ -6825,146 +6838,36 @@ html[data-typography] :is(h1,h2,h3,h4,h5,h6,.page-title,.section-title,.header-t
 
 
 <script>
-/* Logo system rebuilt v1 */
+/* Logo admin visibility v2 safe */
 (function(){
-  async function resolveAdminFlag(){
-    try {
-      window.__kuraAdminLogoFlag = typeof currentUserIsAdmin === 'function' ? await currentUserIsAdmin() : false;
-    } catch(e){
-      window.__kuraAdminLogoFlag = false;
-    }
-    applyLogoActionVisibility();
-    try { if (typeof renderLogoManagers === 'function') renderLogoManagers(); } catch(e){}
-  }
+  async function refreshLogoAdminVisibility(){
+    let isAdmin = false;
+    try { isAdmin = typeof currentUserIsAdmin === 'function' ? await currentUserIsAdmin() : false; }
+    catch(e){ isAdmin = false; }
+    window.__kuraAdminLogoFlag = isAdmin;
 
-  function getCurrentUid(){
-    try { return window.kuraFirebase?.auth?.currentUser?.uid || ""; } catch(e){ return ""; }
-  }
-
-  function applyLogoActionVisibility(){
-    const admin = !!window.__kuraAdminLogoFlag;
     document.querySelectorAll('#saveBrandLibGlobalBtn, #saveSeriesLibGlobalBtn').forEach(btn => {
-      btn.classList.toggle('hidden', !admin);
-    });
-    document.querySelectorAll('#saveBrandLibMyBtn, #saveSeriesLibMyBtn').forEach(btn => {
-      btn.classList.remove('hidden');
-    });
-  }
-
-  function addScopedLogo(kind, scope){
-    const isBrand = kind === 'brand';
-    const nameEl = document.getElementById(isBrand ? 'brand' : 'series');
-    const urlEl = document.getElementById(isBrand ? 'brandLogoUrl' : 'seriesLogoUrl');
-    const fileEl = document.getElementById(isBrand ? 'brandLogoFile' : 'seriesLogoFile');
-    const name = (nameEl?.value || '').trim();
-    const url = (urlEl?.value || '').trim();
-    const file = fileEl?.files?.[0] || null;
-
-    if (!name || (!url && !file)) {
-      alert(isBrand ? '先填品牌名稱同 logo' : '先填系列名稱同 logo');
-      return;
-    }
-
-    const finalize = (logo) => {
-      const uid = getCurrentUid();
-      const lib = isBrand ? brandLibrary : seriesLibrary;
-      const entry = { name, logo, scope: scope.toLowerCase(), ownerUid: scope.toLowerCase() === 'my' ? uid : '' };
-      const next = (lib || []).filter(item => !((item.name === name) && ((item.scope || 'global') === entry.scope) && ((item.ownerUid || '') === entry.ownerUid)));
-      next.unshift(entry);
-      if (isBrand) brandLibrary = next; else seriesLibrary = next;
-      save();
-      renderPresetPickers();
-      renderLogoManagers();
-      if (typeof syncLogoPickerUI === 'function') syncLogoPickerUI();
-      const el = document.getElementById('backupStatus');
-      if (el) el.textContent = isBrand ? `已加入品牌 Logo 庫 (${scope})` : `已加入系列 Logo 庫 (${scope})`;
-    };
-
-    if (file) {
-      fileToDataURL(file).then(finalize);
-    } else {
-      finalize(url);
-    }
-  }
-
-  function bindLogoButtons(){
-    const pairs = [
-      ['saveBrandLibMyBtn', 'brand', 'My'],
-      ['saveBrandLibGlobalBtn', 'brand', 'Global'],
-      ['saveSeriesLibMyBtn', 'series', 'My'],
-      ['saveSeriesLibGlobalBtn', 'series', 'Global'],
-    ];
-    pairs.forEach(([id, kind, scope]) => {
-      const btn = document.getElementById(id);
-      if (!btn || btn.dataset.logoScopeBound) return;
-      btn.dataset.logoScopeBound = '1';
-      btn.addEventListener('click', function(e){
-        e.preventDefault();
-        addScopedLogo(kind, scope);
-      });
+      btn.classList.toggle('hidden', !isAdmin);
     });
 
-    ['brandLogoUrl','seriesLogoUrl'].forEach(id => {
-      const el = document.getElementById(id);
-      if (!el || el.dataset.syncPreviewBound) return;
-      el.dataset.syncPreviewBound = '1';
-      el.addEventListener('input', function(){
-        try { if (typeof syncLogoPickerUI === 'function') syncLogoPickerUI(); } catch(e){}
-      });
-    });
-    ['brand','series'].forEach(id => {
-      const el = document.getElementById(id);
-      if (!el || el.dataset.syncPreviewNameBound) return;
-      el.dataset.syncPreviewNameBound = '1';
-      el.addEventListener('input', function(){
-        try { if (typeof syncLogoPickerUI === 'function') syncLogoPickerUI(); } catch(e){}
-      });
-    });
-  }
-
-  function patchPickerLibraryFilter(){
-    const originalGetLibrary = window.getLibrary;
-    if (typeof originalGetLibrary === 'function' && !originalGetLibrary.__scopePatched) return;
-  }
-
-  function exposeScopedPickerFilter(){
-    const currentUid = getCurrentUid();
-    window.__kuraVisibleBrandLibrary = (brandLibrary || []).filter(item => {
-      const scope = (item.scope || 'global').toLowerCase();
-      return scope === 'global' || !item.ownerUid || item.ownerUid === currentUid || !!window.__kuraAdminLogoFlag;
-    });
-    window.__kuraVisibleSeriesLibrary = (seriesLibrary || []).filter(item => {
-      const scope = (item.scope || 'global').toLowerCase();
-      return scope === 'global' || !item.ownerUid || item.ownerUid === currentUid || !!window.__kuraAdminLogoFlag;
-    });
-  }
-
-  function patchLogoPickerGetLibrary(){
-    const fns = Array.from(document.scripts || []);
-    // no-op placeholder
-  }
-
-  function run(){
-    applyLogoActionVisibility();
-    bindLogoButtons();
-    exposeScopedPickerFilter();
+    try {
+      if (typeof renderLogoManagers === 'function') renderLogoManagers();
+    } catch(e){}
   }
 
   document.addEventListener('DOMContentLoaded', function(){
-    setTimeout(run, 0);
-    setTimeout(run, 120);
-    setTimeout(resolveAdminFlag, 200);
+    setTimeout(refreshLogoAdminVisibility, 0);
+    setTimeout(refreshLogoAdminVisibility, 200);
   });
   window.addEventListener('load', function(){
-    setTimeout(run, 0);
-    setTimeout(resolveAdminFlag, 120);
+    setTimeout(refreshLogoAdminVisibility, 0);
+    setTimeout(refreshLogoAdminVisibility, 200);
   });
   window.addEventListener('pageshow', function(){
-    setTimeout(run, 0);
-    setTimeout(resolveAdminFlag, 120);
+    setTimeout(refreshLogoAdminVisibility, 0);
   });
 
-  window.__kuraRebuiltLogoRun = run;
+  window.refreshLogoAdminVisibility = refreshLogoAdminVisibility;
 })();
 </script>
 
