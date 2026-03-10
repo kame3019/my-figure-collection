@@ -390,6 +390,14 @@
   font-family: var(--app-font) !important;
 }
 
+
+#pageCategoryTitle {
+  font-family: Aptos, "Segoe UI", Calibri, "Gill Sans", "Trebuchet MS", "Noto Sans TC", "Noto Sans JP", "PingFang TC", "Hiragino Sans", "Microsoft JhengHei", sans-serif !important;
+  font-style: normal !important;
+  font-weight: 400 !important;
+  letter-spacing: -0.02em !important;
+}
+
 /* Force Category header to use unified app font */
 #pageCategory .mb-6,
 #pageCategory .mb-6 *,
@@ -740,7 +748,7 @@
 <section class="page px-4 py-6" id="pageCategory">
 <div class="mb-6 flex items-end justify-between">
 <div>
-<h2 class="text-2xl font-light tracking-tight category-page-title">Categories</h2>
+<h2 id="pageCategoryTitle" class="text-2xl tracking-tight" style="font-family: Aptos, Segoe UI, Calibri, Gill Sans, Trebuchet MS, Noto Sans TC, Noto Sans JP, PingFang TC, Hiragino Sans, Microsoft JhengHei, sans-serif !important; font-style: normal !important; font-weight: 400 !important; letter-spacing: -0.02em;">Categories</h2>
 </div>
 </div>
 <div class="grid grid-cols-3 gap-3" id="categoryCardGrid"></div>
@@ -5252,7 +5260,7 @@ function syncMuseumModeLabel(){
     if(!page) return;
     const nodes = page.querySelectorAll('.mb-6, .mb-6 *, h1, h2, h3, .category-page-title, .section-title, .page-title, [class*="title"]');
     nodes.forEach(el=>{
-      el.style.setProperty('font-family', 'var(--app-font)', 'important');
+      el.style.setProperty('font-family', 'Aptos, Segoe UI, Calibri, Gill Sans, Trebuchet MS, Noto Sans TC, Noto Sans JP, PingFang TC, Hiragino Sans, Microsoft JhengHei, sans-serif', 'important');
       el.style.setProperty('font-style', 'normal', 'important');
     });
   }
