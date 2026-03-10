@@ -6717,5 +6717,81 @@ html[data-typography] :is(h1,h2,h3,h4,h5,h6,.page-title,.section-title,.header-t
 })();
 </script>
 
+
+<script>
+/* TRAVEL GROUP + FILTER (Option B) */
+(function(){
+
+let travelGroupFilter = "__all__";
+
+function getRecords(){
+  try{
+    if(window.records) return window.records;
+    if(window.archiveRecords) return window.archiveRecords;
+  }catch(e){}
+  return [];
+}
+
+function getTripNames(){
+  const recs = getRecords();
+  const set = new Set();
+  recs.forEach(r=>{
+    if(!r) return;
+    const cat = (r.category || r.cat || "").toLowerCase();
+    const trip = r.tripName || r.trip || "";
+    if(cat.includes("travel") || cat.includes("旅行")){
+      if(trip) set.add(trip);
+    }
+  });
+  return Array.from(set);
+}
+
+function populateTripFilter(){
+  const sel = document.getElementById("travelGroupFilter");
+  if(!sel) return;
+  const trips = getTripNames();
+  trips.forEach(t=>{
+    const opt = document.createElement("option");
+    opt.value = t;
+    opt.textContent = t;
+    sel.appendChild(opt);
+  });
+}
+
+function applyTripFilter(){
+  const items = document.querySelectorAll("[data-trip-name]");
+  items.forEach(el=>{
+    const trip = el.getAttribute("data-trip-name") || "";
+    if(travelGroupFilter === "__all__"){
+      el.style.display = "";
+    }else{
+      el.style.display = (trip === travelGroupFilter) ? "" : "none";
+    }
+  });
+}
+
+function bindFilter(){
+  const sel = document.getElementById("travelGroupFilter");
+  if(!sel) return;
+  sel.addEventListener("change", function(){
+    travelGroupFilter = sel.value;
+    applyTripFilter();
+  });
+}
+
+document.addEventListener("DOMContentLoaded", function(){
+  populateTripFilter();
+  bindFilter();
+  setTimeout(applyTripFilter, 300);
+});
+
+window.addEventListener("load", function(){
+  setTimeout(populateTripFilter, 200);
+  setTimeout(applyTripFilter, 400);
+});
+
+})();
+</script>
+
 </body>
 </html>
