@@ -686,6 +686,26 @@ html.kura-typo-stable .font-medium {
 })();
 </script>
 
+
+<style>
+/* Logo picker compact add-page UI */
+#logoPickerModal.show{ display:flex !important; }
+.logo-picker-card{
+  display:flex; flex-direction:column; align-items:center; gap:.5rem;
+  border:1px solid rgba(15,23,42,.08); background:rgba(255,255,255,.7);
+  border-radius:1rem; padding:.75rem; min-height:112px;
+}
+.logo-picker-card img{ width:100%; height:48px; object-fit:contain; }
+.logo-picker-card .logo-name{
+  width:100%; text-align:center; font-size:.72rem; line-height:1.1rem; color:#475569;
+  overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
+}
+.logo-picker-card.is-highlight{
+  outline:1px solid rgba(185,146,54,.35);
+  background:rgba(255,255,255,.95);
+}
+</style>
+
 </head>
 
 <!-- Kura Archive Stable Release Travel Final -->
@@ -894,33 +914,68 @@ html.kura-typo-stable .font-medium {
 <div class="text-xs font-bold tracking-widest uppercase text-slate-500 mb-2">品牌 / Logo</div>
 <div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
 <input class="kv-input rounded-xl border border-primary/10 bg-background-light/80 px-4 py-3 text-sm placeholder:text-slate-400 focus:border-primary focus:ring-primary" id="brand" placeholder="品牌 / 廠商"/>
-<input class="kv-input rounded-xl border border-primary/10 bg-background-light/80 px-4 py-3 text-sm placeholder:text-slate-400 focus:border-primary focus:ring-primary" id="brandLogoUrl" placeholder="品牌 logo 網址"/>
+<input class="hidden" id="brandLogoUrl" placeholder="品牌 logo 網址"/>
 </div>
-<div class="mt-4">
-<div class="text-xs font-bold tracking-widest uppercase text-slate-500 mb-2">品牌 Logo 快選</div>
-<div class="flex flex-wrap gap-2" id="brandPresetPicker"></div>
+<div class="mt-3 rounded-2xl border border-primary/10 bg-white/60 p-3">
+  <div class="flex items-center justify-between gap-3">
+    <div class="flex items-center gap-3 min-w-0">
+      <div class="flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-xl border border-primary/10 bg-white" id="brandLogoPreviewBox">
+        <span class="text-[10px] text-slate-300" id="brandLogoPreviewEmpty">No Logo</span>
+        <img alt="Brand Logo Preview" class="hidden h-full w-full object-contain" id="brandLogoPreviewImg"/>
+      </div>
+      <div class="min-w-0">
+        <div class="text-xs uppercase tracking-[0.16em] text-slate-400">Brand Logo</div>
+        <div class="mt-1 truncate text-sm text-slate-700" id="brandLogoSelectedText">Not selected</div>
+      </div>
+    </div>
+    <div class="flex shrink-0 items-center gap-2">
+      <button class="rounded-xl border border-primary/10 bg-white/80 px-3 py-2 text-xs text-slate-700" id="chooseBrandLogoBtn" type="button">Choose</button>
+      <button class="rounded-xl border border-primary/10 bg-black/5 px-3 py-2 text-xs text-slate-600" id="clearBrandLogoBtn" type="button">Clear</button>
+    </div>
+  </div>
+  <div class="mt-2 text-[11px] text-slate-400">Suggested by brand name · searchable picker · recent logos</div>
 </div>
-<div class="mt-3" id="brandLogoScopeWrap"></div>
-<div class="mt-3">
-<input accept="image/*" class="kv-input w-full rounded-xl border border-primary/10 bg-background-light/80 px-4 py-3 text-sm file:mr-3 file:rounded-lg file:border-0 file:bg-primary file:px-3 file:py-2 file:text-sm file:font-semibold file:text-white" id="brandLogoFile" type="file"/>
+<details class="mt-3 rounded-2xl border border-primary/10 bg-white/50 p-3">
+  <summary class="cursor-pointer text-xs uppercase tracking-[0.16em] text-slate-500">Advanced Brand Logo</summary>
+  <div class="mt-3">
+    <input accept="image/*" class="kv-input w-full rounded-xl border border-primary/10 bg-background-light/80 px-4 py-3 text-sm file:mr-3 file:rounded-lg file:border-0 file:bg-primary file:px-3 file:py-2 file:text-sm file:font-semibold file:text-white" id="brandLogoFile" type="file"/>
+  </div>
+  <button class="mt-3 w-full rounded-xl bg-primary px-4 py-3 text-sm font-bold text-white" id="saveBrandLibBtn">加入品牌 Logo 庫</button>
+</details>
 </div>
-<button class="mt-3 w-full rounded-xl bg-primary px-4 py-3 text-sm font-bold text-white" id="saveBrandLibBtn">加入品牌 Logo 庫</button>
-</div>
+
 <div class="mt-6">
 <div class="text-xs font-bold tracking-widest uppercase text-slate-500 mb-2">系列 / Logo</div>
 <div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
 <input class="kv-input rounded-xl border border-primary/10 bg-background-light/80 px-4 py-3 text-sm placeholder:text-slate-400 focus:border-primary focus:ring-primary" id="series" placeholder="系列 / 作品"/>
-<input class="kv-input rounded-xl border border-primary/10 bg-background-light/80 px-4 py-3 text-sm placeholder:text-slate-400 focus:border-primary focus:ring-primary" id="seriesLogoUrl" placeholder="系列 logo 網址"/>
+<input class="hidden" id="seriesLogoUrl" placeholder="系列 logo 網址"/>
 </div>
-<div class="mt-4">
-<div class="text-xs font-bold tracking-widest uppercase text-slate-500 mb-2">系列 Logo 快選</div>
-<div class="flex flex-wrap gap-2" id="seriesPresetPicker"></div>
+<div class="mt-3 rounded-2xl border border-primary/10 bg-white/60 p-3">
+  <div class="flex items-center justify-between gap-3">
+    <div class="flex items-center gap-3 min-w-0">
+      <div class="flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-xl border border-primary/10 bg-white" id="seriesLogoPreviewBox">
+        <span class="text-[10px] text-slate-300" id="seriesLogoPreviewEmpty">No Logo</span>
+        <img alt="Series Logo Preview" class="hidden h-full w-full object-contain" id="seriesLogoPreviewImg"/>
+      </div>
+      <div class="min-w-0">
+        <div class="text-xs uppercase tracking-[0.16em] text-slate-400">Series Logo</div>
+        <div class="mt-1 truncate text-sm text-slate-700" id="seriesLogoSelectedText">Not selected</div>
+      </div>
+    </div>
+    <div class="flex shrink-0 items-center gap-2">
+      <button class="rounded-xl border border-primary/10 bg-white/80 px-3 py-2 text-xs text-slate-700" id="chooseSeriesLogoBtn" type="button">Choose</button>
+      <button class="rounded-xl border border-primary/10 bg-black/5 px-3 py-2 text-xs text-slate-600" id="clearSeriesLogoBtn" type="button">Clear</button>
+    </div>
+  </div>
+  <div class="mt-2 text-[11px] text-slate-400">Suggested by series name · searchable picker · recent logos</div>
 </div>
-<div class="mt-3" id="seriesLogoScopeWrap"></div>
-<div class="mt-3">
-<input accept="image/*" class="kv-input w-full rounded-xl border border-primary/10 bg-background-light/80 px-4 py-3 text-sm file:mr-3 file:rounded-lg file:border-0 file:bg-primary file:px-3 file:py-2 file:text-sm file:font-semibold file:text-white" id="seriesLogoFile" type="file"/>
-</div>
-<button class="mt-3 w-full rounded-xl bg-primary px-4 py-3 text-sm font-bold text-white" id="saveSeriesLibBtn">加入系列 Logo 庫</button>
+<details class="mt-3 rounded-2xl border border-primary/10 bg-white/50 p-3">
+  <summary class="cursor-pointer text-xs uppercase tracking-[0.16em] text-slate-500">Advanced Series Logo</summary>
+  <div class="mt-3">
+    <input accept="image/*" class="kv-input w-full rounded-xl border border-primary/10 bg-background-light/80 px-4 py-3 text-sm file:mr-3 file:rounded-lg file:border-0 file:bg-primary file:px-3 file:py-2 file:text-sm file:font-semibold file:text-white" id="seriesLogoFile" type="file"/>
+  </div>
+  <button class="mt-3 w-full rounded-xl bg-primary px-4 py-3 text-sm font-bold text-white" id="saveSeriesLibBtn">加入系列 Logo 庫</button>
+</details>
 </div>
 <button class="mt-5 w-full rounded-xl bg-primary px-4 py-3 text-sm font-bold text-white" id="saveBtn">儲存收藏</button>
 </div>
@@ -2033,13 +2088,15 @@ function renderOverviewCards() {
         }
 
         function renderPresetPickers() {
-            document.getElementById("brandPresetPicker").innerHTML = brandLibrary.map(item => `
-                <button class="rounded-full border border-primary/10 bg-white/60 px-3 py-2 text-xs font-semibold" type="button" onclick="applyBrandPreset('${escapeText(item.name)}','${escapeText(item.logo)}')">${item.name}</button>
-            `).join("");
-
-            document.getElementById("seriesPresetPicker").innerHTML = seriesLibrary.map(item => `
-                <button class="rounded-full border border-primary/10 bg-white/60 px-3 py-2 text-xs font-semibold" type="button" onclick="applySeriesPreset('${escapeText(item.name)}','${escapeText(item.logo)}')">${item.name}</button>
-            `).join("");
+            const brandPresetPicker = document.getElementById("brandPresetPicker");
+            const seriesPresetPicker = document.getElementById("seriesPresetPicker");
+            const brandScopeWrap = document.getElementById("brandLogoScopeWrap");
+            const seriesScopeWrap = document.getElementById("seriesLogoScopeWrap");
+            if (brandPresetPicker) brandPresetPicker.innerHTML = "";
+            if (seriesPresetPicker) seriesPresetPicker.innerHTML = "";
+            if (brandScopeWrap) brandScopeWrap.innerHTML = "";
+            if (seriesScopeWrap) seriesScopeWrap.innerHTML = "";
+            if (typeof syncLogoPickerUI === "function") syncLogoPickerUI();
         }
 
         window.applyBrandPreset = function(name, logo) {
@@ -6342,6 +6399,321 @@ html[data-typography] :is(h1,h2,h3,h4,h5,h6,.page-title,.section-title,.header-t
   }, true);
 
   window.tagCategoryModalStructure = tagCategoryModalStructure;
+})();
+</script>
+
+
+<div class="fixed inset-0 z-[90] hidden items-end justify-center bg-black/45 p-4 md:items-center" id="logoPickerModal">
+  <div class="w-full max-w-3xl overflow-hidden rounded-[28px] border border-primary/10 bg-[var(--bg)] shadow-2xl" id="logoPickerPanel">
+    <div class="flex items-center justify-between border-b border-primary/10 px-5 py-4">
+      <div>
+        <div class="text-[10px] uppercase tracking-[0.18em] text-slate-400" id="logoPickerEyebrow">Logo Picker</div>
+        <div class="mt-1 text-base text-slate-900" id="logoPickerTitle">Choose Logo</div>
+      </div>
+      <button class="rounded-xl border border-primary/10 bg-white/70 px-3 py-2 text-xs text-slate-600" id="closeLogoPickerBtn" type="button">Close</button>
+    </div>
+    <div class="max-h-[78vh] overflow-auto px-5 py-4">
+      <input class="kv-input w-full rounded-xl border border-primary/10 bg-background-light/80 px-4 py-3 text-sm placeholder:text-slate-400 focus:border-primary focus:ring-primary" id="logoPickerSearch" placeholder="Search logo..." type="text"/>
+      <div class="mt-4" id="logoPickerSuggestedWrap">
+        <div class="mb-2 text-[10px] uppercase tracking-[0.18em] text-slate-400">Suggested</div>
+        <div class="grid grid-cols-2 gap-2 sm:grid-cols-4" id="logoPickerSuggested"></div>
+      </div>
+      <div class="mt-4" id="logoPickerRecentWrap">
+        <div class="mb-2 text-[10px] uppercase tracking-[0.18em] text-slate-400">Recent</div>
+        <div class="grid grid-cols-2 gap-2 sm:grid-cols-4" id="logoPickerRecent"></div>
+      </div>
+      <div class="mt-4">
+        <div class="mb-2 text-[10px] uppercase tracking-[0.18em] text-slate-400">Library</div>
+        <div class="grid grid-cols-2 gap-2 sm:grid-cols-4" id="logoPickerGrid"></div>
+      </div>
+      <div class="mt-4 text-xs text-slate-400" id="logoPickerEmpty">No logo found.</div>
+    </div>
+  </div>
+</div>
+
+
+<script>
+/* Add Page Logo Picker v1: popup + search + suggestions + recent + exact match */
+(function(){
+  const RECENT_KEY = 'kura_recent_logo_picker_v1';
+  const state = { kind: 'brand' };
+
+  function getLibrary(kind){
+    return kind === 'brand' ? (window.brandLibrary || brandLibrary || []) : (window.seriesLibrary || seriesLibrary || []);
+  }
+
+  function getInput(kind){
+    return document.getElementById(kind === 'brand' ? 'brand' : 'series');
+  }
+
+  function getHidden(kind){
+    return document.getElementById(kind === 'brand' ? 'brandLogoUrl' : 'seriesLogoUrl');
+  }
+
+  function getPreview(kind){
+    return {
+      img: document.getElementById(kind === 'brand' ? 'brandLogoPreviewImg' : 'seriesLogoPreviewImg'),
+      empty: document.getElementById(kind === 'brand' ? 'brandLogoPreviewEmpty' : 'seriesLogoPreviewEmpty'),
+      text: document.getElementById(kind === 'brand' ? 'brandLogoSelectedText' : 'seriesLogoSelectedText')
+    };
+  }
+
+  function readRecent(){
+    try { return JSON.parse(localStorage.getItem(RECENT_KEY) || '{"brand":[],"series":[]}'); }
+    catch(e){ return { brand: [], series: [] }; }
+  }
+
+  function saveRecent(kind, name){
+    const payload = readRecent();
+    const arr = Array.isArray(payload[kind]) ? payload[kind] : [];
+    payload[kind] = [name, ...arr.filter(x => x !== name)].slice(0, 8);
+    try { localStorage.setItem(RECENT_KEY, JSON.stringify(payload)); } catch(e){}
+  }
+
+  function normalize(v){
+    return String(v || '').trim().toLowerCase();
+  }
+
+  function exactMatch(kind){
+    const input = getInput(kind);
+    const hidden = getHidden(kind);
+    if (!input || !hidden) return;
+    const val = normalize(input.value);
+    if (!val) return;
+    const match = getLibrary(kind).find(item => normalize(item.name) === val);
+    if (match){
+      hidden.value = match.logo || '';
+      syncLogoPickerUI();
+    }
+  }
+
+  function applyLogoChoice(kind, item, closeModal = true){
+    const input = getInput(kind);
+    const hidden = getHidden(kind);
+    if (!input || !hidden || !item) return;
+    input.value = item.name || input.value;
+    hidden.value = item.logo || '';
+    saveRecent(kind, item.name || '');
+    syncLogoPickerUI();
+    if (closeModal) closeLogoPicker();
+  }
+
+  function clearLogoChoice(kind){
+    const hidden = getHidden(kind);
+    const fileInput = document.getElementById(kind === 'brand' ? 'brandLogoFile' : 'seriesLogoFile');
+    if (hidden) hidden.value = '';
+    if (fileInput) fileInput.value = '';
+    syncLogoPickerUI();
+  }
+
+  async function previewFile(kind, file){
+    if (!file) return;
+    const dataUrl = await new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result);
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    });
+    const hidden = getHidden(kind);
+    if (hidden) hidden.value = dataUrl;
+    syncLogoPickerUI();
+  }
+
+  function syncLogoPickerUI(){
+    ['brand','series'].forEach(kind => {
+      const hidden = getHidden(kind);
+      const input = getInput(kind);
+      const preview = getPreview(kind);
+      if (!preview.img || !preview.empty || !preview.text) return;
+      const val = (hidden && hidden.value || '').trim();
+      const label = (input && input.value || '').trim();
+      if (val){
+        preview.img.src = val;
+        preview.img.classList.remove('hidden');
+        preview.empty.classList.add('hidden');
+        preview.text.textContent = label || 'Selected';
+      } else {
+        preview.img.removeAttribute('src');
+        preview.img.classList.add('hidden');
+        preview.empty.classList.remove('hidden');
+        preview.text.textContent = 'Not selected';
+      }
+    });
+  }
+
+  function openLogoPicker(kind){
+    state.kind = kind;
+    const modal = document.getElementById('logoPickerModal');
+    const title = document.getElementById('logoPickerTitle');
+    const search = document.getElementById('logoPickerSearch');
+    if (!modal || !title || !search) return;
+    title.textContent = kind === 'brand' ? 'Choose Brand Logo' : 'Choose Series Logo';
+    search.value = '';
+    modal.classList.add('show');
+    renderLogoPicker();
+    setTimeout(() => search.focus(), 0);
+  }
+
+  function closeLogoPicker(){
+    const modal = document.getElementById('logoPickerModal');
+    if (modal) modal.classList.remove('show');
+  }
+
+  function cardHTML(item, kind, highlight){
+    return `<button class="logo-picker-card ${highlight ? 'is-highlight' : ''}" type="button" data-logo-name="${String(item.name || '').replace(/"/g,'&quot;')}">
+      <img alt="" src="${item.logo || ''}">
+      <div class="logo-name">${item.name || ''}</div>
+    </button>`;
+  }
+
+  function renderLogoPicker(){
+    const search = document.getElementById('logoPickerSearch');
+    const suggested = document.getElementById('logoPickerSuggested');
+    const recent = document.getElementById('logoPickerRecent');
+    const grid = document.getElementById('logoPickerGrid');
+    const empty = document.getElementById('logoPickerEmpty');
+    const suggestedWrap = document.getElementById('logoPickerSuggestedWrap');
+    const recentWrap = document.getElementById('logoPickerRecentWrap');
+    if (!search || !suggested || !recent || !grid || !empty) return;
+
+    const kind = state.kind;
+    const library = getLibrary(kind);
+    const query = normalize(search.value);
+    const typed = normalize((getInput(kind)?.value || ''));
+    const baseMatch = typed || query;
+
+    const filtered = library.filter(item => {
+      const n = normalize(item.name);
+      return !query || n.includes(query);
+    });
+
+    const suggestedItems = library.filter(item => {
+      const n = normalize(item.name);
+      return baseMatch && (n === baseMatch || n.startsWith(baseMatch) || baseMatch.split(' ').every(tok => !tok || n.includes(tok)));
+    }).slice(0, 8);
+
+    const recents = readRecent()[kind] || [];
+    const recentItems = recents.map(name => library.find(item => item.name === name)).filter(Boolean).slice(0, 8);
+
+    suggested.innerHTML = suggestedItems.map(item => cardHTML(item, kind, true)).join('');
+    recent.innerHTML = recentItems.map(item => cardHTML(item, kind, false)).join('');
+    grid.innerHTML = filtered.map(item => cardHTML(item, kind, false)).join('');
+
+    suggestedWrap.style.display = suggestedItems.length ? '' : 'none';
+    recentWrap.style.display = recentItems.length ? '' : 'none';
+    empty.style.display = filtered.length ? 'none' : '';
+  }
+
+  function bindPickerClicks(){
+    document.addEventListener('click', function(e){
+      const chooseBrand = e.target.closest('#chooseBrandLogoBtn');
+      if (chooseBrand){ e.preventDefault(); openLogoPicker('brand'); return; }
+
+      const chooseSeries = e.target.closest('#chooseSeriesLogoBtn');
+      if (chooseSeries){ e.preventDefault(); openLogoPicker('series'); return; }
+
+      const clearBrand = e.target.closest('#clearBrandLogoBtn');
+      if (clearBrand){ e.preventDefault(); clearLogoChoice('brand'); return; }
+
+      const clearSeries = e.target.closest('#clearSeriesLogoBtn');
+      if (clearSeries){ e.preventDefault(); clearLogoChoice('series'); return; }
+
+      const close = e.target.closest('#closeLogoPickerBtn');
+      if (close){ e.preventDefault(); closeLogoPicker(); return; }
+
+      const modalBackdrop = e.target.id === 'logoPickerModal' ? e.target : null;
+      if (modalBackdrop){ closeLogoPicker(); return; }
+
+      const card = e.target.closest('.logo-picker-card');
+      if (card){
+        e.preventDefault();
+        const name = card.getAttribute('data-logo-name') || '';
+        const item = getLibrary(state.kind).find(x => x.name === name);
+        if (item) applyLogoChoice(state.kind, item, true);
+      }
+    }, true);
+  }
+
+  function bindSearch(){
+    const search = document.getElementById('logoPickerSearch');
+    if (!search || search.dataset.boundLogoSearch) return;
+    search.dataset.boundLogoSearch = '1';
+    search.addEventListener('input', renderLogoPicker);
+  }
+
+  function bindAutoSuggest(){
+    ['brand','series'].forEach(kind => {
+      const input = getInput(kind);
+      const fileInput = document.getElementById(kind === 'brand' ? 'brandLogoFile' : 'seriesLogoFile');
+      if (input && !input.dataset.logoAutoBound){
+        input.dataset.logoAutoBound = '1';
+        input.addEventListener('input', function(){
+          exactMatch(kind);
+          syncLogoPickerUI();
+        });
+        input.addEventListener('blur', function(){
+          exactMatch(kind);
+          syncLogoPickerUI();
+        });
+      }
+      if (fileInput && !fileInput.dataset.logoFileBound){
+        fileInput.dataset.logoFileBound = '1';
+        fileInput.addEventListener('change', function(){
+          const file = fileInput.files && fileInput.files[0];
+          if (file) previewFile(kind, file);
+        });
+      }
+    });
+  }
+
+  function wrapExistingFns(){
+    const wrap = (name) => {
+      try {
+        const fn = window[name];
+        if (typeof fn !== 'function' || fn.__logoWrapped) return;
+        window[name] = function(...args){
+          const res = fn.apply(this, args);
+          try { setTimeout(syncLogoPickerUI, 0); } catch(e){}
+          return res;
+        };
+        window[name].__logoWrapped = true;
+      } catch(e){}
+    };
+    ['renderPresetPickers','renderLogoManagers','editItem'].forEach(wrap);
+
+    try {
+      const saveRecord = window.saveRecord;
+      if (typeof saveRecord === 'function' && !saveRecord.__logoWrapped){
+        window.saveRecord = async function(...args){
+          const res = await saveRecord.apply(this, args);
+          try { syncLogoPickerUI(); } catch(e){}
+          return res;
+        };
+        window.saveRecord.__logoWrapped = true;
+      }
+    } catch(e){}
+  }
+
+  document.addEventListener('DOMContentLoaded', function(){
+    bindPickerClicks();
+    bindSearch();
+    bindAutoSuggest();
+    wrapExistingFns();
+    syncLogoPickerUI();
+  });
+  window.addEventListener('load', function(){
+    bindSearch();
+    bindAutoSuggest();
+    syncLogoPickerUI();
+  });
+
+  window.applyBrandPreset = function(name, logo) {
+    applyLogoChoice('brand', { name, logo }, false);
+  };
+  window.applySeriesPreset = function(name, logo) {
+    applyLogoChoice('series', { name, logo }, false);
+  };
+  window.syncLogoPickerUI = syncLogoPickerUI;
 })();
 </script>
 
