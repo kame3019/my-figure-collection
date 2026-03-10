@@ -390,6 +390,20 @@
   font-family: var(--app-font) !important;
 }
 
+/* Force Category header to use unified app font */
+#pageCategory .mb-6,
+#pageCategory .mb-6 *,
+#pageCategory h1,
+#pageCategory h2,
+#pageCategory h3,
+#pageCategory .category-page-title,
+#pageCategory .section-title,
+#pageCategory .page-title,
+#pageCategory [class*="title"] {
+  font-family: var(--app-font) !important;
+  font-style: normal !important;
+}
+
 </style>
 <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
 <style id="stable-detail-popup-style">
@@ -5231,6 +5245,38 @@ function syncMuseumModeLabel(){
   window.addEventListener("load", reapplySavedTheme);
   window.addEventListener("pageshow", reapplySavedTheme);
 })();
+
+(function forceCategoryHeaderFont(){
+  function applyCategoryHeaderFont(){
+    const page = document.getElementById('pageCategory');
+    if(!page) return;
+    const nodes = page.querySelectorAll('.mb-6, .mb-6 *, h1, h2, h3, .category-page-title, .section-title, .page-title, [class*="title"]');
+    nodes.forEach(el=>{
+      el.style.setProperty('font-family', 'var(--app-font)', 'important');
+      el.style.setProperty('font-style', 'normal', 'important');
+    });
+  }
+  document.addEventListener('DOMContentLoaded', applyCategoryHeaderFont);
+  window.addEventListener('load', applyCategoryHeaderFont);
+  window.addEventListener('pageshow', applyCategoryHeaderFont);
+  const _showPage = window.showPage;
+  if (typeof _showPage === 'function' && !_showPage.__categoryFontPatched) {
+    window.showPage = function(){
+      const result = _showPage.apply(this, arguments);
+      requestAnimationFrame(()=>requestAnimationFrame(applyCategoryHeaderFont));
+      return result;
+    };
+    window.showPage.__categoryFontPatched = true;
+  }
+  const mo = new MutationObserver(()=>applyCategoryHeaderFont());
+  const bootObserver = ()=>{
+    const page = document.getElementById('pageCategory');
+    if(page) mo.observe(page, {childList:true, subtree:true, characterData:true});
+  };
+  document.addEventListener('DOMContentLoaded', bootObserver);
+  window.addEventListener('load', bootObserver);
+})();
+
 </script>
 </body>
 </html>
