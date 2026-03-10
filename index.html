@@ -7204,43 +7204,46 @@ html[data-typography] :is(h1,h2,h3,h4,h5,h6,.page-title,.section-title,.header-t
 </div>
 
 
+
 <script>
-/* Admin Global popup fix v2 */
+/* Admin Global popup fix v3 */
 (function(){
   let currentLogoKind = null;
 
   function $(id){ return document.getElementById(id); }
 
-  function getVisibleValue(id){
-    const nodes = Array.from(document.querySelectorAll(`[id="${id}"]`));
-    if (!nodes.length) return "";
-    const visible = nodes.find(el => !!(el.offsetWidth || el.offsetHeight || el.getClientRects().length));
-    return (visible || nodes[nodes.length - 1]).value || "";
-  }
-
-  function setAllValues(id, value){
-    Array.from(document.querySelectorAll(`[id="${id}"]`)).forEach(el => { el.value = value; });
-  }
-
-  async function isAdminNow(retries = 5, delay = 250){
-    for (let i = 0; i < retries; i++){
-      try {
-        const ok = typeof isAdmin === 'function' ? await isAdmin() : (typeof currentUserIsAdmin === 'function' ? await currentUserIsAdmin() : false);
-        if (ok) return true;
-        const uid = window.kuraFirebase?.auth?.currentUser?.uid || "";
-        if (uid) return false;
-      } catch(e){}
-      await new Promise(r => setTimeout(r, delay));
-    }
-    return false;
-  }
-
-  async function ensureScopeSelectorsExist(){
-    const admin = await isAdminNow();
+  async function resolveAdminStrict(){
+    // Check multiple admin sources, but do not touch any other system.
     try {
-      if (typeof ensureScopeSelectors === 'function') ensureScopeSelectors(admin);
+      if (typeof isAdmin === 'function') {
+        const ok = await isAdmin();
+        if (ok) return true;
+      }
     } catch(e){}
-    return admin;
+
+    try {
+      if (typeof currentUserIsAdmin === 'function') {
+        const ok = await currentUserIsAdmin();
+        if (ok) return true;
+      }
+    } catch(e){}
+
+    try {
+      const panel = document.getElementById('globalAdminPanel');
+      if (panel && !panel.classList.contains('hidden')) return true;
+    } catch(e){}
+
+    try {
+      const uid = window.kuraFirebase?.auth?.currentUser?.uid || '';
+      if (!uid) return false;
+      const api = window.kuraFirebase;
+      if (api?.getDoc && api?.doc && api?.db) {
+        const snap = await api.getDoc(api.doc(api.db, 'admins', uid));
+        return !!snap?.exists?.();
+      }
+    } catch(e){}
+
+    return false;
   }
 
   async function openScopePopup(kind){
@@ -7250,16 +7253,13 @@ html[data-typography] :is(h1,h2,h3,h4,h5,h6,.page-title,.section-title,.header-t
     const globalBtn = $('logoScopeGlobalBtn');
     if (!modal || !title || !globalBtn) return;
 
-    // sync visible advanced field values across same ids if duplicated
-    if (kind === 'brand'){
-      setAllValues('brandLogoUrl', getVisibleValue('brandLogoUrl'));
-    } else {
-      setAllValues('seriesLogoUrl', getVisibleValue('seriesLogoUrl'));
-    }
-
-    const admin = await ensureScopeSelectorsExist();
     title.textContent = kind === 'brand' ? '加入 Brand Logo' : '加入 Series Logo';
+
+    // Re-check admin at the exact moment of opening.
+    const admin = await resolveAdminStrict();
+    window.__kuraAdminLogoFlag = admin;
     globalBtn.classList.toggle('hidden', !admin);
+
     modal.classList.add('show');
   }
 
@@ -7270,26 +7270,25 @@ html[data-typography] :is(h1,h2,h3,h4,h5,h6,.page-title,.section-title,.header-t
   }
 
   async function saveWithScope(scope){
-    const admin = await ensureScopeSelectorsExist();
-    if (scope === 'global' && !admin) return;
+    if (!currentLogoKind) return;
+    if (scope === 'global') {
+      const admin = await resolveAdminStrict();
+      if (!admin) return;
+    }
 
-    if (currentLogoKind === 'brand'){
-      const sel = $('brandLogoScope');
-      if (sel) sel.value = scope;
-      setAllValues('brandLogoUrl', getVisibleValue('brandLogoUrl'));
-      if (typeof saveBrandLogoPatched === 'function') await saveBrandLogoPatched();
-      else if (typeof addBrandLibrary === 'function') await addBrandLibrary(scope === 'global' ? 'global' : 'my');
-    } else if (currentLogoKind === 'series'){
-      const sel = $('seriesLogoScope');
-      if (sel) sel.value = scope;
-      setAllValues('seriesLogoUrl', getVisibleValue('seriesLogoUrl'));
-      if (typeof saveSeriesLogoPatched === 'function') await saveSeriesLogoPatched();
-      else if (typeof addSeriesLibrary === 'function') await addSeriesLibrary(scope === 'global' ? 'global' : 'my');
+    if (currentLogoKind === 'brand') {
+      if (typeof addBrandLibrary === 'function') {
+        await addBrandLibrary(scope === 'global' ? 'global' : 'my');
+      }
+    } else if (currentLogoKind === 'series') {
+      if (typeof addSeriesLibrary === 'function') {
+        await addSeriesLibrary(scope === 'global' ? 'global' : 'my');
+      }
     }
     closeScopePopup();
   }
 
-  function bindButtons(){
+  function bindPopup(){
     const brandBtn = $('saveBrandLibBtn');
     const seriesBtn = $('saveSeriesLibBtn');
     const closeBtn = $('closeLogoScopeModalBtn');
@@ -7297,8 +7296,8 @@ html[data-typography] :is(h1,h2,h3,h4,h5,h6,.page-title,.section-title,.header-t
     const globalBtn = $('logoScopeGlobalBtn');
     const modal = $('logoScopeModal');
 
-    if (brandBtn && !brandBtn.dataset.popupBound){
-      brandBtn.dataset.popupBound = '1';
+    if (brandBtn && !brandBtn.dataset.scopePopupBoundV3) {
+      brandBtn.dataset.scopePopupBoundV3 = '1';
       brandBtn.onclick = null;
       brandBtn.addEventListener('click', function(e){
         e.preventDefault();
@@ -7309,8 +7308,8 @@ html[data-typography] :is(h1,h2,h3,h4,h5,h6,.page-title,.section-title,.header-t
       }, true);
     }
 
-    if (seriesBtn && !seriesBtn.dataset.popupBound){
-      seriesBtn.dataset.popupBound = '1';
+    if (seriesBtn && !seriesBtn.dataset.scopePopupBoundV3) {
+      seriesBtn.dataset.scopePopupBoundV3 = '1';
       seriesBtn.onclick = null;
       seriesBtn.addEventListener('click', function(e){
         e.preventDefault();
@@ -7321,32 +7320,32 @@ html[data-typography] :is(h1,h2,h3,h4,h5,h6,.page-title,.section-title,.header-t
       }, true);
     }
 
-    if (closeBtn && !closeBtn.dataset.popupBound){
-      closeBtn.dataset.popupBound = '1';
+    if (closeBtn && !closeBtn.dataset.scopePopupBoundV3) {
+      closeBtn.dataset.scopePopupBoundV3 = '1';
       closeBtn.addEventListener('click', function(e){
         e.preventDefault();
         closeScopePopup();
       });
     }
 
-    if (myBtn && !myBtn.dataset.popupBound){
-      myBtn.dataset.popupBound = '1';
+    if (myBtn && !myBtn.dataset.scopePopupBoundV3) {
+      myBtn.dataset.scopePopupBoundV3 = '1';
       myBtn.addEventListener('click', function(e){
         e.preventDefault();
-        saveWithScope('personal');
+        saveWithScope('my');
       });
     }
 
-    if (globalBtn && !globalBtn.dataset.popupBound){
-      globalBtn.dataset.popupBound = '1';
+    if (globalBtn && !globalBtn.dataset.scopePopupBoundV3) {
+      globalBtn.dataset.scopePopupBoundV3 = '1';
       globalBtn.addEventListener('click', function(e){
         e.preventDefault();
         saveWithScope('global');
       });
     }
 
-    if (modal && !modal.dataset.popupBound){
-      modal.dataset.popupBound = '1';
+    if (modal && !modal.dataset.scopePopupBoundV3) {
+      modal.dataset.scopePopupBoundV3 = '1';
       modal.addEventListener('click', function(e){
         if (e.target === modal) closeScopePopup();
       });
@@ -7354,14 +7353,14 @@ html[data-typography] :is(h1,h2,h3,h4,h5,h6,.page-title,.section-title,.header-t
   }
 
   document.addEventListener('DOMContentLoaded', function(){
-    setTimeout(bindButtons, 0);
-    setTimeout(bindButtons, 120);
-    setTimeout(bindButtons, 400);
+    setTimeout(bindPopup, 0);
+    setTimeout(bindPopup, 120);
+    setTimeout(bindPopup, 400);
   });
   window.addEventListener('load', function(){
-    setTimeout(bindButtons, 0);
-    setTimeout(bindButtons, 120);
-    setTimeout(bindButtons, 400);
+    setTimeout(bindPopup, 0);
+    setTimeout(bindPopup, 120);
+    setTimeout(bindPopup, 400);
   });
 })();
 </script>
