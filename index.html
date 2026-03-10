@@ -588,6 +588,18 @@ html[data-typography="ja"] h6 {
 }
 
 </style>
+
+<style>
+/* === Stable Currency Patch v1 CSS === */
+#profileToolModal button.is-active,
+#profileToolModal .tool-btn.is-active,
+#profileToolModal .option-btn.is-active,
+#profileToolModal .choice-btn.is-active,
+#profileToolModal .seg-btn.is-active {
+  outline: 1px solid currentColor;
+}
+</style>
+
 </head>
 <body class="bg-background-light font-display text-slate-900 washi-texture">
 <script>
@@ -5724,6 +5736,174 @@ html[data-typography] :is(h1,h2,h3,h4,h5,h6,.page-title,.section-title,.header-t
   if(document.readyState==='loading') document.addEventListener('DOMContentLoaded', normalizeWeights); else normalizeWeights();
   window.addEventListener('load', normalizeWeights);
   window.addEventListener('pageshow', normalizeWeights);
+})();
+</script>
+
+
+<script>
+/* === Stable Currency Patch v1: HKD / USD / JPY, format only, no conversion === */
+(function(){
+  const STORAGE_KEY = 'kuraCurrency';
+  const ALLOWED = ['HKD','USD','JPY'];
+
+  function getSavedCurrency(){
+    const raw = localStorage.getItem(STORAGE_KEY) || sessionStorage.getItem(STORAGE_KEY) || 'HKD';
+    return ALLOWED.includes(raw) ? raw : 'HKD';
+  }
+
+  function saveCurrency(cur){
+    if (!ALLOWED.includes(cur)) cur = 'HKD';
+    try { localStorage.setItem(STORAGE_KEY, cur); } catch(e) {}
+    try { sessionStorage.setItem(STORAGE_KEY, cur); } catch(e) {}
+    document.documentElement.setAttribute('data-currency', cur);
+  }
+
+  function getCurrencySymbol(cur){
+    if (cur === 'USD') return 'US$ ';
+    if (cur === 'JPY') return '¥ ';
+    return 'HK$ ';
+  }
+
+  function formatCurrencyValue(value, cur){
+    if (value === null || value === undefined || value === '') return '';
+    let num = Number(String(value).replace(/[^0-9.\-]/g, ''));
+    if (!isFinite(num)) return String(value);
+
+    if (cur === 'JPY') {
+      return getCurrencySymbol(cur) + num.toLocaleString('en-US', {
+        maximumFractionDigits: 0,
+        minimumFractionDigits: 0
+      });
+    }
+    return getCurrencySymbol(cur) + num.toLocaleString('en-US', {
+      maximumFractionDigits: 2,
+      minimumFractionDigits: 2
+    });
+  }
+
+  function extractNumeric(text){
+    if (!text) return null;
+    const m = String(text).replace(/,/g,'').match(/-?\d+(?:\.\d+)?/);
+    return m ? m[0] : null;
+  }
+
+  function patchTextNodeCurrency(el, cur){
+    if (!el) return;
+    const raw = el.getAttribute('data-price-raw') || extractNumeric(el.textContent);
+    if (!raw) return;
+    el.setAttribute('data-price-raw', raw);
+    el.textContent = formatCurrencyValue(raw, cur);
+  }
+
+  function patchValueFields(cur){
+    // Existing price/value-like nodes
+    const selectors = [
+      '[data-price]',
+      '[data-value]',
+      '.price',
+      '.item-price',
+      '.card-price',
+      '.detail-price',
+      '.price-text',
+      '.value-text',
+      '#detailPrice',
+      '#detailValue'
+    ];
+    document.querySelectorAll(selectors.join(',')).forEach(el => patchTextNodeCurrency(el, cur));
+  }
+
+  function patchLabeledText(cur){
+    // Patch common "Price: ..." or "Value: ..." text blocks without changing label language
+    const candidates = Array.from(document.querySelectorAll('p,div,span,li'));
+    candidates.forEach(el => {
+      if (el.children.length > 0) return;
+      const txt = (el.textContent || '').trim();
+      if (!txt) return;
+      if (txt.length > 80) return;
+      const priceLike = /(price|value|價格|價值|価格)\s*[:：]\s*/i.test(txt);
+      if (!priceLike) return;
+      const raw = el.getAttribute('data-price-raw') || extractNumeric(txt);
+      if (!raw) return;
+      el.setAttribute('data-price-raw', raw);
+      el.textContent = txt.replace(/([:：]\s*).*/, '$1' + formatCurrencyValue(raw, cur));
+    });
+  }
+
+  function normalizeCurrencyButtons(cur){
+    const root = document.getElementById('profileToolModal') || document.body;
+    const buttons = Array.from(root.querySelectorAll('button, .tool-btn, .option-btn, .choice-btn, .seg-btn'));
+    buttons.forEach(btn => {
+      const t = (btn.textContent || '').trim();
+      if (!t) return;
+      const match = t.match(/\b(HKD|USD|JPY|CNY)\b/i);
+      if (!match) return;
+      const code = match[1].toUpperCase();
+      if (!ALLOWED.includes(code)) {
+        // hide unsupported currencies like CNY if present in old UI
+        btn.style.display = 'none';
+        return;
+      }
+      btn.style.display = '';
+      btn.classList.toggle('is-active', code === cur);
+      btn.setAttribute('aria-pressed', code === cur ? 'true' : 'false');
+    });
+  }
+
+  function applyCurrency(cur){
+    saveCurrency(cur);
+    patchValueFields(cur);
+    patchLabeledText(cur);
+    normalizeCurrencyButtons(cur);
+  }
+
+  function bindCurrencyUI(){
+    document.addEventListener('click', function(e){
+      const btn = e.target.closest('button, .tool-btn, .option-btn, .choice-btn, .seg-btn');
+      if (!btn) return;
+      const t = (btn.textContent || '').trim();
+      const match = t.match(/\b(HKD|USD|JPY|CNY)\b/i);
+      if (!match) return;
+      const code = match[1].toUpperCase();
+      if (!ALLOWED.includes(code)) {
+        e.preventDefault();
+        e.stopPropagation();
+        btn.style.display = 'none';
+        return;
+      }
+      e.preventDefault();
+      e.stopPropagation();
+      applyCurrency(code);
+    }, true);
+  }
+
+  function forceTrimCurrencyOptions(){
+    // Also trim old option arrays rendered by legacy code after modal opens
+    const walker = () => {
+      normalizeCurrencyButtons(getSavedCurrency());
+    };
+    setTimeout(walker, 0);
+    setTimeout(walker, 150);
+    setTimeout(walker, 400);
+  }
+
+  const cur = getSavedCurrency();
+  document.documentElement.setAttribute('data-currency', cur);
+  bindCurrencyUI();
+  document.addEventListener('DOMContentLoaded', function(){
+    applyCurrency(getSavedCurrency());
+    forceTrimCurrencyOptions();
+  });
+  window.addEventListener('load', function(){
+    applyCurrency(getSavedCurrency());
+    forceTrimCurrencyOptions();
+  });
+  window.addEventListener('pageshow', function(){
+    applyCurrency(getSavedCurrency());
+    forceTrimCurrencyOptions();
+  });
+
+  // expose for legacy render hooks if needed
+  window.__kuraApplyCurrency = applyCurrency;
 })();
 </script>
 
