@@ -706,6 +706,12 @@ html.kura-typo-stable .font-medium {
 }
 </style>
 
+
+<style>
+/* TRAVEL Group Filter v2 fixed */
+#travelGroupFilterWrap.hidden{ display:none !important; }
+</style>
+
 </head>
 
 <!-- Kura Archive Stable Release Travel Final -->
@@ -806,7 +812,13 @@ html.kura-typo-stable .font-medium {
     </div>
     <button class="rounded-xl border border-primary/10 bg-white/70 px-3 py-2 text-xs text-slate-600" id="categoryFilterSummaryClearBtn" type="button">Clear</button>
   </div>
-  <div class="mt-3 grid gap-2 sm:grid-cols-3" id="categoryFilterSummaryTotals"></div>
+  <div class="mt-3 hidden" id="travelGroupFilterWrap">
+  <div class="text-[10px] uppercase tracking-[0.18em] text-slate-400">Trip Filter</div>
+  <select class="mt-2 kv-input rounded-xl border border-primary/10 bg-background-light/80 px-3 py-2 text-sm" id="travelGroupFilter">
+    <option value="__all__">All Trips</option>
+  </select>
+</div>
+<div class="mt-3 grid gap-2 sm:grid-cols-3" id="categoryFilterSummaryTotals"></div>
 </div>
 <div id="collectionList"></div>
 </section>
@@ -1865,22 +1877,58 @@ function renderOverviewCards() {
             const title = document.getElementById("categoryFilterSummaryTitle");
             const count = document.getElementById("categoryFilterSummaryCount");
             const totals = document.getElementById("categoryFilterSummaryTotals");
+            const tripWrap = document.getElementById("travelGroupFilterWrap");
+            const tripSelect = document.getElementById("travelGroupFilter");
             if (!box || !title || !count || !totals) return;
 
             if (!currentCategory) {
                 box.classList.add("hidden");
                 totals.innerHTML = "";
+                if (tripWrap) tripWrap.classList.add("hidden");
                 return;
             }
 
-            const arr = items.filter(item =>
+            const categoryItems = items.filter(item =>
                 (view === "wishlist" ? item.status === "願望清單" : item.status !== "願望清單") &&
                 item.category === currentCategory
             );
 
-            if (!arr.length) {
+            if (!categoryItems.length) {
                 box.classList.add("hidden");
                 totals.innerHTML = "";
+                if (tripWrap) tripWrap.classList.add("hidden");
+                return;
+            }
+
+            const isTravelCategory = ((currentCategory || "").toUpperCase() === "TRAVEL") || ((currentCategory || "") === "旅行");
+
+            if (tripWrap && tripSelect) {
+                if (isTravelCategory) {
+                    const tripNames = [...new Set(categoryItems.map(item => item.tripName || "").filter(Boolean))];
+                    const currentValue = tripSelect.value || "__all__";
+                    tripSelect.innerHTML = `<option value="__all__">All Trips</option>` + tripNames.map(name => `<option value="${String(name).replace(/"/g, '&quot;')}">${name}</option>`).join("");
+                    if (tripNames.includes(currentValue)) tripSelect.value = currentValue;
+                    else tripSelect.value = "__all__";
+                    tripWrap.classList.remove("hidden");
+                } else {
+                    tripWrap.classList.add("hidden");
+                    tripSelect.value = "__all__";
+                }
+            }
+
+            const activeTrip = (isTravelCategory && tripSelect) ? (tripSelect.value || "__all__") : "__all__";
+
+            const arr = categoryItems.filter(item => {
+                if (!isTravelCategory) return true;
+                if (activeTrip === "__all__") return true;
+                return (item.tripName || "") === activeTrip;
+            });
+
+            if (!arr.length) {
+                box.classList.remove("hidden");
+                title.textContent = activeTrip !== "__all__" ? activeTrip : currentCategory;
+                count.textContent = "0 items";
+                totals.innerHTML = `<div class="text-sm text-slate-400">No records in this trip.</div>`;
                 return;
             }
 
@@ -1895,48 +1943,45 @@ function renderOverviewCards() {
 
             const activeCodes = ["HKD","USD","JPY"].filter(code => Math.abs(sum[code] || 0) > 0.00001);
 
-            title.textContent = currentCategory;
+            title.textContent = isTravelCategory && activeTrip !== "__all__" ? activeTrip : currentCategory;
             count.textContent = arr.length + (arr.length === 1 ? " item" : " items");
 
             let extraTop = "";
-            if (((currentCategory || "").toUpperCase() === "TRAVEL") || (currentCategory || "") === "旅行") {
+            if (isTravelCategory) {
                 const dated = arr
                     .map(item => item.date || "")
                     .filter(Boolean)
                     .sort();
                 const period = dated.length ? `${dated[0]} → ${dated[dated.length - 1]}` : "";
-                const travelSums = { Hotel: 0, Shopping: 0, Food: 0, Transport: 0, Misc: 0 };
+                const tripNames = [...new Set(arr.map(item => item.tripName || "").filter(Boolean))];
+                const byType = { Hotel: {HKD:0,USD:0,JPY:0}, Shopping: {HKD:0,USD:0,JPY:0}, Food: {HKD:0,USD:0,JPY:0}, Transport: {HKD:0,USD:0,JPY:0}, Misc: {HKD:0,USD:0,JPY:0} };
+
                 arr.forEach(item => {
                     const type = item.travelType || "";
                     const code = ((item.purchaseCurrency || "HKD") + "").toUpperCase();
                     const num = Number(item.price || 0);
-                    if (!type || !Number.isFinite(num)) return;
-                    if (!(type in travelSums)) travelSums[type] = 0;
-                    if (!travelSums.__byType) travelSums.__byType = {};
-                    if (!travelSums.__byType[type]) travelSums.__byType[type] = { HKD: 0, USD: 0, JPY: 0 };
-                    if (!(code in travelSums.__byType[type])) travelSums.__byType[type][code] = 0;
-                    travelSums.__byType[type][code] += num;
+                    if (!type || !Number.isFinite(num) || !(type in byType)) return;
+                    if (!(code in byType[type])) byType[type][code] = 0;
+                    byType[type][code] += num;
                 });
 
+                const typeNameMap = { Hotel:"酒店 / Hotel", Shopping:"購物 / Shopping", Food:"餐飲 / Food", Transport:"交通 / Transport", Misc:"雜行 / Misc" };
+
                 const typeRows = ["Hotel","Shopping","Food","Transport","Misc"].map(type => {
-                    const byCode = travelSums.__byType && travelSums.__byType[type];
-                    if (!byCode) return "";
-                    const codes = ["HKD","USD","JPY"].filter(code => Math.abs(byCode[code] || 0) > 0.00001);
+                    const codes = ["HKD","USD","JPY"].filter(code => Math.abs(byType[type][code] || 0) > 0.00001);
                     if (!codes.length) return "";
                     return `<div class="rounded-xl border border-primary/10 bg-white/60 px-3 py-2">
-                        <div class="text-[10px] uppercase tracking-[0.18em] text-slate-400">${({Hotel:"酒店 / Hotel",Shopping:"購物 / Shopping",Food:"餐飲 / Food",Transport:"交通 / Transport",Misc:"雜行 / Misc"}[type] || type)}</div>
-                        <div class="mt-1 space-y-1">${codes.map(code => `<div class="text-xs text-slate-700">${money(byCode[code], code)}</div>`).join("")}</div>
+                        <div class="text-[10px] tracking-[0.14em] text-slate-400">${typeNameMap[type] || type}</div>
+                        <div class="mt-1 space-y-1">${codes.map(code => `<div class="text-xs text-slate-700">${money(byType[type][code], code)}</div>`).join("")}</div>
                     </div>`;
                 }).filter(Boolean).join("");
-
-                const tripNames = [...new Set(arr.map(item => item.tripName || "").filter(Boolean))];
 
                 extraTop = `
                     ${period ? `<div class="mt-3 rounded-xl border border-primary/10 bg-white/60 px-3 py-2">
                         <div class="text-[10px] uppercase tracking-[0.18em] text-slate-400">Purchase period</div>
                         <div class="mt-1 text-sm text-slate-800">${period}</div>
                     </div>` : ""}
-                    ${tripNames.length ? `<div class="mt-3 rounded-xl border border-primary/10 bg-white/60 px-3 py-2">
+                    ${tripNames.length && activeTrip === "__all__" ? `<div class="mt-3 rounded-xl border border-primary/10 bg-white/60 px-3 py-2">
                         <div class="text-[10px] uppercase tracking-[0.18em] text-slate-400">Trip Name</div>
                         <div class="mt-1 text-sm text-slate-800">${tripNames.join(" / ")}</div>
                     </div>` : ""}
@@ -2651,7 +2696,16 @@ function renderOverviewCards() {
             setActiveNav("profile");
         };
 
-        document.addEventListener("click", function(e) {
+        
+        document.addEventListener("change", function(e) {
+            if (e.target && e.target.id === "travelGroupFilter") {
+                renderCategoryFilterSummary();
+                renderList();
+                return;
+            }
+        });
+
+document.addEventListener("click", function(e) {
             if (e.target.closest("#categoryFilterSummaryClearBtn")) {
                 currentCategory = "";
                 renderCategoryChips();
@@ -6714,82 +6768,6 @@ html[data-typography] :is(h1,h2,h3,h4,h5,h6,.page-title,.section-title,.header-t
     applyLogoChoice('series', { name, logo }, false);
   };
   window.syncLogoPickerUI = syncLogoPickerUI;
-})();
-</script>
-
-
-<script>
-/* TRAVEL GROUP + FILTER (Option B) */
-(function(){
-
-let travelGroupFilter = "__all__";
-
-function getRecords(){
-  try{
-    if(window.records) return window.records;
-    if(window.archiveRecords) return window.archiveRecords;
-  }catch(e){}
-  return [];
-}
-
-function getTripNames(){
-  const recs = getRecords();
-  const set = new Set();
-  recs.forEach(r=>{
-    if(!r) return;
-    const cat = (r.category || r.cat || "").toLowerCase();
-    const trip = r.tripName || r.trip || "";
-    if(cat.includes("travel") || cat.includes("旅行")){
-      if(trip) set.add(trip);
-    }
-  });
-  return Array.from(set);
-}
-
-function populateTripFilter(){
-  const sel = document.getElementById("travelGroupFilter");
-  if(!sel) return;
-  const trips = getTripNames();
-  trips.forEach(t=>{
-    const opt = document.createElement("option");
-    opt.value = t;
-    opt.textContent = t;
-    sel.appendChild(opt);
-  });
-}
-
-function applyTripFilter(){
-  const items = document.querySelectorAll("[data-trip-name]");
-  items.forEach(el=>{
-    const trip = el.getAttribute("data-trip-name") || "";
-    if(travelGroupFilter === "__all__"){
-      el.style.display = "";
-    }else{
-      el.style.display = (trip === travelGroupFilter) ? "" : "none";
-    }
-  });
-}
-
-function bindFilter(){
-  const sel = document.getElementById("travelGroupFilter");
-  if(!sel) return;
-  sel.addEventListener("change", function(){
-    travelGroupFilter = sel.value;
-    applyTripFilter();
-  });
-}
-
-document.addEventListener("DOMContentLoaded", function(){
-  populateTripFilter();
-  bindFilter();
-  setTimeout(applyTripFilter, 300);
-});
-
-window.addEventListener("load", function(){
-  setTimeout(populateTripFilter, 200);
-  setTimeout(applyTripFilter, 400);
-});
-
 })();
 </script>
 
