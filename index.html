@@ -728,6 +728,13 @@ details[open] input[type="text"]#seriesLogoUrl{
 }
 </style>
 
+
+<style>
+/* Logo system rebuilt v3 minimal safe */
+#saveBrandLibGlobalBtn.hidden,
+#saveSeriesLibGlobalBtn.hidden{display:none !important;}
+</style>
+
 </head>
 
 <!-- Kura Archive Stable Release Travel Final -->
@@ -942,6 +949,7 @@ details[open] input[type="text"]#seriesLogoUrl{
 <div class="text-xs font-bold tracking-widest uppercase text-slate-500 mb-2">品牌 / Logo</div>
 <div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
 <input class="kv-input rounded-xl border border-primary/10 bg-background-light/80 px-4 py-3 text-sm placeholder:text-slate-400 focus:border-primary focus:ring-primary" id="brand" placeholder="品牌 / 廠商"/>
+
 </div>
 <div class="mt-3 rounded-2xl border border-primary/10 bg-white/60 p-3">
   <div class="flex items-center justify-between gap-3">
@@ -961,19 +969,18 @@ details[open] input[type="text"]#seriesLogoUrl{
     </div>
   </div>
   <div class="mt-2 text-[11px] text-slate-400">Suggested by brand name · searchable picker · recent logos</div>
-
-  <div class="mt-3 rounded-2xl border border-primary/10 bg-white/50 p-3">
-    <div class="text-[10px] uppercase tracking-[0.18em] text-slate-400">Logo Scope</div>
-    <div class="mt-3">
-      <input class="kv-input w-full rounded-xl border border-primary/10 bg-background-light/80 px-4 py-3 text-sm placeholder:text-slate-400 focus:border-primary focus:ring-primary" id="brandLogoUrl" placeholder="Logo 連結 / URL" type="text"/>
-    </div>
-    <div class="mt-3">
-      <input accept="image/*" class="kv-input w-full rounded-xl border border-primary/10 bg-background-light/80 px-4 py-3 text-sm file:mr-3 file:rounded-lg file:border-0 file:bg-primary file:px-3 file:py-2 file:text-sm file:font-semibold file:text-white" id="brandLogoFile" type="file"/>
-    </div>
-    <div class="mt-3 grid grid-cols-1 gap-2 sm:grid-cols-2">
-      <button class="rounded-xl bg-primary px-4 py-3 text-sm font-bold text-white" id="saveBrandLibBtn" type="button">加入 Logo (My)</button>
-      <button class="hidden rounded-xl bg-black/5 px-4 py-3 text-sm font-bold text-slate-700" id="saveBrandLibGlobalBtn" type="button">加入 Logo (Global)</button>
-    </div>
+</div>
+<div class="mt-3 rounded-2xl border border-primary/10 bg-white/50 p-3">
+  <div class="text-[10px] uppercase tracking-[0.18em] text-slate-400">Logo Scope</div>
+  <div class="mt-3">
+    <input class="kv-input w-full rounded-xl border border-primary/10 bg-background-light/80 px-4 py-3 text-sm placeholder:text-slate-400 focus:border-primary focus:ring-primary" id="brandLogoUrl" placeholder="Logo 連結 / URL" type="text"/>
+  </div>
+  <div class="mt-3">
+    <input accept="image/*" class="kv-input w-full rounded-xl border border-primary/10 bg-background-light/80 px-4 py-3 text-sm file:mr-3 file:rounded-lg file:border-0 file:bg-primary file:px-3 file:py-2 file:text-sm file:font-semibold file:text-white" id="brandLogoFile" type="file"/>
+  </div>
+  <div class="mt-3 grid grid-cols-1 gap-2 sm:grid-cols-2">
+    <button class="w-full rounded-xl bg-primary px-4 py-3 text-sm font-bold text-white" id="saveBrandLibBtn" type="button">加入 Logo (My)</button>
+    <button class="hidden w-full rounded-xl bg-black/5 px-4 py-3 text-sm font-bold text-slate-700" id="saveBrandLibGlobalBtn" type="button">加入 Logo (Global)</button>
   </div>
 </div>
 </div>
@@ -982,6 +989,7 @@ details[open] input[type="text"]#seriesLogoUrl{
 <div class="text-xs font-bold tracking-widest uppercase text-slate-500 mb-2">系列 / Logo</div>
 <div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
 <input class="kv-input rounded-xl border border-primary/10 bg-background-light/80 px-4 py-3 text-sm placeholder:text-slate-400 focus:border-primary focus:ring-primary" id="series" placeholder="系列 / 作品"/>
+
 </div>
 <div class="mt-3 rounded-2xl border border-primary/10 bg-white/60 p-3">
   <div class="flex items-center justify-between gap-3">
@@ -1001,19 +1009,18 @@ details[open] input[type="text"]#seriesLogoUrl{
     </div>
   </div>
   <div class="mt-2 text-[11px] text-slate-400">Suggested by series name · searchable picker · recent logos</div>
-
-  <div class="mt-3 rounded-2xl border border-primary/10 bg-white/50 p-3">
-    <div class="text-[10px] uppercase tracking-[0.18em] text-slate-400">Logo Scope</div>
-    <div class="mt-3">
-      <input class="kv-input w-full rounded-xl border border-primary/10 bg-background-light/80 px-4 py-3 text-sm placeholder:text-slate-400 focus:border-primary focus:ring-primary" id="seriesLogoUrl" placeholder="Logo 連結 / URL" type="text"/>
-    </div>
-    <div class="mt-3">
-      <input accept="image/*" class="kv-input w-full rounded-xl border border-primary/10 bg-background-light/80 px-4 py-3 text-sm file:mr-3 file:rounded-lg file:border-0 file:bg-primary file:px-3 file:py-2 file:text-sm file:font-semibold file:text-white" id="seriesLogoFile" type="file"/>
-    </div>
-    <div class="mt-3 grid grid-cols-1 gap-2 sm:grid-cols-2">
-      <button class="rounded-xl bg-primary px-4 py-3 text-sm font-bold text-white" id="saveSeriesLibBtn" type="button">加入 Logo (My)</button>
-      <button class="hidden rounded-xl bg-black/5 px-4 py-3 text-sm font-bold text-slate-700" id="saveSeriesLibGlobalBtn" type="button">加入 Logo (Global)</button>
-    </div>
+</div>
+<div class="mt-3 rounded-2xl border border-primary/10 bg-white/50 p-3">
+  <div class="text-[10px] uppercase tracking-[0.18em] text-slate-400">Logo Scope</div>
+  <div class="mt-3">
+    <input class="kv-input w-full rounded-xl border border-primary/10 bg-background-light/80 px-4 py-3 text-sm placeholder:text-slate-400 focus:border-primary focus:ring-primary" id="seriesLogoUrl" placeholder="Logo 連結 / URL" type="text"/>
+  </div>
+  <div class="mt-3">
+    <input accept="image/*" class="kv-input w-full rounded-xl border border-primary/10 bg-background-light/80 px-4 py-3 text-sm file:mr-3 file:rounded-lg file:border-0 file:bg-primary file:px-3 file:py-2 file:text-sm file:font-semibold file:text-white" id="seriesLogoFile" type="file"/>
+  </div>
+  <div class="mt-3 grid grid-cols-1 gap-2 sm:grid-cols-2">
+    <button class="w-full rounded-xl bg-primary px-4 py-3 text-sm font-bold text-white" id="saveSeriesLibBtn" type="button">加入 Logo (My)</button>
+    <button class="hidden w-full rounded-xl bg-black/5 px-4 py-3 text-sm font-bold text-slate-700" id="saveSeriesLibGlobalBtn" type="button">加入 Logo (Global)</button>
   </div>
 </div>
 </div>
@@ -2338,10 +2345,10 @@ function renderOverviewCards() {
 
             const logo = file ? await fileToDataURL(file) : url;
             const currentUid = window.kuraFirebase?.auth?.currentUser?.uid || "";
-            const nextItem = { name, logo, scope: scope.toLowerCase(), ownerUid: scope.toLowerCase() === "my" ? currentUid : "" };
+            const record = { name, logo, scope: scope.toLowerCase(), ownerUid: scope.toLowerCase() === "my" ? currentUid : "" };
 
-            brandLibrary = brandLibrary.filter(item => !(item.name === name && (item.scope || "global") === nextItem.scope && (item.ownerUid || "") === nextItem.ownerUid));
-            brandLibrary.unshift(nextItem);
+            brandLibrary = brandLibrary.filter(item => !(item.name === name && (item.scope || "global") === record.scope && (item.ownerUid || "") === record.ownerUid));
+            brandLibrary.unshift(record);
 
             save();
             renderPresetPickers();
@@ -2361,10 +2368,10 @@ function renderOverviewCards() {
 
             const logo = file ? await fileToDataURL(file) : url;
             const currentUid = window.kuraFirebase?.auth?.currentUser?.uid || "";
-            const nextItem = { name, logo, scope: scope.toLowerCase(), ownerUid: scope.toLowerCase() === "my" ? currentUid : "" };
+            const record = { name, logo, scope: scope.toLowerCase(), ownerUid: scope.toLowerCase() === "my" ? currentUid : "" };
 
-            seriesLibrary = seriesLibrary.filter(item => !(item.name === name && (item.scope || "global") === nextItem.scope && (item.ownerUid || "") === nextItem.ownerUid));
-            seriesLibrary.unshift(nextItem);
+            seriesLibrary = seriesLibrary.filter(item => !(item.name === name && (item.scope || "global") === record.scope && (item.ownerUid || "") === record.ownerUid));
+            seriesLibrary.unshift(record);
 
             save();
             renderPresetPickers();
@@ -6836,23 +6843,358 @@ html[data-typography] :is(h1,h2,h3,h4,h5,h6,.page-title,.section-title,.header-t
 </script>
 
 
+<script>
+/* Rebuilt fixes: TRAVEL filter + Global/My */
+(function(){
+  const SCOPE_KEY = 'kura_logo_scope_mode';
+
+  function getSafeCurrentCategory(){
+    try { return (window.currentCategory || currentCategory || '').toString(); } catch(e){ return ''; }
+  }
+
+  function isTravelCategoryActive(){
+    const c = getSafeCurrentCategory();
+    return c.toUpperCase() === 'TRAVEL' || c === '旅行';
+  }
+
+  function getTripFilterEl(){
+    return document.getElementById('travelGroupFilter');
+  }
+
+  function getCollectionContainer(){
+    return document.getElementById('collectionGrid')
+        || document.getElementById('collectionList')
+        || document.getElementById('archiveGrid')
+        || document.getElementById('archiveList');
+  }
+
+  function getRenderedItemsData(){
+    try {
+      const source = Array.isArray(window.items) ? window.items : (typeof items !== 'undefined' && Array.isArray(items) ? items : []);
+      const category = getSafeCurrentCategory();
+      const search = (typeof window.currentSearch !== 'undefined' ? window.currentSearch : (typeof currentSearch !== 'undefined' ? currentSearch : '')) || '';
+      const viewMode = (typeof window.view !== 'undefined' ? window.view : (typeof view !== 'undefined' ? view : 'owned')) || 'owned';
+      const tripSel = getTripFilterEl();
+      const trip = tripSel ? (tripSel.value || '__all__') : '__all__';
+      return source.filter(item => {
+        const viewPass = viewMode === 'wishlist' ? item.status === '願望清單' : item.status !== '願望清單';
+        const categoryPass = category ? item.category === category : true;
+        const tripPass = isTravelCategoryActive() ? (trip === '__all__' ? true : ((item.tripName || '') === trip)) : true;
+        const hay = `${item.name || ""} ${item.brand || ""} ${item.series || ""} ${item.tripName || ""} ${item.travelType || ""}`.toLowerCase();
+        const searchPass = search ? hay.includes(String(search).toLowerCase()) : true;
+        return viewPass && categoryPass && tripPass && searchPass;
+      });
+    } catch(e){
+      return [];
+    }
+  }
+
+  function rebuildTripFilterOptions(){
+    const wrap = document.getElementById('travelGroupFilterWrap');
+    const sel = getTripFilterEl();
+    if (!wrap || !sel) return;
+
+    if (!isTravelCategoryActive()){
+      wrap.classList.add('hidden');
+      sel.innerHTML = '<option value="__all__">All Trips</option>';
+      return;
+    }
+
+    const current = sel.value || '__all__';
+    const category = getSafeCurrentCategory();
+    let source = [];
+    try {
+      const all = Array.isArray(window.items) ? window.items : (typeof items !== 'undefined' && Array.isArray(items) ? items : []);
+      source = all.filter(item => item.category === category);
+    } catch(e){ source = []; }
+
+    const tripNames = [...new Set(source.map(item => (item.tripName || '').toString().trim()).filter(Boolean))];
+    sel.innerHTML = '<option value="__all__">All Trips</option>' + tripNames.map(name => `<option value="${String(name).replace(/"/g,'&quot;')}">${name}</option>`).join('');
+    sel.value = tripNames.includes(current) ? current : '__all__';
+    wrap.classList.remove('hidden');
+  }
+
+  function annotateVisibleCards(){
+    const container = getCollectionContainer();
+    if (!container) return;
+    const cards = Array.from(container.children || []);
+    const rendered = getRenderedItemsData();
+
+    cards.forEach((card, idx) => {
+      const item = rendered[idx];
+      card.setAttribute('data-trip-name', item ? (item.tripName || '') : '');
+      if (item && item.id) card.setAttribute('data-item-id', item.id);
+    });
+  }
+
+  function hardApplyTripFilterToCards(){
+    if (!isTravelCategoryActive()) return;
+    const sel = getTripFilterEl();
+    if (!sel) return;
+    const activeTrip = sel.value || '__all__';
+    const container = getCollectionContainer();
+    if (!container) return;
+
+    const cards = Array.from(container.children || []);
+    cards.forEach(card => {
+      const trip = card.getAttribute('data-trip-name') || '';
+      card.style.display = (activeTrip === '__all__' || trip === activeTrip) ? '' : 'none';
+    });
+  }
+
+  function refreshTravelFilterUI(){
+    rebuildTripFilterOptions();
+    annotateVisibleCards();
+    hardApplyTripFilterToCards();
+    try {
+      if (typeof renderCategoryFilterSummary === 'function') renderCategoryFilterSummary();
+    } catch(e){}
+  }
+
+  function bindTripFilter(){
+    const sel = getTripFilterEl();
+    if (!sel || sel.dataset.rebuiltTripBound) return;
+    sel.dataset.rebuiltTripBound = '1';
+    sel.addEventListener('change', function(){
+      try {
+        if (typeof renderList === 'function') renderList();
+      } catch(e){}
+      setTimeout(refreshTravelFilterUI, 0);
+      setTimeout(refreshTravelFilterUI, 120);
+      setTimeout(refreshTravelFilterUI, 320);
+    });
+  }
+
+  function wrapRenderList(){
+    try {
+      const fn = window.renderList;
+      if (typeof fn !== 'function' || fn.__rebuiltTripWrapped) return;
+      window.renderList = function(...args){
+        const result = fn.apply(this, args);
+        try {
+          setTimeout(refreshTravelFilterUI, 0);
+          setTimeout(refreshTravelFilterUI, 120);
+          setTimeout(refreshTravelFilterUI, 320);
+        } catch(e){}
+        return result;
+      };
+      window.renderList.__rebuiltTripWrapped = true;
+    } catch(e){}
+  }
+
+  function getScopeButtons(){
+    const buttons = Array.from(document.querySelectorAll('button, .seg-btn, .option-btn'));
+    return buttons.filter(btn => /^(Global|My)$/i.test((btn.textContent || '').trim()));
+  }
+
+  function markScopeGroups(){
+    getScopeButtons().forEach(btn => {
+      const parent = btn.parentElement;
+      if (parent) parent.classList.add('logo-scope-toggle');
+    });
+  }
+
+  function applyScopeUI(){
+    let saved = 'GLOBAL';
+    try { saved = (localStorage.getItem(SCOPE_KEY) || 'GLOBAL').toUpperCase(); } catch(e){}
+    getScopeButtons().forEach(btn => {
+      const label = (btn.textContent || '').trim().toUpperCase();
+      const active = label === saved;
+      btn.disabled = false;
+      btn.removeAttribute('disabled');
+      btn.style.pointerEvents = 'auto';
+      btn.style.opacity = '1';
+      btn.classList.toggle('bg-primary', active);
+      btn.classList.toggle('text-white', active);
+      btn.classList.toggle('border-primary', active);
+      btn.classList.toggle('bg-white/60', !active);
+      btn.classList.toggle('text-slate-700', !active);
+      btn.classList.toggle('is-active', active);
+      btn.setAttribute('aria-pressed', active ? 'true' : 'false');
+    });
+  }
+
+  function bindScopeButtons(){
+    getScopeButtons().forEach(btn => {
+      if (btn.dataset.rebuiltScopeBound) return;
+      btn.dataset.rebuiltScopeBound = '1';
+      btn.addEventListener('click', function(e){
+        e.preventDefault();
+        const label = (btn.textContent || '').trim().toUpperCase();
+        try { localStorage.setItem(SCOPE_KEY, label); } catch(e){}
+        try {
+          window.logoScopeMode = label.toLowerCase();
+          if (typeof logoScopeMode !== 'undefined') logoScopeMode = label.toLowerCase();
+        } catch(e){}
+        applyScopeUI();
+        try {
+          if (typeof renderLogoManagers === 'function') renderLogoManagers();
+          if (typeof renderPresetPickers === 'function') renderPresetPickers();
+        } catch(e){}
+      });
+    });
+  }
+
+  function refreshAdminScopeUI(){
+    markScopeGroups();
+    bindScopeButtons();
+    applyScopeUI();
+  }
+
+  function runAll(){
+    bindTripFilter();
+    wrapRenderList();
+    refreshTravelFilterUI();
+    refreshAdminScopeUI();
+  }
+
+  document.addEventListener('DOMContentLoaded', function(){
+    setTimeout(runAll, 0);
+    setTimeout(runAll, 120);
+    setTimeout(runAll, 400);
+  });
+  window.addEventListener('load', function(){
+    setTimeout(runAll, 0);
+    setTimeout(runAll, 120);
+    setTimeout(runAll, 400);
+  });
+  window.addEventListener('pageshow', function(){
+    setTimeout(runAll, 0);
+  });
+  document.addEventListener('click', function(){
+    setTimeout(refreshAdminScopeUI, 0);
+  }, true);
+
+  window.refreshTravelFilterUI = refreshTravelFilterUI;
+})();
+</script>
+
 
 <script>
-/* Logo admin visibility v2 safe */
+/* Scope button conflict fix */
+(function(){
+  const KEY = 'kura_logo_scope_mode';
+
+  function getScopeButtons(){
+    return Array.from(document.querySelectorAll('button, .seg-btn, .option-btn'))
+      .filter(btn => /^(Global|My)$/i.test((btn.textContent || '').trim()));
+  }
+
+  function applyScopeState(){
+    let saved = 'GLOBAL';
+    try { saved = (localStorage.getItem(KEY) || 'GLOBAL').toUpperCase(); } catch(e){}
+    getScopeButtons().forEach(btn => {
+      const label = (btn.textContent || '').trim().toUpperCase();
+      const active = label === saved;
+      btn.disabled = false;
+      btn.removeAttribute('disabled');
+      btn.style.pointerEvents = 'auto';
+      btn.style.opacity = '1';
+      btn.classList.toggle('bg-primary', active);
+      btn.classList.toggle('text-white', active);
+      btn.classList.toggle('border-primary', active);
+      btn.classList.toggle('bg-white/60', !active);
+      btn.classList.toggle('text-slate-700', !active);
+      btn.setAttribute('aria-pressed', active ? 'true' : 'false');
+    });
+  }
+
+  function bindScopeButtons(){
+    getScopeButtons().forEach(btn => {
+      if (btn.dataset.scopeFixBound) return;
+      btn.dataset.scopeFixBound = '1';
+      btn.addEventListener('click', function(e){
+        e.preventDefault();
+        e.stopPropagation();
+        e.stopImmediatePropagation();
+        const label = (btn.textContent || '').trim().toUpperCase();
+        try { localStorage.setItem(KEY, label); } catch(e){}
+        try {
+          window.logoScopeMode = label.toLowerCase();
+          if (typeof logoScopeMode !== 'undefined') logoScopeMode = label.toLowerCase();
+        } catch(e){}
+        applyScopeState();
+        try {
+          if (typeof renderLogoManagers === 'function') renderLogoManagers();
+          if (typeof renderPresetPickers === 'function') renderPresetPickers();
+        } catch(e){}
+      }, true);
+    });
+  }
+
+  function run(){
+    bindScopeButtons();
+    applyScopeState();
+  }
+
+  document.addEventListener('DOMContentLoaded', function(){
+    setTimeout(run, 0);
+    setTimeout(run, 120);
+    setTimeout(run, 400);
+  });
+  window.addEventListener('load', function(){
+    setTimeout(run, 0);
+    setTimeout(run, 120);
+  });
+  document.addEventListener('click', function(){
+    setTimeout(run, 0);
+  }, true);
+})();
+</script>
+
+
+<script>
+/* Advanced logo URL field fix */
+(function(){
+  function getFields(id){
+    return Array.from(document.querySelectorAll(`[id="${id}"]`));
+  }
+
+  function getVisibleField(id){
+    const fields = getFields(id);
+    if (!fields.length) return null;
+    const visible = fields.find(el => !!(el.offsetWidth || el.offsetHeight || el.getClientRects().length));
+    return visible || fields[fields.length - 1];
+  }
+
+  function syncVisibleValue(id){
+    const fields = getFields(id);
+    if (fields.length < 2) return;
+    const visible = getVisibleField(id);
+    if (!visible) return;
+    fields.forEach(el => {
+      if (el !== visible) el.value = visible.value;
+    });
+  }
+
+  document.addEventListener('input', function(e){
+    if (e.target && (e.target.id === 'brandLogoUrl' || e.target.id === 'seriesLogoUrl')) {
+      syncVisibleValue(e.target.id);
+    }
+  }, true);
+
+  document.addEventListener('click', function(e){
+    const btn = e.target.closest('#saveBrandLibBtn, #saveSeriesLibBtn');
+    if (!btn) return;
+    const targetId = btn.id === 'saveBrandLibBtn' ? 'brandLogoUrl' : 'seriesLogoUrl';
+    syncVisibleValue(targetId);
+  }, true);
+})();
+</script>
+
+
+<script>
+/* Logo admin visibility v3 minimal safe */
 (function(){
   async function refreshLogoAdminVisibility(){
     let isAdmin = false;
     try { isAdmin = typeof currentUserIsAdmin === 'function' ? await currentUserIsAdmin() : false; }
     catch(e){ isAdmin = false; }
     window.__kuraAdminLogoFlag = isAdmin;
-
     document.querySelectorAll('#saveBrandLibGlobalBtn, #saveSeriesLibGlobalBtn').forEach(btn => {
       btn.classList.toggle('hidden', !isAdmin);
     });
-
-    try {
-      if (typeof renderLogoManagers === 'function') renderLogoManagers();
-    } catch(e){}
+    try { if (typeof renderLogoManagers === 'function') renderLogoManagers(); } catch(e){}
   }
 
   document.addEventListener('DOMContentLoaded', function(){
