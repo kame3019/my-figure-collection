@@ -603,9 +603,13 @@ html[data-typography="ja"] h6 {
 
 
 <style>
-/* Category total v1 */
-#categoryCardGrid .category-card-shell button { justify-content: center; }
-#categoryCardGrid .category-card-shell .category-total-row { white-space: nowrap; }
+/* Category filter summary v2 */
+#categoryFilterSummary{
+  display:none;
+}
+#categoryFilterSummary.is-visible{
+  display:block;
+}
 </style>
 
 </head>
@@ -4399,33 +4403,6 @@ function syncMuseumModeLabel(){
       return (window.items || items || []).filter(item => normalize(item.category) === normalize(name)).length;
     } catch(e){ return 0; }
   }
-  function categoryCurrencyTotals(name){
-    const totals = { HKD: 0, USD: 0, JPY: 0 };
-    try {
-      (window.items || items || []).forEach(item => {
-        if (normalize(item.category) !== normalize(name)) return;
-        const code = ((item.purchaseCurrency || 'HKD') + '').toUpperCase();
-        const num = Number(item.price || 0);
-        if (!Number.isFinite(num)) return;
-        if (!totals[code] && totals[code] !== 0) totals[code] = 0;
-        totals[code] += num;
-      });
-    } catch(e){}
-    return totals;
-  }
-  function renderCategoryTotalHTML(name){
-    const totals = categoryCurrencyTotals(name);
-    const codes = ['HKD','USD','JPY'].filter(code => Math.abs(totals[code] || 0) > 0.00001);
-    if (!codes.length) {
-      return '<div class="mt-2 text-[10px] text-slate-300">No spending record</div>';
-    }
-    return `<div class="mt-2 space-y-1">${codes.map(code => `
-      <div class="flex items-center justify-center gap-2 text-[10px] leading-none text-slate-500">
-        <span class="uppercase tracking-widest text-slate-300">${code}</span>
-        <span class="font-medium text-slate-600">${typeof money === 'function' ? money(totals[code], code) : totals[code]}</span>
-      </div>
-    `).join('')}</div>`;
-  }
   function createCategoryEditorModal(){
     if ($('categoryEditorBackdrop')) return;
     const backdrop = document.createElement('div');
@@ -4642,7 +4619,6 @@ function syncMuseumModeLabel(){
           <h3 class="text-sm font-bold leading-tight">${cat.name}</h3>
           <p class="text-[9px] text-slate-400 uppercase tracking-[0.18em] mt-1">${cat.en || cat.name}</p>
           <div class="mt-3 text-[10px] text-slate-400">${categoryCount(cat.name)} items</div>
-          ${renderCategoryTotalHTML(cat.name)}
         </button>
       </div>
     `).join('') || '<div class="col-span-3 rounded-xl border border-primary/10 bg-white/60 p-6 text-center text-slate-400">未有可用分類</div>';
@@ -5879,6 +5855,173 @@ html[data-typography] :is(h1,h2,h3,h4,h5,h6,.page-title,.section-title,.header-t
   document.addEventListener('DOMContentLoaded', refreshCurrencyUI);
   window.addEventListener('load', refreshCurrencyUI);
   window.addEventListener('pageshow', refreshCurrencyUI);
+})();
+</script>
+
+
+<script>
+/* Category Filter Summary v2 */
+(function(){
+  function __kuraGetItems(){
+    try { return window.items || items || []; } catch(e){ return []; }
+  }
+  function __kuraNormalize(v){
+    try {
+      if (typeof normalize === 'function') return normalize(v);
+    } catch(e){}
+    return String(v || '').trim().toLowerCase();
+  }
+  function __kuraCurrentCategory(){
+    const candidates = [
+      window.activeCategory,
+      window.selectedCategory,
+      window.currentCategory,
+      window.categoryFilter,
+      window.currentFilterCategory
+    ];
+    for (const v of candidates){
+      if (v && String(v).trim()) return String(v).trim();
+    }
+    const activeChip = document.querySelector('[data-category].is-active,[data-category].active,[data-category][aria-pressed="true"]');
+    if (activeChip) {
+      const val = activeChip.getAttribute('data-category') || activeChip.textContent;
+      if (val && !/all/i.test(val)) return String(val).trim();
+    }
+    const title = document.getElementById('pageTitle');
+    const txt = title ? (title.textContent || '').trim() : '';
+    if (txt && !/archive|wishlist|アーカイブ|ウィッシュリスト|典藏目錄|願望清單/i.test(txt)) {
+      return txt;
+    }
+    return '';
+  }
+  function __kuraCategoryItems(name){
+    return __kuraGetItems().filter(item => __kuraNormalize(item.category) === __kuraNormalize(name));
+  }
+  function __kuraCategoryTotals(name){
+    const totals = { HKD: 0, USD: 0, JPY: 0 };
+    __kuraCategoryItems(name).forEach(item => {
+      const code = ((item.purchaseCurrency || 'HKD') + '').toUpperCase();
+      const num = Number(item.price || 0);
+      if (!Number.isFinite(num)) return;
+      if (!(code in totals)) totals[code] = 0;
+      totals[code] += num;
+    });
+    return totals;
+  }
+  function __kuraActiveCodes(totals){
+    return ['HKD','USD','JPY'].filter(code => Math.abs(totals[code] || 0) > 0.00001);
+  }
+  function __kuraMoney(v, code){
+    try {
+      if (typeof money === 'function') return money(v, code);
+    } catch(e){}
+    const num = Number(v || 0);
+    if (code === 'JPY') return '¥ ' + num.toLocaleString('ja-JP', {minimumFractionDigits:0, maximumFractionDigits:0});
+    if (code === 'USD') return 'US$ ' + num.toLocaleString('en-US', {minimumFractionDigits:2, maximumFractionDigits:2});
+    return 'HK$ ' + num.toLocaleString('en-HK', {minimumFractionDigits:2, maximumFractionDigits:2});
+  }
+  function __kuraOnArchivePage(){
+    const page = document.getElementById('pageHome') || document.getElementById('pageArchive');
+    if (!page) return true;
+    const style = window.getComputedStyle(page);
+    return style.display !== 'none' && style.visibility !== 'hidden';
+  }
+  function __kuraClearCategoryFilter(){
+    const clearers = [
+      document.getElementById('clearCategoryFilterBtn'),
+      document.getElementById('clearFiltersBtn'),
+      document.querySelector('[data-clear-category]'),
+      document.querySelector('[data-filter="all"]'),
+      document.querySelector('[data-category="All"]'),
+      document.querySelector('[data-category="all"]')
+    ].filter(Boolean);
+    if (clearers.length){
+      clearers[0].click();
+      return;
+    }
+    try {
+      window.activeCategory = '';
+      window.selectedCategory = '';
+      window.currentCategory = '';
+      window.categoryFilter = '';
+      window.currentFilterCategory = '';
+      if (typeof renderList === 'function') renderList();
+      if (typeof renderHome === 'function') renderHome();
+    } catch(e){}
+  }
+  function updateCategoryFilterSummary(){
+    const root = document.getElementById('categoryFilterSummary');
+    if (!root) return;
+    const titleEl = document.getElementById('categoryFilterSummaryTitle');
+    const countEl = document.getElementById('categoryFilterSummaryCount');
+    const totalsEl = document.getElementById('categoryFilterSummaryTotals');
+    if (!__kuraOnArchivePage()){
+      root.classList.remove('is-visible');
+      return;
+    }
+    const category = __kuraCurrentCategory();
+    if (!category){
+      root.classList.remove('is-visible');
+      return;
+    }
+    const items = __kuraCategoryItems(category);
+    if (!items.length){
+      root.classList.remove('is-visible');
+      return;
+    }
+    const totals = __kuraCategoryTotals(category);
+    const codes = __kuraActiveCodes(totals);
+
+    titleEl.textContent = category;
+    countEl.textContent = items.length + (items.length === 1 ? ' item' : ' items');
+    totalsEl.innerHTML = codes.map(code => `
+      <div class="rounded-xl border border-primary/10 bg-white/70 px-3 py-2">
+        <div class="text-[10px] uppercase tracking-[0.18em] text-slate-400">${code}</div>
+        <div class="mt-1 text-sm text-slate-800">${__kuraMoney(totals[code], code)}</div>
+      </div>
+    `).join('');
+    root.classList.add('is-visible');
+  }
+
+  document.addEventListener('click', function(e){
+    const btn = e.target.closest('#categoryFilterSummaryClearBtn');
+    if (!btn) return;
+    e.preventDefault();
+    __kuraClearCategoryFilter();
+    setTimeout(updateCategoryFilterSummary, 0);
+    setTimeout(updateCategoryFilterSummary, 120);
+  }, true);
+
+  document.addEventListener('DOMContentLoaded', function(){
+    setTimeout(updateCategoryFilterSummary, 0);
+    setTimeout(updateCategoryFilterSummary, 120);
+    setTimeout(updateCategoryFilterSummary, 400);
+  });
+  window.addEventListener('load', function(){
+    setTimeout(updateCategoryFilterSummary, 0);
+    setTimeout(updateCategoryFilterSummary, 120);
+  });
+  window.addEventListener('pageshow', function(){
+    setTimeout(updateCategoryFilterSummary, 0);
+  });
+
+  const wrap = (name) => {
+    try {
+      const fn = window[name];
+      if (typeof fn !== 'function' || fn.__kuraWrappedSummary) return;
+      window[name] = function(...args){
+        const result = fn.apply(this, args);
+        try {
+          setTimeout(updateCategoryFilterSummary, 0);
+          setTimeout(updateCategoryFilterSummary, 120);
+        } catch(e){}
+        return result;
+      };
+      window[name].__kuraWrappedSummary = true;
+    } catch(e){}
+  };
+  ['renderList','renderHome','showPage','applyI18n','renderCategoryPage'].forEach(wrap);
+  window.updateCategoryFilterSummary = updateCategoryFilterSummary;
 })();
 </script>
 
