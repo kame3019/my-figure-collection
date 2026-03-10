@@ -595,12 +595,10 @@ html[data-typography="ja"] h6 {
 .currency-pill.bg-primary{box-shadow:none!important}
 </style>
 
-
 <style>
 /* Purchase currency patch */
 #purchaseCurrency{min-width:110px}
 </style>
-
 
 <style>
 /* Category summary final fix */
@@ -638,7 +636,6 @@ html.kura-typo-stable .font-medium {
 }
 </style>
 
-
 <style>
 /* Travel summary v1 */
 #travelTypeWrap.hidden{ display:none !important; }
@@ -669,14 +666,13 @@ html.kura-typo-stable .font-medium {
 }
 </style>
 
-
 <style>
 /* Travel extra fields v4 */
 #travelExtraWrap.hidden{ display:none !important; }
 </style>
 
 <style>
-/* Travel v6 safe cleanup */
+/* Stable travel cleanup */
 .meta-empty-hidden:empty{display:none!important}
 </style>
 <script>
@@ -691,6 +687,9 @@ html.kura-typo-stable .font-medium {
 </script>
 
 </head>
+
+<!-- Kura Archive Stable Release Travel Final -->
+
 <body class="bg-background-light font-display text-slate-900 washi-texture">
 <script>
 (function(){
@@ -1806,7 +1805,6 @@ function renderOverviewCards() {
             });
         }
 
-
         function renderCategoryFilterSummary() {
             const box = document.getElementById("categoryFilterSummary");
             const title = document.getElementById("categoryFilterSummaryTitle");
@@ -2607,7 +2605,6 @@ function renderOverviewCards() {
                 return;
             }
         });
-
 
         document.getElementById("navStats").onclick = function() {
             showPage("pageStats");
@@ -6108,7 +6105,6 @@ html[data-typography] :is(h1,h2,h3,h4,h5,h6,.page-title,.section-title,.header-t
 })();
 </script>
 
-
 <script>
 /* Stable Default Currency Patch v2 */
 (function(){
@@ -6137,7 +6133,6 @@ html[data-typography] :is(h1,h2,h3,h4,h5,h6,.page-title,.section-title,.header-t
   window.addEventListener('pageshow', refreshCurrencyUI);
 })();
 </script>
-
 
 <script>
 /* Category card count direct sync v2 */
@@ -6237,7 +6232,6 @@ html[data-typography] :is(h1,h2,h3,h4,h5,h6,.page-title,.section-title,.header-t
 })();
 </script>
 
-
 <script>
 /* Final stable release typography safety */
 (function(){
@@ -6263,7 +6257,6 @@ html[data-typography] :is(h1,h2,h3,h4,h5,h6,.page-title,.section-title,.header-t
   });
 })();
 </script>
-
 
 <script>
 /* Travel type conditional field */
@@ -6305,7 +6298,6 @@ html[data-typography] :is(h1,h2,h3,h4,h5,h6,.page-title,.section-title,.header-t
   window.syncTravelTypeVisibility = syncTravelTypeVisibility;
 })();
 </script>
-
 
 <script>
 /* Category modal mobile action fix */
