@@ -1762,7 +1762,7 @@ function renderOverviewCards() {
                         <div class="mt-4 flex justify-between items-start gap-3">
                             <div class="min-w-0 flex-1">
                                 <h4 class="font-bold text-lg leading-tight">${item.name || "Untitled"}</h4>
-                                <p class="text-sm text-slate-500 truncate">${item.brand || "未填品牌"} • ${item.series || "未填系列"}</p>
+                                <p class="text-sm text-slate-500 truncate">${item.brand || ""} • ${item.series || ""}</p>
                                 ${renderItemLogos(item)}
                             </div>
                             <div class="bg-gold/10 px-2 py-1 rounded shrink-0">
@@ -1919,7 +1919,7 @@ function renderOverviewCards() {
                     <div class="flex flex-col justify-between flex-1 py-0.5 min-w-0">
                         <div>
                             <h3 class="font-bold text-base leading-tight">${item.name || "未命名收藏"}</h3>
-                            <p class="text-slate-500 text-xs mt-1 truncate">${item.brand || "未填品牌"} • ${item.series || "未填系列"}</p>
+                            <p class="text-slate-500 text-xs mt-1 truncate">${item.brand || ""} • ${item.series || ""}</p>
                             ${renderItemLogos(item, "small")}
                             <p class="text-slate-400 text-[11px] mt-1 truncate">${item.category || "其他"} ${item.date ? "• " + item.date : ""}</p>
                         </div>
@@ -1974,7 +1974,7 @@ function renderOverviewCards() {
                             </div>
                             <div class="p-4">
                                 <h3 class="font-bold text-base leading-tight">${item.name || "未命名收藏"}</h3>
-                                <p class="text-slate-500 text-xs mt-1">${item.brand || "未填品牌"} • ${item.series || "未填系列"}</p>
+                                <p class="text-slate-500 text-xs mt-1">${item.brand || ""} • ${item.series || ""}</p>
                                 ${renderItemLogos(item, "small")}
                                 <div class="mt-3 flex items-center justify-between">
                                     <span class="text-lg font-bold text-primary">${money(item.price, item.purchaseCurrency)}</span>${(() => {
@@ -2000,7 +2000,7 @@ function renderOverviewCards() {
                         <div class="h-20 w-20 rounded-lg kv-artframe bg-white bg-center bg-no-repeat bg-contain shrink-0" style="background-image:url('${item.image || makeDefaultImage(item.name || "Figure")}')"></div>
                         <div class="flex-1 min-w-0">
                             <div class="font-bold truncate">${item.name || "未命名收藏"}</div>
-                            <div class="text-xs text-slate-500 mt-1 truncate">${item.brand || "未填品牌"} • ${item.series || "未填系列"}</div>
+                            <div class="text-xs text-slate-500 mt-1 truncate">${item.brand || ""} • ${item.series || ""}</div>
                             ${renderItemLogos(item, "small")}
                             <div class="mt-2 flex flex-wrap items-center gap-2"><div class="text-primary font-bold">${money(item.price, item.purchaseCurrency)}</div>${statusBadge(item)}</div>
                         </div>
@@ -2381,8 +2381,8 @@ function renderOverviewCards() {
             const monthMap = {};
 
             filtered.forEach(item => {
-                const brand = item.brand || "未填品牌";
-                const series = item.series || "未填系列";
+                const brand = item.brand || "";
+                const series = item.series || "";
                 const month = item.date ? item.date.slice(0, 7) : "未填日期";
                 brandMap[brand] = (brandMap[brand] || 0) + Number(item.price || 0);
                 seriesMap[series] = (seriesMap[series] || 0) + Number(item.price || 0);
@@ -2443,7 +2443,7 @@ function renderOverviewCards() {
                     <div class="h-20 w-20 rounded-lg overflow-hidden kv-artframe bg-white bg-center bg-no-repeat bg-contain shrink-0" style="background-image:url('${item.image || makeDefaultImage(item.name || "Figure")}')"></div>
                     <div class="min-w-0 flex-1">
                         <div class="font-bold leading-tight">${item.name || "未命名收藏"}</div>
-                        <div class="mt-1 text-xs text-slate-500 truncate">${item.brand || "未填品牌"} • ${item.series || "未填系列"}</div>
+                        <div class="mt-1 text-xs text-slate-500 truncate">${item.brand || ""} • ${item.series || ""}</div>
                         ${renderItemLogos(item, "small")}
                         <div class="mt-2 flex items-center justify-between gap-2">
                             <span class="text-sm font-bold text-primary">${money(item.price, item.purchaseCurrency)}</span>${(() => {
@@ -4144,7 +4144,7 @@ function syncMuseumModeLabel(){
     document.getElementById("detailCategory").textContent = item.category || "其他";
     document.getElementById("detailStatus").textContent = item.status || "-";
     document.getElementById("detailName").textContent = item.name || "未命名收藏";
-    document.getElementById("detailBrandSeries").textContent = [item.brand, item.series].filter(Boolean).join(" • ") || "未填品牌 / 系列";
+    document.getElementById("detailBrandSeries").textContent = [item.brand, item.series].filter(Boolean).join(" • ") || " / 系列";
     document.getElementById("detailLogos").innerHTML = logoPills(item);
     document.getElementById("detailPrice").textContent = typeof money === "function" ? money(item.price, item.purchaseCurrency) : `$${item.price || 0}`;
     document.getElementById("detailPurchaseCurrency").value = item.purchaseCurrency || "HKD";
