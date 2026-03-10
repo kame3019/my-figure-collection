@@ -8,6 +8,7 @@
 <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
 <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@200..800&amp;display=swap" rel="stylesheet"/>
 <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@400;600;700&amp;family=Noto+Serif+JP:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
 <script>
         tailwind.config = {
             darkMode: "class",
@@ -30,18 +31,21 @@
 <style>
 
         :root {
-            --app-font: "Aptos", "Segoe UI", "Calibri", "Gill Sans", "Trebuchet MS",
-                        "Noto Sans TC", "Noto Sans JP", "PingFang TC", "Hiragino Sans",
-                        "Microsoft JhengHei", sans-serif;
+            --font-latin: "Aptos", "Segoe UI", "Calibri", "Gill Sans", "Trebuchet MS", sans-serif;
+            --font-zh: "Noto Serif TC", "Source Han Serif TC", "PingFang TC", "Microsoft JhengHei", serif;
+            --font-ja: "Noto Serif JP", "Hiragino Mincho ProN", "Yu Mincho", "MS PMincho", serif;
+            --app-font: var(--font-latin);
+            --font-active: var(--font-latin);
+            --heading-weight: 700;
         }
 
         html, body, button, input, select, textarea {
-            font-family: var(--app-font) !important;
+            font-family: var(--font-active, var(--app-font)) !important;
         }
 
         .font-display,
         [class*="font-display"] {
-            font-family: var(--app-font) !important;
+            font-family: var(--font-active, var(--app-font)) !important;
         }
 
         .material-symbols-outlined {
@@ -380,25 +384,22 @@
 /* Final freeze typography consistency */
 .category-page-title,
 #pageCategory .category-page-title,
-#pageCategory > .mb-6 h2 {
-  font-family: var(--app-font) !important;
-  font-style: normal !important;
-  font-weight: 300 !important;
-  letter-spacing: -0.02em;
-}
+#pageCategory > .mb-6 h2,
 #homeMuseumMode {
-  font-family: var(--app-font) !important;
+  font-family: var(--font-active, var(--app-font)) !important;
+  font-style: normal !important;
 }
-
 
 #pageCategoryTitle {
-  font-family: Aptos, "Segoe UI", Calibri, "Gill Sans", "Trebuchet MS", "Noto Sans TC", "Noto Sans JP", "PingFang TC", "Hiragino Sans", "Microsoft JhengHei", sans-serif !important;
+  font-family: var(--font-active, var(--app-font)) !important;
   font-style: normal !important;
-  font-weight: 400 !important;
-  letter-spacing: -0.02em !important;
+  font-size: 1.125rem !important;
+  line-height: 1.75rem !important;
+  font-weight: var(--heading-weight) !important;
+  letter-spacing: 0 !important;
 }
 
-/* Force Category header to use unified app font */
+/* Force Category header to use unified active font */
 #pageCategory .mb-6,
 #pageCategory .mb-6 *,
 #pageCategory h1,
@@ -408,8 +409,33 @@
 #pageCategory .section-title,
 #pageCategory .page-title,
 #pageCategory [class*="title"] {
-  font-family: var(--app-font) !important;
+  font-family: var(--font-active, var(--app-font)) !important;
   font-style: normal !important;
+}
+
+/* Headings unified: zh/en bold, ja regular */
+html[data-typography="zh"] h1,
+html[data-typography="zh"] h2,
+html[data-typography="zh"] h3,
+html[data-typography="zh"] h4,
+html[data-typography="zh"] h5,
+html[data-typography="zh"] h6,
+html[data-typography="en"] h1,
+html[data-typography="en"] h2,
+html[data-typography="en"] h3,
+html[data-typography="en"] h4,
+html[data-typography="en"] h5,
+html[data-typography="en"] h6 {
+  font-weight: 700 !important;
+}
+
+html[data-typography="ja"] h1,
+html[data-typography="ja"] h2,
+html[data-typography="ja"] h3,
+html[data-typography="ja"] h4,
+html[data-typography="ja"] h5,
+html[data-typography="ja"] h6 {
+  font-weight: 400 !important;
 }
 
 </style>
@@ -748,7 +774,7 @@
 <section class="page px-4 py-6" id="pageCategory">
 <div class="mb-6 flex items-end justify-between">
 <div>
-<h2 id="pageCategoryTitle" class="text-2xl tracking-tight" style="font-family: Aptos, Segoe UI, Calibri, Gill Sans, Trebuchet MS, Noto Sans TC, Noto Sans JP, PingFang TC, Hiragino Sans, Microsoft JhengHei, sans-serif !important; font-style: normal !important; font-weight: 400 !important; letter-spacing: -0.02em;">Categories</h2>
+<h2 id="pageCategoryTitle" class="text-lg" style="font-style: normal !important; font-weight: 700 !important; letter-spacing: 0 !important;">Categories</h2>
 </div>
 </div>
 <div class="grid grid-cols-3 gap-3" id="categoryCardGrid"></div>
@@ -5347,6 +5373,7 @@ html[data-typography] :is(.font-bold,.font-semibold,strong,b):not(h1):not(h2):no
     zh: '"Noto Serif TC", "Source Han Serif TC", "PingFang TC", "Microsoft JhengHei", serif',
     ja: '"Noto Serif JP", "Hiragino Mincho ProN", "Yu Mincho", "MS PMincho", serif'
   };
+  const HEADING_WEIGHT = { en: '700', zh: '700', ja: '400' };
 
   function currentTypographyLang(){
     try {
@@ -5361,15 +5388,28 @@ html[data-typography] :is(.font-bold,.font-semibold,strong,b):not(h1):not(h2):no
   function applyTypographyFinal(){
     const lang = currentTypographyLang();
     const family = FONT[lang] || FONT.zh;
+    const headingWeight = HEADING_WEIGHT[lang] || '700';
     document.documentElement.setAttribute('data-typography', lang);
     document.documentElement.style.setProperty('--font-active', family);
+    document.documentElement.style.setProperty('--heading-weight', headingWeight);
 
     const catTitle = document.getElementById('pageCategoryTitle');
     if (catTitle){
       catTitle.style.setProperty('font-family', family, 'important');
       catTitle.style.setProperty('font-style', 'normal', 'important');
-      catTitle.style.setProperty('font-weight', '700', 'important');
+      catTitle.style.setProperty('font-weight', headingWeight, 'important');
+      catTitle.style.setProperty('font-size', '1.125rem', 'important');
+      catTitle.style.setProperty('line-height', '1.75rem', 'important');
+      catTitle.style.setProperty('letter-spacing', '0', 'important');
     }
+
+    document.querySelectorAll('h1, h2, h3, h4, h5, h6').forEach(function(el){
+      if (el.closest('#pageCategory') || el.id === 'archiveTitle' || el.closest('#pageProfile') || el.closest('#toolsSheet') || el.closest('#profileToolModal')) {
+        el.style.setProperty('font-family', family, 'important');
+        el.style.setProperty('font-style', 'normal', 'important');
+        el.style.setProperty('font-weight', headingWeight, 'important');
+      }
+    });
   }
 
   const oldApplyI18n = window.applyI18n;
