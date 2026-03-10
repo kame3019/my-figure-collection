@@ -741,6 +741,12 @@ details[open] input[type="text"]#seriesLogoUrl{
 #logoScopeModal.show{ display:flex !important; }
 </style>
 
+
+<style>
+/* Logo scope popup v5 clean */
+#logoScopeModal.show{ display:flex !important; }
+</style>
+
 </head>
 
 <!-- Kura Archive Stable Release Travel Final -->
@@ -2836,9 +2842,9 @@ function syncMuseumModeLabel(){
 
         document.getElementById("statsYearFilter").onchange = renderStats;
         document.getElementById("saveBtn").onclick = saveRecord;
-        document.getElementById("saveBrandLibBtn").onclick = function(){ addBrandLibrary("my"); };
+        if (document.getElementById("saveBrandLibBtn")) document.getElementById("saveBrandLibBtn").onclick = function(){ addBrandLibrary("my"); };
         if (document.getElementById("saveBrandLibGlobalBtn")) document.getElementById("saveBrandLibGlobalBtn").onclick = function(){ addBrandLibrary("global"); };
-        document.getElementById("saveSeriesLibBtn").onclick = function(){ addSeriesLibrary("my"); };
+        if (document.getElementById("saveSeriesLibBtn")) document.getElementById("saveSeriesLibBtn").onclick = function(){ addSeriesLibrary("my"); };
         if (document.getElementById("saveSeriesLibGlobalBtn")) document.getElementById("saveSeriesLibGlobalBtn").onclick = function(){ addSeriesLibrary("global"); };
         document.getElementById("exportBtn").onclick = exportBackup;
         document.getElementById("importBtn").onclick = function() {
@@ -6847,346 +6853,6 @@ html[data-typography] :is(h1,h2,h3,h4,h5,h6,.page-title,.section-title,.header-t
 </script>
 
 
-<script>
-/* Rebuilt fixes: TRAVEL filter + Global/My */
-(function(){
-  const SCOPE_KEY = 'kura_logo_scope_mode';
-
-  function getSafeCurrentCategory(){
-    try { return (window.currentCategory || currentCategory || '').toString(); } catch(e){ return ''; }
-  }
-
-  function isTravelCategoryActive(){
-    const c = getSafeCurrentCategory();
-    return c.toUpperCase() === 'TRAVEL' || c === '旅行';
-  }
-
-  function getTripFilterEl(){
-    return document.getElementById('travelGroupFilter');
-  }
-
-  function getCollectionContainer(){
-    return document.getElementById('collectionGrid')
-        || document.getElementById('collectionList')
-        || document.getElementById('archiveGrid')
-        || document.getElementById('archiveList');
-  }
-
-  function getRenderedItemsData(){
-    try {
-      const source = Array.isArray(window.items) ? window.items : (typeof items !== 'undefined' && Array.isArray(items) ? items : []);
-      const category = getSafeCurrentCategory();
-      const search = (typeof window.currentSearch !== 'undefined' ? window.currentSearch : (typeof currentSearch !== 'undefined' ? currentSearch : '')) || '';
-      const viewMode = (typeof window.view !== 'undefined' ? window.view : (typeof view !== 'undefined' ? view : 'owned')) || 'owned';
-      const tripSel = getTripFilterEl();
-      const trip = tripSel ? (tripSel.value || '__all__') : '__all__';
-      return source.filter(item => {
-        const viewPass = viewMode === 'wishlist' ? item.status === '願望清單' : item.status !== '願望清單';
-        const categoryPass = category ? item.category === category : true;
-        const tripPass = isTravelCategoryActive() ? (trip === '__all__' ? true : ((item.tripName || '') === trip)) : true;
-        const hay = `${item.name || ""} ${item.brand || ""} ${item.series || ""} ${item.tripName || ""} ${item.travelType || ""}`.toLowerCase();
-        const searchPass = search ? hay.includes(String(search).toLowerCase()) : true;
-        return viewPass && categoryPass && tripPass && searchPass;
-      });
-    } catch(e){
-      return [];
-    }
-  }
-
-  function rebuildTripFilterOptions(){
-    const wrap = document.getElementById('travelGroupFilterWrap');
-    const sel = getTripFilterEl();
-    if (!wrap || !sel) return;
-
-    if (!isTravelCategoryActive()){
-      wrap.classList.add('hidden');
-      sel.innerHTML = '<option value="__all__">All Trips</option>';
-      return;
-    }
-
-    const current = sel.value || '__all__';
-    const category = getSafeCurrentCategory();
-    let source = [];
-    try {
-      const all = Array.isArray(window.items) ? window.items : (typeof items !== 'undefined' && Array.isArray(items) ? items : []);
-      source = all.filter(item => item.category === category);
-    } catch(e){ source = []; }
-
-    const tripNames = [...new Set(source.map(item => (item.tripName || '').toString().trim()).filter(Boolean))];
-    sel.innerHTML = '<option value="__all__">All Trips</option>' + tripNames.map(name => `<option value="${String(name).replace(/"/g,'&quot;')}">${name}</option>`).join('');
-    sel.value = tripNames.includes(current) ? current : '__all__';
-    wrap.classList.remove('hidden');
-  }
-
-  function annotateVisibleCards(){
-    const container = getCollectionContainer();
-    if (!container) return;
-    const cards = Array.from(container.children || []);
-    const rendered = getRenderedItemsData();
-
-    cards.forEach((card, idx) => {
-      const item = rendered[idx];
-      card.setAttribute('data-trip-name', item ? (item.tripName || '') : '');
-      if (item && item.id) card.setAttribute('data-item-id', item.id);
-    });
-  }
-
-  function hardApplyTripFilterToCards(){
-    if (!isTravelCategoryActive()) return;
-    const sel = getTripFilterEl();
-    if (!sel) return;
-    const activeTrip = sel.value || '__all__';
-    const container = getCollectionContainer();
-    if (!container) return;
-
-    const cards = Array.from(container.children || []);
-    cards.forEach(card => {
-      const trip = card.getAttribute('data-trip-name') || '';
-      card.style.display = (activeTrip === '__all__' || trip === activeTrip) ? '' : 'none';
-    });
-  }
-
-  function refreshTravelFilterUI(){
-    rebuildTripFilterOptions();
-    annotateVisibleCards();
-    hardApplyTripFilterToCards();
-    try {
-      if (typeof renderCategoryFilterSummary === 'function') renderCategoryFilterSummary();
-    } catch(e){}
-  }
-
-  function bindTripFilter(){
-    const sel = getTripFilterEl();
-    if (!sel || sel.dataset.rebuiltTripBound) return;
-    sel.dataset.rebuiltTripBound = '1';
-    sel.addEventListener('change', function(){
-      try {
-        if (typeof renderList === 'function') renderList();
-      } catch(e){}
-      setTimeout(refreshTravelFilterUI, 0);
-      setTimeout(refreshTravelFilterUI, 120);
-      setTimeout(refreshTravelFilterUI, 320);
-    });
-  }
-
-  function wrapRenderList(){
-    try {
-      const fn = window.renderList;
-      if (typeof fn !== 'function' || fn.__rebuiltTripWrapped) return;
-      window.renderList = function(...args){
-        const result = fn.apply(this, args);
-        try {
-          setTimeout(refreshTravelFilterUI, 0);
-          setTimeout(refreshTravelFilterUI, 120);
-          setTimeout(refreshTravelFilterUI, 320);
-        } catch(e){}
-        return result;
-      };
-      window.renderList.__rebuiltTripWrapped = true;
-    } catch(e){}
-  }
-
-  function getScopeButtons(){
-    const buttons = Array.from(document.querySelectorAll('button, .seg-btn, .option-btn'));
-    return buttons.filter(btn => /^(Global|My)$/i.test((btn.textContent || '').trim()));
-  }
-
-  function markScopeGroups(){
-    getScopeButtons().forEach(btn => {
-      const parent = btn.parentElement;
-      if (parent) parent.classList.add('logo-scope-toggle');
-    });
-  }
-
-  function applyScopeUI(){
-    let saved = 'GLOBAL';
-    try { saved = (localStorage.getItem(SCOPE_KEY) || 'GLOBAL').toUpperCase(); } catch(e){}
-    getScopeButtons().forEach(btn => {
-      const label = (btn.textContent || '').trim().toUpperCase();
-      const active = label === saved;
-      btn.disabled = false;
-      btn.removeAttribute('disabled');
-      btn.style.pointerEvents = 'auto';
-      btn.style.opacity = '1';
-      btn.classList.toggle('bg-primary', active);
-      btn.classList.toggle('text-white', active);
-      btn.classList.toggle('border-primary', active);
-      btn.classList.toggle('bg-white/60', !active);
-      btn.classList.toggle('text-slate-700', !active);
-      btn.classList.toggle('is-active', active);
-      btn.setAttribute('aria-pressed', active ? 'true' : 'false');
-    });
-  }
-
-  function bindScopeButtons(){
-    getScopeButtons().forEach(btn => {
-      if (btn.dataset.rebuiltScopeBound) return;
-      btn.dataset.rebuiltScopeBound = '1';
-      btn.addEventListener('click', function(e){
-        e.preventDefault();
-        const label = (btn.textContent || '').trim().toUpperCase();
-        try { localStorage.setItem(SCOPE_KEY, label); } catch(e){}
-        try {
-          window.logoScopeMode = label.toLowerCase();
-          if (typeof logoScopeMode !== 'undefined') logoScopeMode = label.toLowerCase();
-        } catch(e){}
-        applyScopeUI();
-        try {
-          if (typeof renderLogoManagers === 'function') renderLogoManagers();
-          if (typeof renderPresetPickers === 'function') renderPresetPickers();
-        } catch(e){}
-      });
-    });
-  }
-
-  function refreshAdminScopeUI(){
-    markScopeGroups();
-    bindScopeButtons();
-    applyScopeUI();
-  }
-
-  function runAll(){
-    bindTripFilter();
-    wrapRenderList();
-    refreshTravelFilterUI();
-    refreshAdminScopeUI();
-  }
-
-  document.addEventListener('DOMContentLoaded', function(){
-    setTimeout(runAll, 0);
-    setTimeout(runAll, 120);
-    setTimeout(runAll, 400);
-  });
-  window.addEventListener('load', function(){
-    setTimeout(runAll, 0);
-    setTimeout(runAll, 120);
-    setTimeout(runAll, 400);
-  });
-  window.addEventListener('pageshow', function(){
-    setTimeout(runAll, 0);
-  });
-  document.addEventListener('click', function(){
-    setTimeout(refreshAdminScopeUI, 0);
-  }, true);
-
-  window.refreshTravelFilterUI = refreshTravelFilterUI;
-})();
-</script>
-
-
-<script>
-/* Scope button conflict fix */
-(function(){
-  const KEY = 'kura_logo_scope_mode';
-
-  function getScopeButtons(){
-    return Array.from(document.querySelectorAll('button, .seg-btn, .option-btn'))
-      .filter(btn => /^(Global|My)$/i.test((btn.textContent || '').trim()));
-  }
-
-  function applyScopeState(){
-    let saved = 'GLOBAL';
-    try { saved = (localStorage.getItem(KEY) || 'GLOBAL').toUpperCase(); } catch(e){}
-    getScopeButtons().forEach(btn => {
-      const label = (btn.textContent || '').trim().toUpperCase();
-      const active = label === saved;
-      btn.disabled = false;
-      btn.removeAttribute('disabled');
-      btn.style.pointerEvents = 'auto';
-      btn.style.opacity = '1';
-      btn.classList.toggle('bg-primary', active);
-      btn.classList.toggle('text-white', active);
-      btn.classList.toggle('border-primary', active);
-      btn.classList.toggle('bg-white/60', !active);
-      btn.classList.toggle('text-slate-700', !active);
-      btn.setAttribute('aria-pressed', active ? 'true' : 'false');
-    });
-  }
-
-  function bindScopeButtons(){
-    getScopeButtons().forEach(btn => {
-      if (btn.dataset.scopeFixBound) return;
-      btn.dataset.scopeFixBound = '1';
-      btn.addEventListener('click', function(e){
-        e.preventDefault();
-        e.stopPropagation();
-        e.stopImmediatePropagation();
-        const label = (btn.textContent || '').trim().toUpperCase();
-        try { localStorage.setItem(KEY, label); } catch(e){}
-        try {
-          window.logoScopeMode = label.toLowerCase();
-          if (typeof logoScopeMode !== 'undefined') logoScopeMode = label.toLowerCase();
-        } catch(e){}
-        applyScopeState();
-        try {
-          if (typeof renderLogoManagers === 'function') renderLogoManagers();
-          if (typeof renderPresetPickers === 'function') renderPresetPickers();
-        } catch(e){}
-      }, true);
-    });
-  }
-
-  function run(){
-    bindScopeButtons();
-    applyScopeState();
-  }
-
-  document.addEventListener('DOMContentLoaded', function(){
-    setTimeout(run, 0);
-    setTimeout(run, 120);
-    setTimeout(run, 400);
-  });
-  window.addEventListener('load', function(){
-    setTimeout(run, 0);
-    setTimeout(run, 120);
-  });
-  document.addEventListener('click', function(){
-    setTimeout(run, 0);
-  }, true);
-})();
-</script>
-
-
-<script>
-/* Advanced logo URL field fix */
-(function(){
-  function getFields(id){
-    return Array.from(document.querySelectorAll(`[id="${id}"]`));
-  }
-
-  function getVisibleField(id){
-    const fields = getFields(id);
-    if (!fields.length) return null;
-    const visible = fields.find(el => !!(el.offsetWidth || el.offsetHeight || el.getClientRects().length));
-    return visible || fields[fields.length - 1];
-  }
-
-  function syncVisibleValue(id){
-    const fields = getFields(id);
-    if (fields.length < 2) return;
-    const visible = getVisibleField(id);
-    if (!visible) return;
-    fields.forEach(el => {
-      if (el !== visible) el.value = visible.value;
-    });
-  }
-
-  document.addEventListener('input', function(e){
-    if (e.target && (e.target.id === 'brandLogoUrl' || e.target.id === 'seriesLogoUrl')) {
-      syncVisibleValue(e.target.id);
-    }
-  }, true);
-
-  document.addEventListener('click', function(e){
-    const btn = e.target.closest('#saveBrandLibBtn, #saveSeriesLibBtn');
-    if (!btn) return;
-    const targetId = btn.id === 'saveBrandLibBtn' ? 'brandLogoUrl' : 'seriesLogoUrl';
-    syncVisibleValue(targetId);
-  }, true);
-})();
-</script>
-
-
 <div class="fixed inset-0 z-[95] hidden items-end justify-center bg-black/45 p-4 md:items-center" id="logoScopeModal">
   <div class="w-full max-w-sm rounded-[28px] border border-primary/10 bg-[var(--bg)] shadow-2xl">
     <div class="flex items-center justify-between border-b border-primary/10 px-5 py-4">
@@ -7206,19 +6872,41 @@ html[data-typography] :is(h1,h2,h3,h4,h5,h6,.page-title,.section-title,.header-t
 </div>
 
 
+
 <script>
-/* Logo scope popup v4 */
+/* Logo scope popup v5 clean */
 (function(){
   let currentLogoKind = null;
 
-  function openLogoScopeModal(kind){
+  async function resolveAdminFlag(retries = 6, delay = 250){
+    for (let i = 0; i < retries; i++) {
+      try {
+        const ok = typeof currentUserIsAdmin === 'function' ? await currentUserIsAdmin() : false;
+        if (ok) {
+          window.__kuraAdminLogoFlag = true;
+          return true;
+        }
+        const uid = window.kuraFirebase?.auth?.currentUser?.uid || "";
+        if (uid) {
+          window.__kuraAdminLogoFlag = false;
+          return false;
+        }
+      } catch(e){}
+      await new Promise(r => setTimeout(r, delay));
+    }
+    window.__kuraAdminLogoFlag = false;
+    return false;
+  }
+
+  async function openLogoScopeModal(kind){
     currentLogoKind = kind;
     const modal = document.getElementById('logoScopeModal');
     const title = document.getElementById('logoScopeModalTitle');
     const globalBtn = document.getElementById('logoScopeGlobalBtn');
     if (!modal || !title || !globalBtn) return;
     title.textContent = kind === 'brand' ? '加入 Brand Logo' : '加入 Series Logo';
-    globalBtn.classList.toggle('hidden', !window.__kuraAdminLogoFlag);
+    const isAdmin = await resolveAdminFlag();
+    globalBtn.classList.toggle('hidden', !isAdmin);
     modal.classList.add('show');
   }
 
@@ -7226,13 +6914,6 @@ html[data-typography] :is(h1,h2,h3,h4,h5,h6,.page-title,.section-title,.header-t
     const modal = document.getElementById('logoScopeModal');
     if (modal) modal.classList.remove('show');
     currentLogoKind = null;
-  }
-
-  async function refreshLogoAdminVisibility(){
-    let isAdmin = false;
-    try { isAdmin = typeof currentUserIsAdmin === 'function' ? await currentUserIsAdmin() : false; }
-    catch(e){ isAdmin = false; }
-    window.__kuraAdminLogoFlag = isAdmin;
   }
 
   function bindLogoScopePopup(){
@@ -7293,20 +6974,20 @@ html[data-typography] :is(h1,h2,h3,h4,h5,h6,.page-title,.section-title,.header-t
   }
 
   document.addEventListener('DOMContentLoaded', function(){
-    setTimeout(refreshLogoAdminVisibility, 0);
     setTimeout(bindLogoScopePopup, 0);
     setTimeout(bindLogoScopePopup, 150);
+    setTimeout(resolveAdminFlag, 300);
   });
   window.addEventListener('load', function(){
-    setTimeout(refreshLogoAdminVisibility, 0);
     setTimeout(bindLogoScopePopup, 0);
     setTimeout(bindLogoScopePopup, 150);
+    setTimeout(resolveAdminFlag, 300);
   });
   window.addEventListener('pageshow', function(){
-    setTimeout(refreshLogoAdminVisibility, 0);
+    setTimeout(resolveAdminFlag, 150);
   });
 
-  window.refreshLogoAdminVisibility = refreshLogoAdminVisibility;
+  window.refreshLogoAdminVisibility = resolveAdminFlag;
 })();
 </script>
 
