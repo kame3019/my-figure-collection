@@ -5928,5 +5928,104 @@ html[data-typography] :is(h1,h2,h3,h4,h5,h6,.page-title,.section-title,.header-t
 })();
 </script>
 
+
+<script>
+/* Category card count direct sync v2 */
+(function(){
+  function getItemsSafe(){
+    try { return Array.isArray(items) ? items : (Array.isArray(window.items) ? window.items : []); }
+    catch(e){ return Array.isArray(window.items) ? window.items : []; }
+  }
+
+  function normalizeSafe(v){
+    try { if (typeof normalize === 'function') return normalize(v); } catch(e){}
+    return String(v || '').trim();
+  }
+
+  function updateCategoryCardCounts(){
+    const grid = document.getElementById('categoryCardGrid');
+    if (!grid) return;
+
+    const source = getItemsSafe();
+    const cards = grid.querySelectorAll('.category-card-shell button');
+
+    cards.forEach(btn => {
+      const titleEl = btn.querySelector('h3');
+      if (!titleEl) return;
+      const categoryName = (titleEl.textContent || '').trim();
+      if (!categoryName) return;
+
+      const count = source.filter(item => normalizeSafe(item.category) === normalizeSafe(categoryName)).length;
+
+      let countEl = Array.from(btn.querySelectorAll('div')).find(el => /items?$/i.test((el.textContent || '').trim()));
+      if (!countEl) {
+        countEl = document.createElement('div');
+        countEl.className = 'mt-3 text-[10px] text-slate-400';
+        btn.appendChild(countEl);
+      }
+      countEl.textContent = `${count} items`;
+    });
+  }
+
+  function scheduleCountSync(){
+    setTimeout(updateCategoryCardCounts, 0);
+    setTimeout(updateCategoryCardCounts, 120);
+    setTimeout(updateCategoryCardCounts, 400);
+    setTimeout(updateCategoryCardCounts, 900);
+  }
+
+  document.addEventListener('DOMContentLoaded', scheduleCountSync);
+  window.addEventListener('load', scheduleCountSync);
+  window.addEventListener('pageshow', scheduleCountSync);
+
+  try {
+    const originalRenderCategoryPage = window.renderCategoryPage;
+    if (typeof originalRenderCategoryPage === 'function' && !originalRenderCategoryPage.__kuraCountWrapped) {
+      window.renderCategoryPage = async function(...args){
+        const result = await originalRenderCategoryPage.apply(this, args);
+        try { scheduleCountSync(); } catch(e){}
+        return result;
+      };
+      window.renderCategoryPage.__kuraCountWrapped = true;
+    }
+  } catch(e){}
+
+  try {
+    const originalSetItems = window.__kuraState && window.__kuraState.setItems;
+    if (typeof originalSetItems === 'function' && !originalSetItems.__kuraCountWrapped) {
+      window.__kuraState.setItems = function(next){
+        const result = originalSetItems.call(this, next);
+        try { scheduleCountSync(); } catch(e){}
+        return result;
+      };
+      window.__kuraState.setItems.__kuraCountWrapped = true;
+    }
+  } catch(e){}
+
+  const observerTarget = document.documentElement;
+  if (observerTarget && !window.__kuraCategoryCountObserver){
+    const observer = new MutationObserver(function(mutations){
+      for (const m of mutations){
+        if (m.type === 'childList') {
+          const touched = [...m.addedNodes].some(node => node.nodeType === 1 && (
+            node.id === 'categoryCardGrid' ||
+            node.querySelector?.('#categoryCardGrid') ||
+            node.matches?.('.category-card-shell')
+          ));
+          if (touched){
+            scheduleCountSync();
+            break;
+          }
+        }
+      }
+    });
+    observer.observe(observerTarget, { childList: true, subtree: true });
+    window.__kuraCategoryCountObserver = observer;
+  }
+
+  window.updateCategoryCardCounts = updateCategoryCardCounts;
+})();
+</script>
+
 </body>
 </html>
