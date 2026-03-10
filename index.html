@@ -728,14 +728,6 @@ details[open] input[type="text"]#seriesLogoUrl{
 }
 </style>
 
-
-<style>
-/* Global/My scope hard fix v4 */
-button[aria-pressed="true"]{
-  outline: 1px solid currentColor;
-}
-</style>
-
 </head>
 
 <!-- Kura Archive Stable Release Travel Final -->
@@ -970,6 +962,7 @@ button[aria-pressed="true"]{
     </div>
   </div>
   <div class="mt-2 text-[11px] text-slate-400">Suggested by brand name · searchable picker · recent logos</div>
+  <div class="mt-3" id="brandLogoScopeWrap"></div>
 </div>
 <details class="mt-3 rounded-2xl border border-primary/10 bg-white/50 p-3">
   <summary class="cursor-pointer text-xs uppercase tracking-[0.16em] text-slate-500">Advanced Brand Logo</summary>
@@ -1007,6 +1000,7 @@ button[aria-pressed="true"]{
     </div>
   </div>
   <div class="mt-2 text-[11px] text-slate-400">Suggested by series name · searchable picker · recent logos</div>
+  <div class="mt-3" id="seriesLogoScopeWrap"></div>
 </div>
 <details class="mt-3 rounded-2xl border border-primary/10 bg-white/50 p-3">
   <summary class="cursor-pointer text-xs uppercase tracking-[0.16em] text-slate-500">Advanced Series Logo</summary>
@@ -2169,8 +2163,24 @@ function renderOverviewCards() {
             const seriesScopeWrap = document.getElementById("seriesLogoScopeWrap");
             if (brandPresetPicker) brandPresetPicker.innerHTML = "";
             if (seriesPresetPicker) seriesPresetPicker.innerHTML = "";
-            if (brandScopeWrap) brandScopeWrap.innerHTML = "";
-            if (seriesScopeWrap) seriesScopeWrap.innerHTML = "";
+
+            const currentScope = (() => {
+              try { return (localStorage.getItem("kura_logo_scope_mode") || "GLOBAL").toUpperCase(); }
+              catch(e){ return "GLOBAL"; }
+            })();
+
+            const scopeHTML = `
+              <div class="rounded-2xl border border-primary/10 bg-white/50 p-3">
+                <div class="text-[10px] uppercase tracking-[0.18em] text-slate-400">Logo Scope</div>
+                <div class="mt-2 grid grid-cols-2 gap-2 logo-scope-toggle">
+                  <button type="button" class="rounded-xl border px-3 py-2 text-sm ${currentScope === "GLOBAL" ? "bg-primary text-white border-primary" : "bg-white/60 text-slate-700 border-primary/10"}" data-logo-scope="GLOBAL" aria-pressed="${currentScope === "GLOBAL" ? "true" : "false"}">Global</button>
+                  <button type="button" class="rounded-xl border px-3 py-2 text-sm ${currentScope === "MY" ? "bg-primary text-white border-primary" : "bg-white/60 text-slate-700 border-primary/10"}" data-logo-scope="MY" aria-pressed="${currentScope === "MY" ? "true" : "false"}">My</button>
+                </div>
+              </div>`;
+
+            if (brandScopeWrap) brandScopeWrap.innerHTML = scopeHTML;
+            if (seriesScopeWrap) seriesScopeWrap.innerHTML = scopeHTML;
+
             if (typeof syncLogoPickerUI === "function") syncLogoPickerUI();
         }
 
@@ -6801,6 +6811,233 @@ html[data-typography] :is(h1,h2,h3,h4,h5,h6,.page-title,.section-title,.header-t
 
 
 <script>
+/* Rebuilt fixes: TRAVEL filter + Global/My */
+(function(){
+  const SCOPE_KEY = 'kura_logo_scope_mode';
+
+  function getSafeCurrentCategory(){
+    try { return (window.currentCategory || currentCategory || '').toString(); } catch(e){ return ''; }
+  }
+
+  function isTravelCategoryActive(){
+    const c = getSafeCurrentCategory();
+    return c.toUpperCase() === 'TRAVEL' || c === '旅行';
+  }
+
+  function getTripFilterEl(){
+    return document.getElementById('travelGroupFilter');
+  }
+
+  function getCollectionContainer(){
+    return document.getElementById('collectionGrid')
+        || document.getElementById('collectionList')
+        || document.getElementById('archiveGrid')
+        || document.getElementById('archiveList');
+  }
+
+  function getRenderedItemsData(){
+    try {
+      const source = Array.isArray(window.items) ? window.items : (typeof items !== 'undefined' && Array.isArray(items) ? items : []);
+      const category = getSafeCurrentCategory();
+      const search = (typeof window.currentSearch !== 'undefined' ? window.currentSearch : (typeof currentSearch !== 'undefined' ? currentSearch : '')) || '';
+      const viewMode = (typeof window.view !== 'undefined' ? window.view : (typeof view !== 'undefined' ? view : 'owned')) || 'owned';
+      const tripSel = getTripFilterEl();
+      const trip = tripSel ? (tripSel.value || '__all__') : '__all__';
+      return source.filter(item => {
+        const viewPass = viewMode === 'wishlist' ? item.status === '願望清單' : item.status !== '願望清單';
+        const categoryPass = category ? item.category === category : true;
+        const tripPass = isTravelCategoryActive() ? (trip === '__all__' ? true : ((item.tripName || '') === trip)) : true;
+        const hay = `${item.name || ""} ${item.brand || ""} ${item.series || ""} ${item.tripName || ""} ${item.travelType || ""}`.toLowerCase();
+        const searchPass = search ? hay.includes(String(search).toLowerCase()) : true;
+        return viewPass && categoryPass && tripPass && searchPass;
+      });
+    } catch(e){
+      return [];
+    }
+  }
+
+  function rebuildTripFilterOptions(){
+    const wrap = document.getElementById('travelGroupFilterWrap');
+    const sel = getTripFilterEl();
+    if (!wrap || !sel) return;
+
+    if (!isTravelCategoryActive()){
+      wrap.classList.add('hidden');
+      sel.innerHTML = '<option value="__all__">All Trips</option>';
+      return;
+    }
+
+    const current = sel.value || '__all__';
+    const category = getSafeCurrentCategory();
+    let source = [];
+    try {
+      const all = Array.isArray(window.items) ? window.items : (typeof items !== 'undefined' && Array.isArray(items) ? items : []);
+      source = all.filter(item => item.category === category);
+    } catch(e){ source = []; }
+
+    const tripNames = [...new Set(source.map(item => (item.tripName || '').toString().trim()).filter(Boolean))];
+    sel.innerHTML = '<option value="__all__">All Trips</option>' + tripNames.map(name => `<option value="${String(name).replace(/"/g,'&quot;')}">${name}</option>`).join('');
+    sel.value = tripNames.includes(current) ? current : '__all__';
+    wrap.classList.remove('hidden');
+  }
+
+  function annotateVisibleCards(){
+    const container = getCollectionContainer();
+    if (!container) return;
+    const cards = Array.from(container.children || []);
+    const rendered = getRenderedItemsData();
+
+    cards.forEach((card, idx) => {
+      const item = rendered[idx];
+      card.setAttribute('data-trip-name', item ? (item.tripName || '') : '');
+      if (item && item.id) card.setAttribute('data-item-id', item.id);
+    });
+  }
+
+  function hardApplyTripFilterToCards(){
+    if (!isTravelCategoryActive()) return;
+    const sel = getTripFilterEl();
+    if (!sel) return;
+    const activeTrip = sel.value || '__all__';
+    const container = getCollectionContainer();
+    if (!container) return;
+
+    const cards = Array.from(container.children || []);
+    cards.forEach(card => {
+      const trip = card.getAttribute('data-trip-name') || '';
+      card.style.display = (activeTrip === '__all__' || trip === activeTrip) ? '' : 'none';
+    });
+  }
+
+  function refreshTravelFilterUI(){
+    rebuildTripFilterOptions();
+    annotateVisibleCards();
+    hardApplyTripFilterToCards();
+    try {
+      if (typeof renderCategoryFilterSummary === 'function') renderCategoryFilterSummary();
+    } catch(e){}
+  }
+
+  function bindTripFilter(){
+    const sel = getTripFilterEl();
+    if (!sel || sel.dataset.rebuiltTripBound) return;
+    sel.dataset.rebuiltTripBound = '1';
+    sel.addEventListener('change', function(){
+      try {
+        if (typeof renderList === 'function') renderList();
+      } catch(e){}
+      setTimeout(refreshTravelFilterUI, 0);
+      setTimeout(refreshTravelFilterUI, 120);
+      setTimeout(refreshTravelFilterUI, 320);
+    });
+  }
+
+  function wrapRenderList(){
+    try {
+      const fn = window.renderList;
+      if (typeof fn !== 'function' || fn.__rebuiltTripWrapped) return;
+      window.renderList = function(...args){
+        const result = fn.apply(this, args);
+        try {
+          setTimeout(refreshTravelFilterUI, 0);
+          setTimeout(refreshTravelFilterUI, 120);
+          setTimeout(refreshTravelFilterUI, 320);
+        } catch(e){}
+        return result;
+      };
+      window.renderList.__rebuiltTripWrapped = true;
+    } catch(e){}
+  }
+
+  function getScopeButtons(){
+    const buttons = Array.from(document.querySelectorAll('button, .seg-btn, .option-btn'));
+    return buttons.filter(btn => /^(Global|My)$/i.test((btn.textContent || '').trim()));
+  }
+
+  function markScopeGroups(){
+    getScopeButtons().forEach(btn => {
+      const parent = btn.parentElement;
+      if (parent) parent.classList.add('logo-scope-toggle');
+    });
+  }
+
+  function applyScopeUI(){
+    let saved = 'GLOBAL';
+    try { saved = (localStorage.getItem(SCOPE_KEY) || 'GLOBAL').toUpperCase(); } catch(e){}
+    getScopeButtons().forEach(btn => {
+      const label = (btn.textContent || '').trim().toUpperCase();
+      const active = label === saved;
+      btn.disabled = false;
+      btn.removeAttribute('disabled');
+      btn.style.pointerEvents = 'auto';
+      btn.style.opacity = '1';
+      btn.classList.toggle('bg-primary', active);
+      btn.classList.toggle('text-white', active);
+      btn.classList.toggle('border-primary', active);
+      btn.classList.toggle('bg-white/60', !active);
+      btn.classList.toggle('text-slate-700', !active);
+      btn.classList.toggle('is-active', active);
+      btn.setAttribute('aria-pressed', active ? 'true' : 'false');
+    });
+  }
+
+  function bindScopeButtons(){
+    getScopeButtons().forEach(btn => {
+      if (btn.dataset.rebuiltScopeBound) return;
+      btn.dataset.rebuiltScopeBound = '1';
+      btn.addEventListener('click', function(e){
+        e.preventDefault();
+        const label = (btn.textContent || '').trim().toUpperCase();
+        try { localStorage.setItem(SCOPE_KEY, label); } catch(e){}
+        try {
+          window.logoScopeMode = label.toLowerCase();
+          if (typeof logoScopeMode !== 'undefined') logoScopeMode = label.toLowerCase();
+        } catch(e){}
+        applyScopeUI();
+        try {
+          if (typeof renderLogoManagers === 'function') renderLogoManagers();
+          if (typeof renderPresetPickers === 'function') renderPresetPickers();
+        } catch(e){}
+      });
+    });
+  }
+
+  function refreshAdminScopeUI(){
+    markScopeGroups();
+    bindScopeButtons();
+    applyScopeUI();
+  }
+
+  function runAll(){
+    bindTripFilter();
+    wrapRenderList();
+    refreshTravelFilterUI();
+    refreshAdminScopeUI();
+  }
+
+  document.addEventListener('DOMContentLoaded', function(){
+    setTimeout(runAll, 0);
+    setTimeout(runAll, 120);
+    setTimeout(runAll, 400);
+  });
+  window.addEventListener('load', function(){
+    setTimeout(runAll, 0);
+    setTimeout(runAll, 120);
+    setTimeout(runAll, 400);
+  });
+  window.addEventListener('pageshow', function(){
+    setTimeout(runAll, 0);
+  });
+  document.addEventListener('click', function(){
+    setTimeout(refreshAdminScopeUI, 0);
+  }, true);
+
+  window.refreshTravelFilterUI = refreshTravelFilterUI;
+})();
+</script>
+
+
+<script>
 /* Advanced logo URL field fix */
 (function(){
   function getFields(id){
@@ -6841,148 +7078,68 @@ html[data-typography] :is(h1,h2,h3,h4,h5,h6,.page-title,.section-title,.header-t
 
 
 <script>
-/* Global/My scope hard fix v4 */
+/* Scope UI fix from v3 base */
 (function(){
   const KEY = 'kura_logo_scope_mode';
 
-  function findScopeContainer(){
-    const candidates = Array.from(document.querySelectorAll('div, section'));
-    return candidates.find(el => {
-      const buttons = Array.from(el.querySelectorAll('button'));
-      const labels = buttons.map(b => (b.textContent || '').trim().toUpperCase());
-      return labels.includes('GLOBAL') && labels.includes('MY');
-    }) || null;
-  }
+  function applyScopeButtons(){
+    const buttons = Array.from(document.querySelectorAll('[data-logo-scope]'));
+    const current = (() => {
+      try { return (localStorage.getItem(KEY) || 'GLOBAL').toUpperCase(); }
+      catch(e){ return 'GLOBAL'; }
+    })();
 
-  function getScopeButtons(){
-    const root = findScopeContainer();
-    if (!root) return [];
-    return Array.from(root.querySelectorAll('button')).filter(btn => {
-      const t = (btn.textContent || '').trim().toUpperCase();
-      return t === 'GLOBAL' || t === 'MY';
-    });
-  }
-</script>
-
-<script>
-/* Global/My scope hard fix v4 runtime */
-(function(){
-  const KEY = 'kura_logo_scope_mode';
-
-  function findScopeContainer(){
-    const candidates = Array.from(document.querySelectorAll('div, section'));
-    return candidates.find(el => {
-      const buttons = Array.from(el.querySelectorAll('button'));
-      const labels = buttons.map(b => (b.textContent || '').trim().toUpperCase());
-      return labels.includes('GLOBAL') && labels.includes('MY');
-    }) || null;
-  }
-
-  function getScopeButtons(){
-    const root = findScopeContainer();
-    if (!root) return [];
-    return Array.from(root.querySelectorAll('button')).filter(btn => {
-      const t = (btn.textContent || '').trim().toUpperCase();
-      return t === 'GLOBAL' || t === 'MY';
-    });
-  }
-
-  function setScopeValue(val){
-    const upper = (val || 'GLOBAL').toUpperCase();
-    try { localStorage.setItem(KEY, upper); } catch(e){}
-    try { sessionStorage.setItem(KEY, upper); } catch(e){}
-    try {
-      window.logoScopeMode = upper.toLowerCase();
-      if (typeof logoScopeMode !== 'undefined') logoScopeMode = upper.toLowerCase();
-    } catch(e){}
-  }
-
-  function applyScopeUI(){
-    let saved = 'GLOBAL';
-    try { saved = (localStorage.getItem(KEY) || sessionStorage.getItem(KEY) || 'GLOBAL').toUpperCase(); } catch(e){}
-    const buttons = getScopeButtons();
     buttons.forEach(btn => {
-      const label = (btn.textContent || '').trim().toUpperCase();
-      const active = label === saved;
+      const label = (btn.getAttribute('data-logo-scope') || '').toUpperCase();
+      const active = label === current;
       btn.disabled = false;
       btn.removeAttribute('disabled');
       btn.style.pointerEvents = 'auto';
       btn.style.opacity = '1';
-      btn.setAttribute('type', 'button');
       btn.classList.toggle('bg-primary', active);
       btn.classList.toggle('text-white', active);
       btn.classList.toggle('border-primary', active);
       btn.classList.toggle('bg-white/60', !active);
       btn.classList.toggle('text-slate-700', !active);
+      btn.classList.toggle('border-primary/10', !active);
       btn.setAttribute('aria-pressed', active ? 'true' : 'false');
     });
   }
 
   function bindScopeButtons(){
-    const buttons = getScopeButtons();
+    const buttons = Array.from(document.querySelectorAll('[data-logo-scope]'));
     buttons.forEach(btn => {
-      btn.onclick = null; // remove inline overwrite risk
-      if (btn.dataset.scopeHardBound) return;
-      btn.dataset.scopeHardBound = '1';
-
-      ['pointerdown','touchstart','click'].forEach(evtName => {
-        btn.addEventListener(evtName, function(e){
-          e.preventDefault();
-          e.stopPropagation();
-          if (typeof e.stopImmediatePropagation === 'function') e.stopImmediatePropagation();
-          const label = (btn.textContent || '').trim().toUpperCase();
-          setScopeValue(label);
-          applyScopeUI();
-          try {
-            if (typeof renderLogoManagers === 'function') renderLogoManagers();
-            if (typeof renderPresetPickers === 'function') renderPresetPickers();
-          } catch(err){}
-          return false;
-        }, true);
-      });
-    });
-  }
-
-  function hardEnableContainer(){
-    const root = findScopeContainer();
-    if (!root) return;
-    root.style.pointerEvents = 'auto';
-    Array.from(root.querySelectorAll('*')).forEach(el => {
-      if (el instanceof HTMLElement) {
-        if ((el.textContent || '').trim().toUpperCase() in {'GLOBAL':1,'MY':1}) {
-          el.style.pointerEvents = 'auto';
-          el.style.zIndex = '2';
-          el.style.position = 'relative';
-        }
-      }
+      if (btn.dataset.scopeUiBound) return;
+      btn.dataset.scopeUiBound = '1';
+      btn.addEventListener('click', function(e){
+        e.preventDefault();
+        e.stopPropagation();
+        const label = (btn.getAttribute('data-logo-scope') || 'GLOBAL').toUpperCase();
+        try { localStorage.setItem(KEY, label); } catch(e){}
+        try { sessionStorage.setItem(KEY, label); } catch(e){}
+        try { window.logoScopeMode = label.toLowerCase(); } catch(e){}
+        applyScopeButtons();
+      }, true);
     });
   }
 
   function run(){
-    hardEnableContainer();
     bindScopeButtons();
-    applyScopeUI();
+    applyScopeButtons();
   }
 
   document.addEventListener('DOMContentLoaded', function(){
     setTimeout(run, 0);
     setTimeout(run, 120);
     setTimeout(run, 400);
-    setTimeout(run, 800);
   });
   window.addEventListener('load', function(){
     setTimeout(run, 0);
     setTimeout(run, 120);
-    setTimeout(run, 400);
-  });
-  window.addEventListener('pageshow', function(){
-    setTimeout(run, 0);
   });
   document.addEventListener('click', function(){
     setTimeout(run, 0);
   }, true);
-
-  window.forceScopeButtons = run;
 })();
 </script>
 
