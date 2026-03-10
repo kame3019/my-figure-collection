@@ -686,7 +686,6 @@ html.kura-typo-stable .font-medium {
 })();
 </script>
 
-
 <style>
 /* Logo picker compact add-page UI */
 #logoPickerModal.show{ display:flex !important; }
@@ -706,18 +705,26 @@ html.kura-typo-stable .font-medium {
 }
 </style>
 
-
 <style>
 /* TRAVEL Group Filter v2 fixed */
 #travelGroupFilterWrap.hidden{ display:none !important; }
 </style>
-
 
 <style>
 /* Travel group filter v3 fixes */
 details[open] input[type="text"]#brandLogoUrl,
 details[open] input[type="text"]#seriesLogoUrl{
   display:block !important;
+}
+</style>
+
+
+<style>
+/* Rebuilt fixes: TRAVEL filter + Global/My */
+#travelGroupFilterWrap.hidden{display:none!important}
+.logo-scope-toggle button[aria-pressed="true"],
+.logo-scope-toggle .is-active{
+  outline: 1px solid currentColor;
 }
 </style>
 
@@ -935,7 +942,7 @@ details[open] input[type="text"]#seriesLogoUrl{
 <div class="text-xs font-bold tracking-widest uppercase text-slate-500 mb-2">品牌 / Logo</div>
 <div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
 <input class="kv-input rounded-xl border border-primary/10 bg-background-light/80 px-4 py-3 text-sm placeholder:text-slate-400 focus:border-primary focus:ring-primary" id="brand" placeholder="品牌 / 廠商"/>
-<input class="kv-input rounded-xl border border-primary/10 bg-background-light/80 px-4 py-3 text-sm placeholder:text-slate-400 focus:border-primary focus:ring-primary" id="brandLogoUrl" placeholder="品牌 Logo 連結 / URL"/>
+<input class="hidden" id="brandLogoUrl" placeholder="品牌 logo 網址"/>
 </div>
 <div class="mt-3 rounded-2xl border border-primary/10 bg-white/60 p-3">
   <div class="flex items-center justify-between gap-3">
@@ -955,7 +962,6 @@ details[open] input[type="text"]#seriesLogoUrl{
     </div>
   </div>
   <div class="mt-2 text-[11px] text-slate-400">Suggested by brand name · searchable picker · recent logos</div>
-  <button class="mt-3 w-full rounded-xl border border-primary/10 bg-white/80 px-4 py-3 text-sm text-slate-700" id="saveBrandLibDirectBtn" type="button">直接加入 Brand Logo Library</button>
 </div>
 <details class="mt-3 rounded-2xl border border-primary/10 bg-white/50 p-3">
   <summary class="cursor-pointer text-xs uppercase tracking-[0.16em] text-slate-500">Advanced Brand Logo</summary>
@@ -973,7 +979,7 @@ details[open] input[type="text"]#seriesLogoUrl{
 <div class="text-xs font-bold tracking-widest uppercase text-slate-500 mb-2">系列 / Logo</div>
 <div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
 <input class="kv-input rounded-xl border border-primary/10 bg-background-light/80 px-4 py-3 text-sm placeholder:text-slate-400 focus:border-primary focus:ring-primary" id="series" placeholder="系列 / 作品"/>
-<input class="kv-input rounded-xl border border-primary/10 bg-background-light/80 px-4 py-3 text-sm placeholder:text-slate-400 focus:border-primary focus:ring-primary" id="seriesLogoUrl" placeholder="系列 Logo 連結 / URL"/>
+<input class="hidden" id="seriesLogoUrl" placeholder="系列 logo 網址"/>
 </div>
 <div class="mt-3 rounded-2xl border border-primary/10 bg-white/60 p-3">
   <div class="flex items-center justify-between gap-3">
@@ -993,7 +999,6 @@ details[open] input[type="text"]#seriesLogoUrl{
     </div>
   </div>
   <div class="mt-2 text-[11px] text-slate-400">Suggested by series name · searchable picker · recent logos</div>
-  <button class="mt-3 w-full rounded-xl border border-primary/10 bg-white/80 px-4 py-3 text-sm text-slate-700" id="saveSeriesLibDirectBtn" type="button">直接加入 Series Logo Library</button>
 </div>
 <details class="mt-3 rounded-2xl border border-primary/10 bg-white/50 p-3">
   <summary class="cursor-pointer text-xs uppercase tracking-[0.16em] text-slate-500">Advanced Series Logo</summary>
@@ -6473,7 +6478,6 @@ html[data-typography] :is(h1,h2,h3,h4,h5,h6,.page-title,.section-title,.header-t
 })();
 </script>
 
-
 <div class="fixed inset-0 z-[90] hidden items-end justify-center bg-black/45 p-4 md:items-center" id="logoPickerModal">
   <div class="w-full max-w-3xl overflow-hidden rounded-[28px] border border-primary/10 bg-[var(--bg)] shadow-2xl" id="logoPickerPanel">
     <div class="flex items-center justify-between border-b border-primary/10 px-5 py-4">
@@ -6501,7 +6505,6 @@ html[data-typography] :is(h1,h2,h3,h4,h5,h6,.page-title,.section-title,.header-t
     </div>
   </div>
 </div>
-
 
 <script>
 /* Add Page Logo Picker v1: popup + search + suggestions + recent + exact match */
@@ -6790,100 +6793,159 @@ html[data-typography] :is(h1,h2,h3,h4,h5,h6,.page-title,.section-title,.header-t
 
 
 <script>
-/* Trip filter hard fix v3 */
+/* Rebuilt fixes: TRAVEL filter + Global/My */
 (function(){
-  function getActiveTrip(){
-    const sel = document.getElementById('travelGroupFilter');
-    return sel ? (sel.value || '__all__') : '__all__';
+  const SCOPE_KEY = 'kura_logo_scope_mode';
+
+  function getSafeCurrentCategory(){
+    try { return (window.currentCategory || currentCategory || '').toString(); } catch(e){ return ''; }
   }
 
   function isTravelCategoryActive(){
+    const c = getSafeCurrentCategory();
+    return c.toUpperCase() === 'TRAVEL' || c === '旅行';
+  }
+
+  function getTripFilterEl(){
+    return document.getElementById('travelGroupFilter');
+  }
+
+  function getCollectionContainer(){
+    return document.getElementById('collectionGrid')
+        || document.getElementById('collectionList')
+        || document.getElementById('archiveGrid')
+        || document.getElementById('archiveList');
+  }
+
+  function getRenderedItemsData(){
     try {
-      return ((currentCategory || '').toUpperCase() === 'TRAVEL') || ((currentCategory || '') === '旅行');
-    } catch(e){ return false; }
+      const source = Array.isArray(window.items) ? window.items : (typeof items !== 'undefined' && Array.isArray(items) ? items : []);
+      const category = getSafeCurrentCategory();
+      const search = (typeof window.currentSearch !== 'undefined' ? window.currentSearch : (typeof currentSearch !== 'undefined' ? currentSearch : '')) || '';
+      const viewMode = (typeof window.view !== 'undefined' ? window.view : (typeof view !== 'undefined' ? view : 'owned')) || 'owned';
+      const tripSel = getTripFilterEl();
+      const trip = tripSel ? (tripSel.value || '__all__') : '__all__';
+      return source.filter(item => {
+        const viewPass = viewMode === 'wishlist' ? item.status === '願望清單' : item.status !== '願望清單';
+        const categoryPass = category ? item.category === category : true;
+        const tripPass = isTravelCategoryActive() ? (trip === '__all__' ? true : ((item.tripName || '') === trip)) : true;
+        const hay = `${item.name || ""} ${item.brand || ""} ${item.series || ""} ${item.tripName || ""} ${item.travelType || ""}`.toLowerCase();
+        const searchPass = search ? hay.includes(String(search).toLowerCase()) : true;
+        return viewPass && categoryPass && tripPass && searchPass;
+      });
+    } catch(e){
+      return [];
+    }
   }
 
-  function syncRenderedTripItems(){
-    if (!isTravelCategoryActive()) return;
-    const activeTrip = getActiveTrip();
-    const cards = document.querySelectorAll('[data-trip-name], .kv-card[data-trip-name], .item-card[data-trip-name]');
-    cards.forEach(el => {
-      const trip = el.getAttribute('data-trip-name') || '';
-      if (activeTrip === '__all__') {
-        el.style.display = '';
-      } else {
-        el.style.display = (trip === activeTrip) ? '' : 'none';
-      }
+  function rebuildTripFilterOptions(){
+    const wrap = document.getElementById('travelGroupFilterWrap');
+    const sel = getTripFilterEl();
+    if (!wrap || !sel) return;
+
+    if (!isTravelCategoryActive()){
+      wrap.classList.add('hidden');
+      sel.innerHTML = '<option value="__all__">All Trips</option>';
+      return;
+    }
+
+    const current = sel.value || '__all__';
+    const category = getSafeCurrentCategory();
+    let source = [];
+    try {
+      const all = Array.isArray(window.items) ? window.items : (typeof items !== 'undefined' && Array.isArray(items) ? items : []);
+      source = all.filter(item => item.category === category);
+    } catch(e){ source = []; }
+
+    const tripNames = [...new Set(source.map(item => (item.tripName || '').toString().trim()).filter(Boolean))];
+    sel.innerHTML = '<option value="__all__">All Trips</option>' + tripNames.map(name => `<option value="${String(name).replace(/"/g,'&quot;')}">${name}</option>`).join('');
+    sel.value = tripNames.includes(current) ? current : '__all__';
+    wrap.classList.remove('hidden');
+  }
+
+  function annotateVisibleCards(){
+    const container = getCollectionContainer();
+    if (!container) return;
+    const cards = Array.from(container.children || []);
+    const rendered = getRenderedItemsData();
+
+    cards.forEach((card, idx) => {
+      const item = rendered[idx];
+      card.setAttribute('data-trip-name', item ? (item.tripName || '') : '');
+      if (item && item.id) card.setAttribute('data-item-id', item.id);
     });
   }
 
-  function annotateTripCardsFromText(){
+  function hardApplyTripFilterToCards(){
     if (!isTravelCategoryActive()) return;
-    const activeTrip = getActiveTrip();
-    const possibleCards = document.querySelectorAll('.kv-card, .item-card, [data-item-id], #collectionGrid > *');
-    possibleCards.forEach(card => {
-      if (card.hasAttribute('data-trip-name')) return;
-      const txt = (card.textContent || '').trim();
-      const sel = document.getElementById('travelGroupFilter');
-      if (!sel) return;
-      const options = Array.from(sel.options).map(o => o.value).filter(v => v && v !== '__all__');
-      const found = options.find(v => txt.includes(v));
-      if (found) card.setAttribute('data-trip-name', found);
+    const sel = getTripFilterEl();
+    if (!sel) return;
+    const activeTrip = sel.value || '__all__';
+    const container = getCollectionContainer();
+    if (!container) return;
+
+    const cards = Array.from(container.children || []);
+    cards.forEach(card => {
+      const trip = card.getAttribute('data-trip-name') || '';
+      card.style.display = (activeTrip === '__all__' || trip === activeTrip) ? '' : 'none';
     });
-    syncRenderedTripItems();
   }
 
-  function refreshTripFilterView(){
-    setTimeout(syncRenderedTripItems, 0);
-    setTimeout(annotateTripCardsFromText, 80);
-    setTimeout(syncRenderedTripItems, 180);
-    setTimeout(annotateTripCardsFromText, 320);
+  function refreshTravelFilterUI(){
+    rebuildTripFilterOptions();
+    annotateVisibleCards();
+    hardApplyTripFilterToCards();
+    try {
+      if (typeof renderCategoryFilterSummary === 'function') renderCategoryFilterSummary();
+    } catch(e){}
   }
 
-  document.addEventListener('change', function(e){
-    if (e.target && e.target.id === 'travelGroupFilter') {
+  function bindTripFilter(){
+    const sel = getTripFilterEl();
+    if (!sel || sel.dataset.rebuiltTripBound) return;
+    sel.dataset.rebuiltTripBound = '1';
+    sel.addEventListener('change', function(){
       try {
         if (typeof renderList === 'function') renderList();
       } catch(e){}
-      try {
-        if (typeof renderCategoryFilterSummary === 'function') renderCategoryFilterSummary();
-      } catch(e){}
-      refreshTripFilterView();
-    }
-  }, true);
+      setTimeout(refreshTravelFilterUI, 0);
+      setTimeout(refreshTravelFilterUI, 120);
+      setTimeout(refreshTravelFilterUI, 320);
+    });
+  }
 
-  document.addEventListener('DOMContentLoaded', refreshTripFilterView);
-  window.addEventListener('load', refreshTripFilterView);
-  window.addEventListener('pageshow', refreshTripFilterView);
-
-  try {
-    const fn = window.renderList;
-    if (typeof fn === 'function' && !fn.__tripFilterWrapped) {
+  function wrapRenderList(){
+    try {
+      const fn = window.renderList;
+      if (typeof fn !== 'function' || fn.__rebuiltTripWrapped) return;
       window.renderList = function(...args){
         const result = fn.apply(this, args);
-        try { refreshTripFilterView(); } catch(e){}
+        try {
+          setTimeout(refreshTravelFilterUI, 0);
+          setTimeout(refreshTravelFilterUI, 120);
+          setTimeout(refreshTravelFilterUI, 320);
+        } catch(e){}
         return result;
       };
-      window.renderList.__tripFilterWrapped = true;
-    }
-  } catch(e){}
-})();
-</script>
-
-
-
-<script>
-/* Admin Global/My selector fix v4 */
-(function(){
-  const KEY = 'kura_logo_scope_mode';
+      window.renderList.__rebuiltTripWrapped = true;
+    } catch(e){}
+  }
 
   function getScopeButtons(){
-    return Array.from(document.querySelectorAll('button, .seg-btn, .option-btn')).filter(btn => /^(Global|My)$/i.test((btn.textContent || '').trim()));
+    const buttons = Array.from(document.querySelectorAll('button, .seg-btn, .option-btn'));
+    return buttons.filter(btn => /^(Global|My)$/i.test((btn.textContent || '').trim()));
+  }
+
+  function markScopeGroups(){
+    getScopeButtons().forEach(btn => {
+      const parent = btn.parentElement;
+      if (parent) parent.classList.add('logo-scope-toggle');
+    });
   }
 
   function applyScopeUI(){
     let saved = 'GLOBAL';
-    try { saved = (localStorage.getItem(KEY) || 'GLOBAL').toUpperCase(); } catch(e){}
+    try { saved = (localStorage.getItem(SCOPE_KEY) || 'GLOBAL').toUpperCase(); } catch(e){}
     getScopeButtons().forEach(btn => {
       const label = (btn.textContent || '').trim().toUpperCase();
       const active = label === saved;
@@ -6896,20 +6958,22 @@ html[data-typography] :is(h1,h2,h3,h4,h5,h6,.page-title,.section-title,.header-t
       btn.classList.toggle('border-primary', active);
       btn.classList.toggle('bg-white/60', !active);
       btn.classList.toggle('text-slate-700', !active);
+      btn.classList.toggle('is-active', active);
       btn.setAttribute('aria-pressed', active ? 'true' : 'false');
     });
   }
 
   function bindScopeButtons(){
     getScopeButtons().forEach(btn => {
-      if (btn.dataset.scopeBound) return;
-      btn.dataset.scopeBound = '1';
+      if (btn.dataset.rebuiltScopeBound) return;
+      btn.dataset.rebuiltScopeBound = '1';
       btn.addEventListener('click', function(e){
         e.preventDefault();
         const label = (btn.textContent || '').trim().toUpperCase();
-        try { localStorage.setItem(KEY, label); } catch(e){}
+        try { localStorage.setItem(SCOPE_KEY, label); } catch(e){}
         try {
           window.logoScopeMode = label.toLowerCase();
+          if (typeof logoScopeMode !== 'undefined') logoScopeMode = label.toLowerCase();
         } catch(e){}
         applyScopeUI();
         try {
@@ -6920,120 +6984,37 @@ html[data-typography] :is(h1,h2,h3,h4,h5,h6,.page-title,.section-title,.header-t
     });
   }
 
-  function run(){
+  function refreshAdminScopeUI(){
+    markScopeGroups();
     bindScopeButtons();
     applyScopeUI();
   }
 
-  document.addEventListener('DOMContentLoaded', function(){ setTimeout(run, 0); setTimeout(run, 120); setTimeout(run, 400); });
-  window.addEventListener('load', function(){ setTimeout(run, 0); setTimeout(run, 120); });
-  document.addEventListener('click', function(){ setTimeout(run, 0); }, true);
-})();
-</script>
-
-
-
-<script>
-/* Travel group / direct logo save fix v4 */
-(function(){
-  function hardSyncTripFilter(){
-    const sel = document.getElementById('travelGroupFilter');
-    if (!sel) return;
-    const active = sel.value || '__all__';
-    let isTravel = false;
-    try {
-      isTravel = ((currentCategory || '').toUpperCase() === 'TRAVEL') || ((currentCategory || '') === '旅行');
-    } catch(e){}
-    if (!isTravel) return;
-
-    const cards = Array.from(document.querySelectorAll('[data-trip-name], .kv-card, .item-card, #collectionGrid > *'));
-    const options = Array.from(sel.options).map(o => o.value).filter(v => v && v !== '__all__');
-
-    cards.forEach(card => {
-      let trip = card.getAttribute('data-trip-name') || '';
-      if (!trip){
-        const txt = (card.textContent || '').trim();
-        const found = options.find(v => txt.includes(v));
-        if (found){
-          trip = found;
-          card.setAttribute('data-trip-name', found);
-        }
-      }
-      card.style.display = (active === '__all__' || trip === active) ? '' : 'none';
-    });
+  function runAll(){
+    bindTripFilter();
+    wrapRenderList();
+    refreshTravelFilterUI();
+    refreshAdminScopeUI();
   }
 
-  function bindDirectLogoSave(){
-    const brandBtn = document.getElementById('saveBrandLibDirectBtn');
-    const seriesBtn = document.getElementById('saveSeriesLibDirectBtn');
-
-    if (brandBtn && !brandBtn.dataset.boundDirect){
-      brandBtn.dataset.boundDirect = '1';
-      brandBtn.addEventListener('click', function(e){
-        e.preventDefault();
-        try {
-          const brand = (document.getElementById('brand')?.value || '').trim();
-          const url = (document.getElementById('brandLogoUrl')?.value || '').trim();
-          if (!brand || !url) return;
-          if (typeof brandLibrary !== 'undefined' && Array.isArray(brandLibrary)) {
-            const existing = brandLibrary.find(x => x.name === brand);
-            if (existing) existing.logo = url;
-            else brandLibrary.push({ name: brand, logo: url });
-          } else {
-            window.brandLibrary = Array.isArray(window.brandLibrary) ? window.brandLibrary : [];
-            const existing = window.brandLibrary.find(x => x.name === brand);
-            if (existing) existing.logo = url;
-            else window.brandLibrary.push({ name: brand, logo: url });
-          }
-          if (typeof syncLogoPickerUI === 'function') syncLogoPickerUI();
-          if (typeof renderLogoManagers === 'function') renderLogoManagers();
-          if (typeof renderPresetPickers === 'function') renderPresetPickers();
-        } catch(err){}
-      });
-    }
-
-    if (seriesBtn && !seriesBtn.dataset.boundDirect){
-      seriesBtn.dataset.boundDirect = '1';
-      seriesBtn.addEventListener('click', function(e){
-        e.preventDefault();
-        try {
-          const series = (document.getElementById('series')?.value || '').trim();
-          const url = (document.getElementById('seriesLogoUrl')?.value || '').trim();
-          if (!series || !url) return;
-          if (typeof seriesLibrary !== 'undefined' && Array.isArray(seriesLibrary)) {
-            const existing = seriesLibrary.find(x => x.name === series);
-            if (existing) existing.logo = url;
-            else seriesLibrary.push({ name: series, logo: url });
-          } else {
-            window.seriesLibrary = Array.isArray(window.seriesLibrary) ? window.seriesLibrary : [];
-            const existing = window.seriesLibrary.find(x => x.name === series);
-            if (existing) existing.logo = url;
-            else window.seriesLibrary.push({ name: series, logo: url });
-          }
-          if (typeof syncLogoPickerUI === 'function') syncLogoPickerUI();
-          if (typeof renderLogoManagers === 'function') renderLogoManagers();
-          if (typeof renderPresetPickers === 'function') renderPresetPickers();
-        } catch(err){}
-      });
-    }
-  }
-
-  function run(){
-    bindDirectLogoSave();
-    setTimeout(hardSyncTripFilter, 0);
-    setTimeout(hardSyncTripFilter, 120);
-    setTimeout(hardSyncTripFilter, 300);
-  }
-
-  document.addEventListener('DOMContentLoaded', run);
-  window.addEventListener('load', run);
-  document.addEventListener('change', function(e){
-    if (e.target && e.target.id === 'travelGroupFilter'){
-      setTimeout(hardSyncTripFilter, 0);
-      setTimeout(hardSyncTripFilter, 120);
-      setTimeout(hardSyncTripFilter, 300);
-    }
+  document.addEventListener('DOMContentLoaded', function(){
+    setTimeout(runAll, 0);
+    setTimeout(runAll, 120);
+    setTimeout(runAll, 400);
+  });
+  window.addEventListener('load', function(){
+    setTimeout(runAll, 0);
+    setTimeout(runAll, 120);
+    setTimeout(runAll, 400);
+  });
+  window.addEventListener('pageshow', function(){
+    setTimeout(runAll, 0);
+  });
+  document.addEventListener('click', function(){
+    setTimeout(refreshAdminScopeUI, 0);
   }, true);
+
+  window.refreshTravelFilterUI = refreshTravelFilterUI;
 })();
 </script>
 
