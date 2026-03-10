@@ -4400,7 +4400,8 @@ function syncMuseumModeLabel(){
   }
   function categoryCount(name){
     try {
-      return (window.items || items || []).filter(item => normalize(item.category) === normalize(name)).length;
+      const source = Array.isArray(window.items) ? window.items : (typeof items !== 'undefined' && Array.isArray(items) ? items : []);
+      return source.filter(item => normalize(item.category) === normalize(name)).length;
     } catch(e){ return 0; }
   }
   function createCategoryEditorModal(){
@@ -5859,11 +5860,14 @@ html[data-typography] :is(h1,h2,h3,h4,h5,h6,.page-title,.section-title,.header-t
 </script>
 
 
+
 <script>
-/* Category Filter Summary v2 */
+/* Category Filter Summary v3 */
 (function(){
+  const KEY = 'kura_active_category_summary';
+
   function __kuraGetItems(){
-    try { return window.items || items || []; } catch(e){ return []; }
+    try { return Array.isArray(window.items) ? window.items : (typeof items !== 'undefined' && Array.isArray(items) ? items : []); } catch(e){ return []; }
   }
   function __kuraNormalize(v){
     try {
@@ -5871,13 +5875,34 @@ html[data-typography] :is(h1,h2,h3,h4,h5,h6,.page-title,.section-title,.header-t
     } catch(e){}
     return String(v || '').trim().toLowerCase();
   }
+  function __kuraSaveCategory(name){
+    const val = String(name || '').trim();
+    try { sessionStorage.setItem(KEY, val); } catch(e){}
+    try { localStorage.setItem(KEY, val); } catch(e){}
+  }
+  function __kuraReadCategory(){
+    try {
+      const s = sessionStorage.getItem(KEY);
+      if (s && s.trim()) return s.trim();
+    } catch(e){}
+    try {
+      const l = localStorage.getItem(KEY);
+      if (l && l.trim()) return l.trim();
+    } catch(e){}
+    return '';
+  }
+  function __kuraClearSavedCategory(){
+    try { sessionStorage.removeItem(KEY); } catch(e){}
+    try { localStorage.removeItem(KEY); } catch(e){}
+  }
   function __kuraCurrentCategory(){
     const candidates = [
       window.activeCategory,
       window.selectedCategory,
       window.currentCategory,
       window.categoryFilter,
-      window.currentFilterCategory
+      window.currentFilterCategory,
+      __kuraReadCategory()
     ];
     for (const v of candidates){
       if (v && String(v).trim()) return String(v).trim();
@@ -5886,11 +5911,6 @@ html[data-typography] :is(h1,h2,h3,h4,h5,h6,.page-title,.section-title,.header-t
     if (activeChip) {
       const val = activeChip.getAttribute('data-category') || activeChip.textContent;
       if (val && !/all/i.test(val)) return String(val).trim();
-    }
-    const title = document.getElementById('pageTitle');
-    const txt = title ? (title.textContent || '').trim() : '';
-    if (txt && !/archive|wishlist|アーカイブ|ウィッシュリスト|典藏目錄|願望清單/i.test(txt)) {
-      return txt;
     }
     return '';
   }
@@ -5927,6 +5947,7 @@ html[data-typography] :is(h1,h2,h3,h4,h5,h6,.page-title,.section-title,.header-t
     return style.display !== 'none' && style.visibility !== 'hidden';
   }
   function __kuraClearCategoryFilter(){
+    __kuraClearSavedCategory();
     const clearers = [
       document.getElementById('clearCategoryFilterBtn'),
       document.getElementById('clearFiltersBtn'),
@@ -5969,6 +5990,7 @@ html[data-typography] :is(h1,h2,h3,h4,h5,h6,.page-title,.section-title,.header-t
       root.classList.remove('is-visible');
       return;
     }
+    __kuraSaveCategory(category);
     const totals = __kuraCategoryTotals(category);
     const codes = __kuraActiveCodes(totals);
 
@@ -5985,11 +6007,49 @@ html[data-typography] :is(h1,h2,h3,h4,h5,h6,.page-title,.section-title,.header-t
 
   document.addEventListener('click', function(e){
     const btn = e.target.closest('#categoryFilterSummaryClearBtn');
-    if (!btn) return;
-    e.preventDefault();
-    __kuraClearCategoryFilter();
+    if (btn){
+      e.preventDefault();
+      __kuraClearCategoryFilter();
+      setTimeout(updateCategoryFilterSummary, 0);
+      setTimeout(updateCategoryFilterSummary, 120);
+      return;
+    }
+
+    const categoryBtn = e.target.closest('[data-category]');
+    if (categoryBtn){
+      const val = categoryBtn.getAttribute('data-category') || categoryBtn.textContent;
+      if (val && !/all/i.test(val)) __kuraSaveCategory(val);
+      if (val && /all/i.test(val)) __kuraClearSavedCategory();
+      setTimeout(updateCategoryFilterSummary, 0);
+      setTimeout(updateCategoryFilterSummary, 120);
+    }
+
+    const categoryCard = e.target.closest('.category-card-shell button, #pageCategory button');
+    if (categoryCard){
+      const nameEl = categoryCard.querySelector('.cat-name, .category-name, h3, h4, .text-sm, .text-base, .text-lg');
+      const txt = nameEl ? (nameEl.textContent || '').trim() : '';
+      const itemTxt = (categoryCard.textContent || '').trim();
+      const chosen = txt || '';
+    }
+  }, true);
+
+  document.addEventListener('click', function(e){
+    const categoryCard = e.target.closest('.category-card-shell button, #pageCategory button');
+    if (!categoryCard) return;
+    let chosen = '';
+    const probes = categoryCard.querySelectorAll('h3,h4,[data-name],.cat-name,.category-name,.font-medium,.text-sm,.text-base,.text-lg');
+    for (const el of probes){
+      const t = (el.textContent || '').trim();
+      if (!t) continue;
+      if (/items?/i.test(t)) continue;
+      if (/my categories|fixed categories|分類管理|カテゴリー管理/i.test(t)) continue;
+      chosen = t;
+      break;
+    }
+    if (chosen) __kuraSaveCategory(chosen);
     setTimeout(updateCategoryFilterSummary, 0);
     setTimeout(updateCategoryFilterSummary, 120);
+    setTimeout(updateCategoryFilterSummary, 400);
   }, true);
 
   document.addEventListener('DOMContentLoaded', function(){
@@ -6014,6 +6074,7 @@ html[data-typography] :is(h1,h2,h3,h4,h5,h6,.page-title,.section-title,.header-t
         try {
           setTimeout(updateCategoryFilterSummary, 0);
           setTimeout(updateCategoryFilterSummary, 120);
+          setTimeout(updateCategoryFilterSummary, 400);
         } catch(e){}
         return result;
       };
@@ -6022,6 +6083,31 @@ html[data-typography] :is(h1,h2,h3,h4,h5,h6,.page-title,.section-title,.header-t
   };
   ['renderList','renderHome','showPage','applyI18n','renderCategoryPage'].forEach(wrap);
   window.updateCategoryFilterSummary = updateCategoryFilterSummary;
+})();
+</script>
+
+
+
+<script>
+/* Category count bootstrap fix v3 */
+(function(){
+  function __kuraRefreshCategoryCounts(){
+    try {
+      if (typeof renderCategoryPage === 'function') renderCategoryPage();
+    } catch(e){}
+  }
+  document.addEventListener('DOMContentLoaded', function(){
+    setTimeout(__kuraRefreshCategoryCounts, 0);
+    setTimeout(__kuraRefreshCategoryCounts, 150);
+    setTimeout(__kuraRefreshCategoryCounts, 500);
+  });
+  window.addEventListener('load', function(){
+    setTimeout(__kuraRefreshCategoryCounts, 0);
+    setTimeout(__kuraRefreshCategoryCounts, 150);
+  });
+  window.addEventListener('pageshow', function(){
+    setTimeout(__kuraRefreshCategoryCounts, 0);
+  });
 })();
 </script>
 
