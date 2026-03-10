@@ -590,7 +590,7 @@ html[data-typography="ja"] h6 {
 </style>
 
 <style>
-/* Stable Currency Patch v2 CSS */
+/* Stable Default Currency Patch v2 CSS */
 .currency-pill{font-weight:400!important}
 .currency-pill.bg-primary{box-shadow:none!important}
 </style>
@@ -638,6 +638,11 @@ html.kura-typo-stable .font-medium {
 }
 </style>
 
+
+<style>
+/* Travel summary v1 */
+#travelTypeWrap.hidden{ display:none !important; }
+</style>
 </head>
 <body class="bg-background-light font-display text-slate-900 washi-texture">
 <script>
@@ -762,6 +767,16 @@ html.kura-typo-stable .font-medium {
 </select>
 <input class="kv-input rounded-xl border border-primary/10 bg-background-light/80 px-4 py-3 text-sm placeholder:text-slate-400 focus:border-primary focus:ring-primary" id="category" list="categoryOptions" placeholder="分類"/><datalist id="categoryOptions"></datalist>
 </div>
+<div class="grid grid-cols-1 gap-3 mt-3 hidden" id="travelTypeWrap">
+<select class="kv-input rounded-xl border border-primary/10 bg-background-light/80 px-4 py-3 text-sm focus:border-primary focus:ring-primary" id="travelType">
+<option value="">Travel Type</option>
+<option value="Hotel">Hotel</option>
+<option value="Shopping">Shopping</option>
+<option value="Food">Food</option>
+<option value="Transport">Transport</option>
+<option value="Misc">Misc</option>
+</select>
+</div>
 <div class="mt-3">
 <button class="w-full rounded-xl bg-black px-4 py-3 text-sm font-bold text-white" id="aiFillBtn" type="button">AI 拍攝填寫</button>
 <div class="mt-2 text-xs text-slate-500" id="aiFillStatus"></div>
@@ -880,11 +895,11 @@ html.kura-typo-stable .font-medium {
 <div class="flex items-center justify-between">
 <div>
 <h3 class="text-lg font-bold">Archive Tools</h3>
-<p class="text-xs text-slate-500 uppercase tracking-widest mt-1">備份 / 還原</p>
+<p class="text-xs text-slate-500 uppercase tracking-widest mt-1">Backup / 還原</p>
 </div>
 <span class="material-symbols-outlined text-primary text-3xl">cloud_sync</span>
 </div>
-<p class="mt-3 text-sm text-slate-500 leading-6">收藏資料、品牌 Logo 庫、系列 Logo 庫、角標設定會一齊備份。</p>
+<p class="mt-3 text-sm text-slate-500 leading-6">收藏資料、品牌 Logo 庫、系列 Logo 庫、角標設定會一齊Backup。</p>
 <div class="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-3">
 <button class="rounded-xl bg-primary px-4 py-3 text-sm font-bold text-white" id="exportBtn">⬇️ 匯出 JSON</button>
 <button class="rounded-xl bg-black/5 px-4 py-3 text-sm font-bold" id="importBtn">⬆️ 匯入 JSON</button>
@@ -996,11 +1011,11 @@ html.kura-typo-stable .font-medium {
 <button class="flex flex-col items-center gap-2 text-center" id="toolLogo"><div class="w-12 h-12 rounded-2xl bg-background-light border border-primary/10 flex items-center justify-center text-primary"><span class="material-symbols-outlined text-2xl">palette</span></div><span class="text-[10px] font-medium text-slate-600" data-i18n="toolLogoLibrary">Logo Library</span></button>
 <button class="flex flex-col items-center gap-2 text-center" id="toolShare"><div class="w-12 h-12 rounded-2xl bg-background-light border border-primary/10 flex items-center justify-center text-primary"><span class="material-symbols-outlined text-2xl">share</span></div><span class="text-[10px] font-medium text-slate-600" data-i18n="toolShareCards">Share Cards</span></button>
 <button class="flex flex-col items-center gap-2 text-center" id="toolExport"><div class="w-12 h-12 rounded-2xl bg-background-light border border-primary/10 flex items-center justify-center text-primary"><span class="material-symbols-outlined text-2xl">file_export</span></div><span class="text-[10px] font-medium text-slate-600" data-i18n="toolBackup">Backup</span></button>
-<button class="flex flex-col items-center gap-2 text-center" id="toolCurrency"><div class="w-12 h-12 rounded-2xl bg-background-light border border-primary/10 flex items-center justify-center text-primary"><span class="material-symbols-outlined text-2xl">currency_exchange</span></div><span class="text-[10px] font-medium text-slate-600" data-i18n="toolCurrency">Currency</span></button>
+<button class="flex flex-col items-center gap-2 text-center" id="toolCurrency"><div class="w-12 h-12 rounded-2xl bg-background-light border border-primary/10 flex items-center justify-center text-primary"><span class="material-symbols-outlined text-2xl">currency_exchange</span></div><span class="text-[10px] font-medium text-slate-600" data-i18n="toolCurrency">Default Currency</span></button>
 </div>
 </div>
 <div class="rounded-2xl bg-white/70 border border-primary/10 shadow-sm p-5" id="profileThemePanel">
-<div class="flex items-center justify-between mb-4"><div><h3 class="text-lg font-bold" data-i18n="themePanelTitle">Theme</h3><p class="text-xs text-slate-500 uppercase tracking-widest mt-1" data-i18n="themePanelSubtitle">主題切換</p></div><span class="material-symbols-outlined text-accent-gold text-3xl">palette</span></div>
+<div class="flex items-center justify-between mb-4"><div><h3 class="text-lg font-bold" data-i18n="themePanelTitle">Theme</h3><p class="text-xs text-slate-500 uppercase tracking-widest mt-1" data-i18n="themePanelSubtitle">Theme切換</p></div><span class="material-symbols-outlined text-accent-gold text-3xl">palette</span></div>
 <div class="grid grid-cols-3 gap-3"><button class="theme-pill rounded-xl border border-primary/10 bg-white/60 px-3 py-4 text-sm font-bold" id="themePureBtn">和風純淨</button><button class="theme-pill rounded-xl border border-primary/10 bg-white/60 px-3 py-4 text-sm font-bold" id="themeBlackGoldBtn">黑金漆器</button><button class="theme-pill rounded-xl border border-primary/10 bg-white/60 px-3 py-4 text-sm font-bold" id="themeSpringGardenBtn">春意庭園</button></div>
 </div>
 </div>
@@ -1023,7 +1038,7 @@ html.kura-typo-stable .font-medium {
 <div class="mt-3 rounded-xl border border-primary/10 bg-white/60 px-4 py-3 text-sm text-slate-600"><span data-i18n="notificationsSummaryPrefix">未取貨項目</span>：<span id="notifPendingCount">0</span></div>
 </div>
 <div class="rounded-2xl bg-white/70 border border-primary/10 shadow-sm p-5" id="profileLanguagePanel">
-<div class="flex items-center justify-between mb-4"><div><h3 class="text-lg font-bold" data-i18n="languagePanelTitle">Language</h3><p class="text-xs text-slate-500 uppercase tracking-widest mt-1" data-i18n="languagePanelSubtitle">介面語言</p></div><span class="material-symbols-outlined text-primary text-3xl">translate</span></div>
+<div class="flex items-center justify-between mb-4"><div><h3 class="text-lg font-bold" data-i18n="languagePanelTitle">Language</h3><p class="text-xs text-slate-500 uppercase tracking-widest mt-1" data-i18n="languagePanelSubtitle">介面Language</p></div><span class="material-symbols-outlined text-primary text-3xl">translate</span></div>
 <div class="grid grid-cols-3 gap-3">
 <button id="langZhBtn" class="lang-pill rounded-xl border border-primary/10 bg-white/60 px-4 py-3 text-sm font-bold">繁</button>
 <button id="langEnBtn" class="lang-pill rounded-xl border border-primary/10 bg-white/60 px-4 py-3 text-sm font-bold">EN</button>
@@ -1031,14 +1046,14 @@ html.kura-typo-stable .font-medium {
 </div>
 </div>
 <div class="rounded-2xl bg-white/70 border border-primary/10 shadow-sm p-5" id="profileCurrencyPanel">
-<div class="flex items-center justify-between mb-4"><div><h3 class="text-lg font-bold" data-i18n="currencyPanelTitle">Currency</h3><p class="text-xs text-slate-500 uppercase tracking-widest mt-1" data-i18n="currencyPanelSubtitle">顯示貨幣</p></div><span class="material-symbols-outlined text-primary text-3xl">currency_exchange</span></div>
+<div class="flex items-center justify-between mb-4"><div><h3 class="text-lg font-bold" data-i18n="currencyPanelTitle">Default Currency</h3><p class="text-xs text-slate-500 uppercase tracking-widest mt-1" data-i18n="currencyPanelSubtitle">顯示貨幣</p></div><span class="material-symbols-outlined text-primary text-3xl">currency_exchange</span></div>
 <div class="grid grid-cols-3 gap-3">
 <button id="currencyHKDBtn" class="currency-pill rounded-xl border border-primary/10 bg-white/60 px-4 py-3 text-sm font-bold">HKD</button>
 <button id="currencyJPYBtn" class="currency-pill rounded-xl border border-primary/10 bg-white/60 px-4 py-3 text-sm font-bold">JPY</button>
 <button id="currencyUSDBtn" class="currency-pill rounded-xl border border-primary/10 bg-white/60 px-4 py-3 text-sm font-bold">USD</button>
 </div>
 <div class="mt-3 text-xs text-slate-500" id="currencyPanelHint" data-i18n="currencyPanelHint">顯示貨幣設定會用於後續價格顯示。</div>
-<div class="mt-2 text-[11px] text-slate-400">新增收藏可另外保存原始購入貨幣，總計會按幣別分組顯示。</div>
+<div class="mt-2 text-[11px] text-slate-400">新增收藏可另外保存原始購入貨幣，Chronicle會按幣別分組顯示。</div>
 </div>
 <div class="space-y-4" id="profileGuestPanels">
 <div class="rounded-2xl bg-white/70 border border-primary/10 shadow-sm p-5">
@@ -1273,6 +1288,7 @@ html.kura-typo-stable .font-medium {
                 ownerUid: raw.ownerUid || "",
                 price: raw.price || "",
                 purchaseCurrency: (raw.purchaseCurrency || raw.currency || "HKD").toUpperCase(),
+                travelType: raw.travelType || "",
                 date: raw.date || "",
                 status: raw.status || "未開封",
                 category: raw.category || "其他",
@@ -1644,7 +1660,7 @@ function renderOverviewCards() {
                     <div class="absolute top-0 right-0 w-1 h-full bg-primary"></div>
                     <p class="text-slate-500 text-xs font-semibold uppercase">Total Value</p>
                     <div class="mt-1 space-y-1">${renderCurrencyBreakdown(owned, false)}</div>
-                    <p class="text-slate-400 text-xs">按原始貨幣分組總計</p>
+                    <p class="text-slate-400 text-xs">按原始貨幣分組Chronicle</p>
                 </div>
                 <div class="flex flex-col gap-1 rounded-xl p-5 border border-primary/10 bg-white/50 shadow-sm">
                     <p class="text-slate-500 text-xs font-semibold uppercase">Curated Items</p>
@@ -1659,7 +1675,7 @@ function renderOverviewCards() {
                 <div class="flex flex-col gap-1 rounded-xl p-5 border border-primary/10 bg-white/50 shadow-sm">
                     <p class="text-slate-500 text-xs font-semibold uppercase">Average Cost</p>
                     <p class="text-2xl font-medium">${getActiveCurrencyCodes(owned).length}</p>
-                    <p class="text-slate-400 text-xs">Currency types</p>
+                    <p class="text-slate-400 text-xs">Default Currency types</p>
                 </div>
             `;
         }
@@ -1765,12 +1781,59 @@ function renderOverviewCards() {
 
             title.textContent = currentCategory;
             count.textContent = arr.length + (arr.length === 1 ? " item" : " items");
-            totals.innerHTML = activeCodes.map(code => `
-                <div class="rounded-xl border border-primary/10 bg-white/70 px-3 py-2">
-                    <div class="text-[10px] uppercase tracking-[0.18em] text-slate-400">${code}</div>
-                    <div class="mt-1 text-sm text-slate-800">${money(sum[code], code)}</div>
-                </div>
-            `).join("");
+
+            let extraTop = "";
+            if ((currentCategory || "").toUpperCase() === "TRAVEL") {
+                const dated = arr
+                    .map(item => item.date || "")
+                    .filter(Boolean)
+                    .sort();
+                const period = dated.length ? `${dated[0]} → ${dated[dated.length - 1]}` : "";
+                const travelSums = { Hotel: 0, Shopping: 0, Food: 0, Transport: 0, Misc: 0 };
+                arr.forEach(item => {
+                    const type = item.travelType || "";
+                    const code = ((item.purchaseCurrency || "HKD") + "").toUpperCase();
+                    const num = Number(item.price || 0);
+                    if (!type || !Number.isFinite(num)) return;
+                    if (!(type in travelSums)) travelSums[type] = 0;
+                    if (!travelSums.__byType) travelSums.__byType = {};
+                    if (!travelSums.__byType[type]) travelSums.__byType[type] = { HKD: 0, USD: 0, JPY: 0 };
+                    if (!(code in travelSums.__byType[type])) travelSums.__byType[type][code] = 0;
+                    travelSums.__byType[type][code] += num;
+                });
+
+                const typeRows = ["Hotel","Shopping","Food","Transport","Misc"].map(type => {
+                    const byCode = travelSums.__byType && travelSums.__byType[type];
+                    if (!byCode) return "";
+                    const codes = ["HKD","USD","JPY"].filter(code => Math.abs(byCode[code] || 0) > 0.00001);
+                    if (!codes.length) return "";
+                    return `<div class="rounded-xl border border-primary/10 bg-white/60 px-3 py-2">
+                        <div class="text-[10px] uppercase tracking-[0.18em] text-slate-400">${type}</div>
+                        <div class="mt-1 space-y-1">${codes.map(code => `<div class="text-xs text-slate-700">${money(byCode[code], code)}</div>`).join("")}</div>
+                    </div>`;
+                }).filter(Boolean).join("");
+
+                extraTop = `
+                    ${period ? `<div class="mt-3 rounded-xl border border-primary/10 bg-white/60 px-3 py-2">
+                        <div class="text-[10px] uppercase tracking-[0.18em] text-slate-400">Purchase period</div>
+                        <div class="mt-1 text-sm text-slate-800">${period}</div>
+                    </div>` : ""}
+                    ${typeRows ? `<div class="mt-3">
+                        <div class="mb-2 text-[10px] uppercase tracking-[0.18em] text-slate-400">Travel Breakdown</div>
+                        <div class="grid gap-2 sm:grid-cols-2">${typeRows}</div>
+                    </div>` : ""}
+                `;
+            }
+
+            totals.innerHTML = `
+                <div class="grid gap-2 sm:grid-cols-3">${activeCodes.map(code => `
+                    <div class="rounded-xl border border-primary/10 bg-white/70 px-3 py-2">
+                        <div class="text-[10px] uppercase tracking-[0.18em] text-slate-400">${code}</div>
+                        <div class="mt-1 text-sm text-slate-800">${money(sum[code], code)}</div>
+                    </div>
+                `).join("")}</div>
+                ${extraTop}
+            `;
 
             box.classList.remove("hidden");
         }
@@ -1966,6 +2029,7 @@ function renderOverviewCards() {
                 itemCode: document.getElementById("itemCode").value.trim(),
                 price: document.getElementById("price").value,
                 purchaseCurrency: document.getElementById("purchaseCurrency").value,
+                travelType: document.getElementById("travelType").value,
                 date: document.getElementById("date").value,
                 status: document.getElementById("status").value,
                 category: document.getElementById("category").value.trim() || "其他",
@@ -2019,6 +2083,7 @@ function renderOverviewCards() {
             document.getElementById("itemCode").value = item.itemCode || "";
             document.getElementById("price").value = item.price || "";
             document.getElementById("purchaseCurrency").value = item.purchaseCurrency || "HKD";
+            document.getElementById("travelType").value = item.travelType || "";
             document.getElementById("date").value = item.date || "";
             document.getElementById("status").value = item.status || "未開封";
             document.getElementById("category").value = item.category || "";
@@ -2036,6 +2101,7 @@ function renderOverviewCards() {
 
             showPage("pageAdd");
             setActiveNav("profile");
+            try { if (typeof syncTravelTypeVisibility === "function") syncTravelTypeVisibility(); } catch(e) {}
         };
 
         window.deleteItem = function(id) {
@@ -2169,7 +2235,7 @@ function renderOverviewCards() {
                     <div class="absolute top-0 right-0 w-1 h-full bg-primary"></div>
                     <p class="text-slate-500 text-xs font-semibold uppercase">Total Value</p>
                     <div class="mt-1 space-y-1">${renderCurrencyBreakdown(filtered, false)}</div>
-                    <p class="text-slate-400 text-xs">按原始貨幣分組總計</p>
+                    <p class="text-slate-400 text-xs">按原始貨幣分組Chronicle</p>
                 </div>
                 <div class="flex flex-col gap-1 rounded-xl p-5 border border-primary/10 bg-white/50 shadow-sm">
                     <p class="text-slate-500 text-xs font-semibold uppercase">Curated Items</p>
@@ -2179,7 +2245,7 @@ function renderOverviewCards() {
                 <div class="flex flex-col gap-1 rounded-xl p-5 border border-primary/10 bg-white/50 shadow-sm">
                     <p class="text-slate-500 text-xs font-semibold uppercase">Average Cost</p>
                     <p class="text-2xl font-medium">${getActiveCurrencyCodes(filtered).length}</p>
-                    <p class="text-slate-400 text-xs">Currency types</p>
+                    <p class="text-slate-400 text-xs">Default Currency types</p>
                 </div>
                 <div class="flex flex-col gap-1 rounded-xl p-5 border border-primary/10 bg-white/50 shadow-sm">
                     <p class="text-slate-500 text-xs font-semibold uppercase">Viewing Year</p>
@@ -2447,6 +2513,7 @@ function renderOverviewCards() {
                 renderList();
                 renderExhibitionRail();
                 renderCategoryFilterSummary();
+                try { if (typeof syncTravelTypeVisibility === "function") syncTravelTypeVisibility(); } catch(e) {}
                 return;
             }
         });
@@ -4862,16 +4929,16 @@ function syncMuseumModeLabel(){
       navCategory:'CATEGORY',
       navProfile:'PROFILE',
       toolArchiveHistory:'典藏履歷',
-      toolTheme:'主題',
-      toolNotifications:'通知',
-      toolLanguage:'語言',
+      toolTheme:'Theme',
+      toolNotifications:'Notifications',
+      toolLanguage:'Language',
       toolLogoLibrary:'Logo 管理',
       toolShareCards:'共享卡片',
-      toolBackup:'備份',
+      toolBackup:'Backup',
       toolCurrency:'貨幣',
-      themePanelTitle:'主題',
-      notificationsPanelTitle:'通知',
-      languagePanelTitle:'語言',
+      themePanelTitle:'Theme',
+      notificationsPanelTitle:'Notifications',
+      languagePanelTitle:'Language',
       currencyPanelTitle:'貨幣',
       modalCancel:'取消',
       categoryMain:'分類管理',
@@ -4913,11 +4980,11 @@ function syncMuseumModeLabel(){
       toolLogoLibrary:'Logo Library',
       toolShareCards:'Share Cards',
       toolBackup:'Backup',
-      toolCurrency:'Currency',
+      toolCurrency:'Default Currency',
       themePanelTitle:'Theme',
       notificationsPanelTitle:'Notifications',
       languagePanelTitle:'Language',
-      currencyPanelTitle:'Currency',
+      currencyPanelTitle:'Default Currency',
       modalCancel:'Close',
       categoryMain:'Categories',
       categorySub:'Category Management',
@@ -4953,14 +5020,14 @@ function syncMuseumModeLabel(){
       navProfile:'プロフィール',
       toolArchiveHistory:'アーカイブ履歴',
       toolTheme:'テーマ',
-      toolNotifications:'通知',
+      toolNotifications:'Notifications',
       toolLanguage:'言語',
       toolLogoLibrary:'ロゴ管理',
       toolShareCards:'共有カード',
       toolBackup:'バックアップ',
       toolCurrency:'通貨',
       themePanelTitle:'テーマ',
-      notificationsPanelTitle:'通知',
+      notificationsPanelTitle:'Notifications',
       languagePanelTitle:'言語',
       currencyPanelTitle:'通貨',
       modalCancel:'閉じる',
@@ -5141,7 +5208,7 @@ function syncMuseumModeLabel(){
     if(home){
       Array.from(home.querySelectorAll('section,div,button')).forEach(el=>{
         const t = (el.textContent || '').replace(/\s+/g,' ').trim();
-        if(/theme studio|theme|主題工坊|主題/i.test(t) && !el.closest('#toolsSheetV2') && !el.closest('#profileToolModal') && !el.closest('#pageProfile')){
+        if(/theme studio|theme|Theme工坊|Theme/i.test(t) && !el.closest('#toolsSheetV2') && !el.closest('#profileToolModal') && !el.closest('#pageProfile')){
           const box = el.closest('.hidden,.rounded-2xl,.rounded-3xl,.kv-surface,section,div');
           if(box && !box.id) box.style.display='none';
         }
@@ -5931,7 +5998,7 @@ html[data-typography] :is(h1,h2,h3,h4,h5,h6,.page-title,.section-title,.header-t
 
 
 <script>
-/* Stable Currency Patch v2 */
+/* Stable Default Currency Patch v2 */
 (function(){
   const CUR_KEY = 'kura_display_currency';
   function refreshCurrencyUI(){
@@ -6082,6 +6149,36 @@ html[data-typography] :is(h1,h2,h3,h4,h5,h6,.page-title,.section-title,.header-t
   window.addEventListener('pageshow', function(){
     stabilizeTypography();
   });
+})();
+</script>
+
+
+<script>
+/* Travel type conditional field */
+(function(){
+  function syncTravelTypeVisibility(){
+    const cat = document.getElementById('category');
+    const wrap = document.getElementById('travelTypeWrap');
+    const field = document.getElementById('travelType');
+    if (!cat || !wrap || !field) return;
+    const show = String(cat.value || '').trim().toUpperCase() === 'TRAVEL';
+    wrap.classList.toggle('hidden', !show);
+    if (!show) field.value = '';
+  }
+  document.addEventListener('input', function(e){
+    if (e.target && e.target.id === 'category') syncTravelTypeVisibility();
+  }, true);
+  document.addEventListener('change', function(e){
+    if (e.target && (e.target.id === 'category' || e.target.id === 'travelType')) syncTravelTypeVisibility();
+  }, true);
+  document.addEventListener('DOMContentLoaded', function(){
+    setTimeout(syncTravelTypeVisibility, 0);
+    setTimeout(syncTravelTypeVisibility, 120);
+  });
+  window.addEventListener('load', function(){
+    setTimeout(syncTravelTypeVisibility, 0);
+  });
+  window.syncTravelTypeVisibility = syncTravelTypeVisibility;
 })();
 </script>
 
