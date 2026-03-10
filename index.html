@@ -7216,8 +7216,9 @@ html[data-typography] :is(h1,h2,h3,h4,h5,h6,.page-title,.section-title,.header-t
 
 
 
+
 <script>
-/* Admin Global popup fix v5 persist */
+/* Admin Global popup fix v6 direct firebase */
 (function(){
   let currentLogoKind = null;
 
@@ -7243,12 +7244,6 @@ html[data-typography] :is(h1,h2,h3,h4,h5,h6,.page-title,.section-title,.header-t
     return false;
   }
 
-  async function ensureHiddenScopeSelectors(admin){
-    try {
-      if (typeof ensureScopeSelectors === 'function') ensureScopeSelectors(admin);
-    } catch(e){}
-  }
-
   async function openScopePopup(kind){
     currentLogoKind = kind;
     const modal = $('logoScopeModal');
@@ -7257,11 +7252,7 @@ html[data-typography] :is(h1,h2,h3,h4,h5,h6,.page-title,.section-title,.header-t
     if (!modal || !title || !globalBtn) return;
 
     title.textContent = kind === 'brand' ? '加入 Brand Logo' : '加入 Series Logo';
-
     const admin = await resolveAdminStrict();
-    window.__kuraAdminLogoPopupFlag = admin;
-    await ensureHiddenScopeSelectors(admin);
-
     globalBtn.classList.toggle('hidden', !admin);
     modal.classList.add('show');
   }
@@ -7272,37 +7263,91 @@ html[data-typography] :is(h1,h2,h3,h4,h5,h6,.page-title,.section-title,.header-t
     currentLogoKind = null;
   }
 
-  async function saveWithScope(scope){
-    if (!currentLogoKind) return;
+  async function persistLogo(kind, scope){
+    const api = (typeof fb === 'function') ? fb() : (window.kuraFirebase || null);
+    const uid = (typeof currentUid === 'function') ? currentUid() : (window.kuraFirebase?.auth?.currentUser?.uid || '');
+    if (!api || !uid) {
+      alert('請先登入');
+      return false;
+    }
 
-    const admin = await resolveAdminStrict();
-    await ensureHiddenScopeSelectors(admin);
+    const isBrand = kind === 'brand';
+    const nameEl = $(isBrand ? 'brand' : 'series');
+    const urlEl = $(isBrand ? 'brandLogoUrl' : 'seriesLogoUrl');
+    const fileEl = $(isBrand ? 'brandLogoFile' : 'seriesLogoFile');
 
-    if (scope === 'global' && !admin) return;
+    const name = (nameEl?.value || '').trim();
+    const url = (urlEl?.value || '').trim();
+    const file = fileEl?.files?.[0] || null;
 
-    if (currentLogoKind === 'brand'){
-      const sel = $('brandLogoScope');
-      if (sel) sel.value = scope === 'global' ? 'global' : 'personal';
-      if (typeof saveBrandLogoPatched === 'function') {
-        await saveBrandLogoPatched();
-      } else if (typeof addBrandLibrary === 'function') {
-        await addBrandLibrary(scope === 'global' ? 'global' : 'my');
-      }
-    } else if (currentLogoKind === 'series'){
-      const sel = $('seriesLogoScope');
-      if (sel) sel.value = scope === 'global' ? 'global' : 'personal';
-      if (typeof saveSeriesLogoPatched === 'function') {
-        await saveSeriesLogoPatched();
-      } else if (typeof addSeriesLibrary === 'function') {
-        await addSeriesLibrary(scope === 'global' ? 'global' : 'my');
+    if (!name || (!url && !file)) {
+      alert(isBrand ? '先填品牌名稱同 logo' : '先填系列名稱同 logo');
+      return false;
+    }
+
+    if (scope === 'global') {
+      const admin = await resolveAdminStrict();
+      if (!admin) {
+        alert('只有 admin 可以新增 Global Logo');
+        return false;
       }
     }
 
     try {
-      if (typeof loadMergedLibraries === 'function') await loadMergedLibraries();
-    } catch(e){}
+      const logo = file
+        ? (typeof fileToBase64 === 'function' ? await fileToBase64(file) : await new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onload = () => resolve(reader.result);
+            reader.onerror = reject;
+            reader.readAsDataURL(file);
+          }))
+        : url;
 
-    closeScopePopup();
+      const id = crypto.randomUUID();
+      const ref = (scope === 'global')
+        ? api.doc(api.db, 'appConfig', 'public', isBrand ? 'brandLogos' : 'seriesLogos', id)
+        : api.doc(api.db, 'users', uid, isBrand ? 'brandLogos' : 'seriesLogos', id);
+
+      await api.setDoc(ref, {
+        name,
+        logo,
+        ownerUid: uid,
+        createdAt: Date.now(),
+        updatedAt: Date.now()
+      });
+
+      if (urlEl) urlEl.value = '';
+      if (fileEl) fileEl.value = '';
+
+      if (typeof loadMergedLibraries === 'function') {
+        await loadMergedLibraries();
+      } else {
+        // fallback local refresh
+        if (isBrand) {
+          window.brandLibrary = Array.isArray(window.brandLibrary) ? window.brandLibrary : [];
+          window.brandLibrary.unshift({ name, logo, ownerUid: uid, scope: scope === 'global' ? 'global' : 'personal' });
+        } else {
+          window.seriesLibrary = Array.isArray(window.seriesLibrary) ? window.seriesLibrary : [];
+          window.seriesLibrary.unshift({ name, logo, ownerUid: uid, scope: scope === 'global' ? 'global' : 'personal' });
+        }
+      }
+
+      try {
+        if (typeof renderLogoManagersPatched === 'function') renderLogoManagersPatched();
+        else if (typeof renderLogoManagers === 'function') renderLogoManagers();
+      } catch(e){}
+
+      const backup = $('backupStatus');
+      if (backup) backup.textContent = isBrand
+        ? `已加入 Brand Logo (${scope})`
+        : `已加入 Series Logo (${scope})`;
+
+      return true;
+    } catch (err) {
+      console.error(err);
+      alert(err?.message || '加入 Logo 失敗');
+      return false;
+    }
   }
 
   function bindPopup(){
@@ -7313,8 +7358,8 @@ html[data-typography] :is(h1,h2,h3,h4,h5,h6,.page-title,.section-title,.header-t
     const globalBtn = $('logoScopeGlobalBtn');
     const modal = $('logoScopeModal');
 
-    if (brandBtn && !brandBtn.dataset.scopePopupBoundV5) {
-      brandBtn.dataset.scopePopupBoundV5 = '1';
+    if (brandBtn && !brandBtn.dataset.scopePopupBoundV6) {
+      brandBtn.dataset.scopePopupBoundV6 = '1';
       brandBtn.onclick = null;
       brandBtn.addEventListener('click', function(e){
         e.preventDefault();
@@ -7325,8 +7370,8 @@ html[data-typography] :is(h1,h2,h3,h4,h5,h6,.page-title,.section-title,.header-t
       }, true);
     }
 
-    if (seriesBtn && !seriesBtn.dataset.scopePopupBoundV5) {
-      seriesBtn.dataset.scopePopupBoundV5 = '1';
+    if (seriesBtn && !seriesBtn.dataset.scopePopupBoundV6) {
+      seriesBtn.dataset.scopePopupBoundV6 = '1';
       seriesBtn.onclick = null;
       seriesBtn.addEventListener('click', function(e){
         e.preventDefault();
@@ -7337,32 +7382,36 @@ html[data-typography] :is(h1,h2,h3,h4,h5,h6,.page-title,.section-title,.header-t
       }, true);
     }
 
-    if (closeBtn && !closeBtn.dataset.scopePopupBoundV5) {
-      closeBtn.dataset.scopePopupBoundV5 = '1';
+    if (closeBtn && !closeBtn.dataset.scopePopupBoundV6) {
+      closeBtn.dataset.scopePopupBoundV6 = '1';
       closeBtn.addEventListener('click', function(e){
         e.preventDefault();
         closeScopePopup();
       });
     }
 
-    if (myBtn && !myBtn.dataset.scopePopupBoundV5) {
-      myBtn.dataset.scopePopupBoundV5 = '1';
-      myBtn.addEventListener('click', function(e){
+    if (myBtn && !myBtn.dataset.scopePopupBoundV6) {
+      myBtn.dataset.scopePopupBoundV6 = '1';
+      myBtn.addEventListener('click', async function(e){
         e.preventDefault();
-        saveWithScope('my');
+        if (!currentLogoKind) return;
+        const ok = await persistLogo(currentLogoKind, 'my');
+        if (ok) closeScopePopup();
       });
     }
 
-    if (globalBtn && !globalBtn.dataset.scopePopupBoundV5) {
-      globalBtn.dataset.scopePopupBoundV5 = '1';
-      globalBtn.addEventListener('click', function(e){
+    if (globalBtn && !globalBtn.dataset.scopePopupBoundV6) {
+      globalBtn.dataset.scopePopupBoundV6 = '1';
+      globalBtn.addEventListener('click', async function(e){
         e.preventDefault();
-        saveWithScope('global');
+        if (!currentLogoKind) return;
+        const ok = await persistLogo(currentLogoKind, 'global');
+        if (ok) closeScopePopup();
       });
     }
 
-    if (modal && !modal.dataset.scopePopupBoundV5) {
-      modal.dataset.scopePopupBoundV5 = '1';
+    if (modal && !modal.dataset.scopePopupBoundV6) {
+      modal.dataset.scopePopupBoundV6 = '1';
       modal.addEventListener('click', function(e){
         if (e.target === modal) closeScopePopup();
       });
