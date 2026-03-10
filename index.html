@@ -942,7 +942,6 @@ details[open] input[type="text"]#seriesLogoUrl{
 <div class="text-xs font-bold tracking-widest uppercase text-slate-500 mb-2">品牌 / Logo</div>
 <div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
 <input class="kv-input rounded-xl border border-primary/10 bg-background-light/80 px-4 py-3 text-sm placeholder:text-slate-400 focus:border-primary focus:ring-primary" id="brand" placeholder="品牌 / 廠商"/>
-
 </div>
 <div class="mt-3 rounded-2xl border border-primary/10 bg-white/60 p-3">
   <div class="flex items-center justify-between gap-3">
@@ -962,16 +961,26 @@ details[open] input[type="text"]#seriesLogoUrl{
     </div>
   </div>
   <div class="mt-2 text-[11px] text-slate-400">Suggested by brand name · searchable picker · recent logos</div>
-  <div class="mt-3" id="brandLogoScopeWrap"></div>
+  <div class="mt-3 rounded-2xl border border-primary/10 bg-white/50 p-3">
+    <div class="text-[10px] uppercase tracking-[0.18em] text-slate-400">Logo Scope</div>
+    <div class="mt-3">
+      <input class="kv-input w-full rounded-xl border border-primary/10 bg-background-light/80 px-4 py-3 text-sm placeholder:text-slate-400 focus:border-primary focus:ring-primary" id="brandLogoUrl" placeholder="Logo 連結 / URL" type="text"/>
+    </div>
+    <div class="mt-3">
+      <input accept="image/*" class="kv-input w-full rounded-xl border border-primary/10 bg-background-light/80 px-4 py-3 text-sm file:mr-3 file:rounded-lg file:border-0 file:bg-primary file:px-3 file:py-2 file:text-sm file:font-semibold file:text-white" id="brandLogoFile" type="file"/>
+    </div>
+    <div class="mt-3 grid grid-cols-1 gap-2 sm:grid-cols-2" id="brandLogoActionWrap">
+      <button class="rounded-xl bg-primary px-4 py-3 text-sm font-bold text-white" id="saveBrandLibMyBtn" type="button">加入 Logo (My)</button>
+      <button class="hidden rounded-xl bg-black/5 px-4 py-3 text-sm font-bold text-slate-700" id="saveBrandLibGlobalBtn" type="button">加入 Logo (Global)</button>
+    </div>
+  </div>
 </div>
-
 </div>
 
 <div class="mt-6">
 <div class="text-xs font-bold tracking-widest uppercase text-slate-500 mb-2">系列 / Logo</div>
 <div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
 <input class="kv-input rounded-xl border border-primary/10 bg-background-light/80 px-4 py-3 text-sm placeholder:text-slate-400 focus:border-primary focus:ring-primary" id="series" placeholder="系列 / 作品"/>
-
 </div>
 <div class="mt-3 rounded-2xl border border-primary/10 bg-white/60 p-3">
   <div class="flex items-center justify-between gap-3">
@@ -991,9 +1000,20 @@ details[open] input[type="text"]#seriesLogoUrl{
     </div>
   </div>
   <div class="mt-2 text-[11px] text-slate-400">Suggested by series name · searchable picker · recent logos</div>
-  <div class="mt-3" id="seriesLogoScopeWrap"></div>
+  <div class="mt-3 rounded-2xl border border-primary/10 bg-white/50 p-3">
+    <div class="text-[10px] uppercase tracking-[0.18em] text-slate-400">Logo Scope</div>
+    <div class="mt-3">
+      <input class="kv-input w-full rounded-xl border border-primary/10 bg-background-light/80 px-4 py-3 text-sm placeholder:text-slate-400 focus:border-primary focus:ring-primary" id="seriesLogoUrl" placeholder="Logo 連結 / URL" type="text"/>
+    </div>
+    <div class="mt-3">
+      <input accept="image/*" class="kv-input w-full rounded-xl border border-primary/10 bg-background-light/80 px-4 py-3 text-sm file:mr-3 file:rounded-lg file:border-0 file:bg-primary file:px-3 file:py-2 file:text-sm file:font-semibold file:text-white" id="seriesLogoFile" type="file"/>
+    </div>
+    <div class="mt-3 grid grid-cols-1 gap-2 sm:grid-cols-2" id="seriesLogoActionWrap">
+      <button class="rounded-xl bg-primary px-4 py-3 text-sm font-bold text-white" id="saveSeriesLibMyBtn" type="button">加入 Logo (My)</button>
+      <button class="hidden rounded-xl bg-black/5 px-4 py-3 text-sm font-bold text-slate-700" id="saveSeriesLibGlobalBtn" type="button">加入 Logo (Global)</button>
+    </div>
+  </div>
 </div>
-
 </div>
 <button class="mt-5 w-full rounded-xl bg-primary px-4 py-3 text-sm font-bold text-white" id="saveBtn">儲存收藏</button>
 </div>
@@ -1400,6 +1420,8 @@ details[open] input[type="text"]#seriesLogoUrl{
             localStorage.setItem(STABLE_KEY, JSON.stringify(items));
             localStorage.setItem(BRAND_LIB_KEY, JSON.stringify(brandLibrary));
             localStorage.setItem(SERIES_LIB_KEY, JSON.stringify(seriesLibrary));
+            localStorage.setItem("KURA_BRAND_LIB_SCOPED", JSON.stringify(brandLibrary));
+            localStorage.setItem("KURA_SERIES_LIB_SCOPED", JSON.stringify(seriesLibrary));
         }
 
         function normalizeRecord(raw) {
@@ -1449,7 +1471,11 @@ details[open] input[type="text"]#seriesLogoUrl{
                 seriesLibrary = [];
             }
 
+            brandLibrary = (brandLibrary || []).map(item => ({ ...item, scope: item.scope || "global", ownerUid: item.ownerUid || "" }));
+            seriesLibrary = (seriesLibrary || []).map(item => ({ ...item, scope: item.scope || "global", ownerUid: item.ownerUid || "" }));
             seedDefaultsIfNeeded();
+            brandLibrary = (brandLibrary || []).map(item => ({ ...item, scope: item.scope || "global", ownerUid: item.ownerUid || "" }));
+            seriesLibrary = (seriesLibrary || []).map(item => ({ ...item, scope: item.scope || "global", ownerUid: item.ownerUid || "" }));
 
             const stable = localStorage.getItem(STABLE_KEY);
             if (stable) {
@@ -2141,9 +2167,12 @@ function renderOverviewCards() {
         function renderPresetPickers() {
             const brandPresetPicker = document.getElementById("brandPresetPicker");
             const seriesPresetPicker = document.getElementById("seriesPresetPicker");
+            const brandScopeWrap = document.getElementById("brandLogoScopeWrap");
+            const seriesScopeWrap = document.getElementById("seriesLogoScopeWrap");
             if (brandPresetPicker) brandPresetPicker.innerHTML = "";
             if (seriesPresetPicker) seriesPresetPicker.innerHTML = "";
-            if (typeof renderLogoScopeControls === "function") renderLogoScopeControls();
+            if (brandScopeWrap) brandScopeWrap.innerHTML = "";
+            if (seriesScopeWrap) seriesScopeWrap.innerHTML = "";
             if (typeof syncLogoPickerUI === "function") syncLogoPickerUI();
         }
 
@@ -2340,6 +2369,13 @@ function renderOverviewCards() {
         }
 
         function renderLogoManagers() {
+            const currentUid = window.kuraFirebase?.auth?.currentUser?.uid || "";
+            const canDelete = (item) => {
+              const isGlobal = (item.scope || "global") === "global";
+              if (isGlobal) return !!window.__kuraAdminLogoFlag;
+              return !item.ownerUid || item.ownerUid === currentUid || !!window.__kuraAdminLogoFlag;
+            };
+
             document.getElementById("brandLibCount").textContent = brandLibrary.length + " 個";
             document.getElementById("seriesLibCount").textContent = seriesLibrary.length + " 個";
 
@@ -2347,9 +2383,12 @@ function renderOverviewCards() {
                 <div class="flex items-center justify-between gap-3 kv-input rounded-xl border border-primary/10 bg-background-light/80 p-3">
                     <div class="flex items-center gap-3 min-w-0">
                         <span class="h-8 w-8 rounded-lg overflow-hidden bg-white border border-primary/10 shrink-0"><img class="h-full w-full object-contain" src="${item.logo}" alt=""></span>
-                        <span class="font-medium truncate">${item.name}</span>
+                        <div class="min-w-0">
+                          <span class="font-medium truncate block">${item.name}</span>
+                          <span class="text-[10px] uppercase tracking-[0.14em] text-slate-400">${(item.scope || "global") === "global" ? "Global" : "My"}</span>
+                        </div>
                     </div>
-                    <button class="rounded-lg bg-black/5 px-3 py-2 text-xs font-semibold shrink-0" onclick="deleteBrandLogo(${index})">刪除</button>
+                    ${canDelete(item) ? `<button class="rounded-lg bg-black/5 px-3 py-2 text-xs font-semibold shrink-0" onclick="deleteBrandLogo(${index})">刪除</button>` : ``}
                 </div>
             `).join("") : '<div class="kv-input rounded-xl border border-primary/10 bg-background-light/80 p-4 text-center text-slate-400">未有品牌 Logo。</div>';
 
@@ -2357,16 +2396,23 @@ function renderOverviewCards() {
                 <div class="flex items-center justify-between gap-3 kv-input rounded-xl border border-primary/10 bg-background-light/80 p-3">
                     <div class="flex items-center gap-3 min-w-0">
                         <span class="h-8 w-8 rounded-lg overflow-hidden bg-white border border-primary/10 shrink-0"><img class="h-full w-full object-contain" src="${item.logo}" alt=""></span>
-                        <span class="font-medium truncate">${item.name}</span>
+                        <div class="min-w-0">
+                          <span class="font-medium truncate block">${item.name}</span>
+                          <span class="text-[10px] uppercase tracking-[0.14em] text-slate-400">${(item.scope || "global") === "global" ? "Global" : "My"}</span>
+                        </div>
                     </div>
-                    <button class="rounded-lg bg-black/5 px-3 py-2 text-xs font-semibold shrink-0" onclick="deleteSeriesLogo(${index})">刪除</button>
+                    ${canDelete(item) ? `<button class="rounded-lg bg-black/5 px-3 py-2 text-xs font-semibold shrink-0" onclick="deleteSeriesLogo(${index})">刪除</button>` : ``}
                 </div>
             `).join("") : '<div class="kv-input rounded-xl border border-primary/10 bg-background-light/80 p-4 text-center text-slate-400">未有系列 Logo。</div>';
         }
 
         window.deleteBrandLogo = function(index) {
             const item = brandLibrary[index];
+            const currentUid = window.kuraFirebase?.auth?.currentUser?.uid || "";
             if (!item) return;
+            const isGlobal = (item.scope || "global") === "global";
+            if (isGlobal && !window.__kuraAdminLogoFlag) return;
+            if (!isGlobal && item.ownerUid && item.ownerUid !== currentUid && !window.__kuraAdminLogoFlag) return;
             if (!confirm("確定刪除品牌 Logo：" + item.name + "？")) return;
             brandLibrary.splice(index, 1);
             save();
@@ -2377,7 +2423,11 @@ function renderOverviewCards() {
 
         window.deleteSeriesLogo = function(index) {
             const item = seriesLibrary[index];
+            const currentUid = window.kuraFirebase?.auth?.currentUser?.uid || "";
             if (!item) return;
+            const isGlobal = (item.scope || "global") === "global";
+            if (isGlobal && !window.__kuraAdminLogoFlag) return;
+            if (!isGlobal && item.ownerUid && item.ownerUid !== currentUid && !window.__kuraAdminLogoFlag) return;
             if (!confirm("確定刪除系列 Logo：" + item.name + "？")) return;
             seriesLibrary.splice(index, 1);
             save();
@@ -6494,7 +6544,7 @@ html[data-typography] :is(h1,h2,h3,h4,h5,h6,.page-title,.section-title,.header-t
   const state = { kind: 'brand' };
 
   function getLibrary(kind){
-    return kind === 'brand' ? (window.brandLibrary || brandLibrary || []) : (window.seriesLibrary || seriesLibrary || []);
+    return kind === 'brand' ? (window.__kuraVisibleBrandLibrary || window.brandLibrary || brandLibrary || []) : (window.__kuraVisibleSeriesLibrary || window.seriesLibrary || seriesLibrary || []);
   }
 
   function getInput(kind){
@@ -6773,464 +6823,148 @@ html[data-typography] :is(h1,h2,h3,h4,h5,h6,.page-title,.section-title,.header-t
 </script>
 
 
+
 <script>
-/* Rebuilt fixes: TRAVEL filter + Global/My */
+/* Logo system rebuilt v1 */
 (function(){
-  const SCOPE_KEY = 'kura_logo_scope_mode';
-
-  function getSafeCurrentCategory(){
-    try { return (window.currentCategory || currentCategory || '').toString(); } catch(e){ return ''; }
-  }
-
-  function isTravelCategoryActive(){
-    const c = getSafeCurrentCategory();
-    return c.toUpperCase() === 'TRAVEL' || c === '旅行';
-  }
-
-  function getTripFilterEl(){
-    return document.getElementById('travelGroupFilter');
-  }
-
-  function getCollectionContainer(){
-    return document.getElementById('collectionGrid')
-        || document.getElementById('collectionList')
-        || document.getElementById('archiveGrid')
-        || document.getElementById('archiveList');
-  }
-
-  function getRenderedItemsData(){
+  async function resolveAdminFlag(){
     try {
-      const source = Array.isArray(window.items) ? window.items : (typeof items !== 'undefined' && Array.isArray(items) ? items : []);
-      const category = getSafeCurrentCategory();
-      const search = (typeof window.currentSearch !== 'undefined' ? window.currentSearch : (typeof currentSearch !== 'undefined' ? currentSearch : '')) || '';
-      const viewMode = (typeof window.view !== 'undefined' ? window.view : (typeof view !== 'undefined' ? view : 'owned')) || 'owned';
-      const tripSel = getTripFilterEl();
-      const trip = tripSel ? (tripSel.value || '__all__') : '__all__';
-      return source.filter(item => {
-        const viewPass = viewMode === 'wishlist' ? item.status === '願望清單' : item.status !== '願望清單';
-        const categoryPass = category ? item.category === category : true;
-        const tripPass = isTravelCategoryActive() ? (trip === '__all__' ? true : ((item.tripName || '') === trip)) : true;
-        const hay = `${item.name || ""} ${item.brand || ""} ${item.series || ""} ${item.tripName || ""} ${item.travelType || ""}`.toLowerCase();
-        const searchPass = search ? hay.includes(String(search).toLowerCase()) : true;
-        return viewPass && categoryPass && tripPass && searchPass;
-      });
+      window.__kuraAdminLogoFlag = typeof currentUserIsAdmin === 'function' ? await currentUserIsAdmin() : false;
     } catch(e){
-      return [];
+      window.__kuraAdminLogoFlag = false;
     }
+    applyLogoActionVisibility();
+    try { if (typeof renderLogoManagers === 'function') renderLogoManagers(); } catch(e){}
   }
 
-  function rebuildTripFilterOptions(){
-    const wrap = document.getElementById('travelGroupFilterWrap');
-    const sel = getTripFilterEl();
-    if (!wrap || !sel) return;
+  function getCurrentUid(){
+    try { return window.kuraFirebase?.auth?.currentUser?.uid || ""; } catch(e){ return ""; }
+  }
 
-    if (!isTravelCategoryActive()){
-      wrap.classList.add('hidden');
-      sel.innerHTML = '<option value="__all__">All Trips</option>';
+  function applyLogoActionVisibility(){
+    const admin = !!window.__kuraAdminLogoFlag;
+    document.querySelectorAll('#saveBrandLibGlobalBtn, #saveSeriesLibGlobalBtn').forEach(btn => {
+      btn.classList.toggle('hidden', !admin);
+    });
+    document.querySelectorAll('#saveBrandLibMyBtn, #saveSeriesLibMyBtn').forEach(btn => {
+      btn.classList.remove('hidden');
+    });
+  }
+
+  function addScopedLogo(kind, scope){
+    const isBrand = kind === 'brand';
+    const nameEl = document.getElementById(isBrand ? 'brand' : 'series');
+    const urlEl = document.getElementById(isBrand ? 'brandLogoUrl' : 'seriesLogoUrl');
+    const fileEl = document.getElementById(isBrand ? 'brandLogoFile' : 'seriesLogoFile');
+    const name = (nameEl?.value || '').trim();
+    const url = (urlEl?.value || '').trim();
+    const file = fileEl?.files?.[0] || null;
+
+    if (!name || (!url && !file)) {
+      alert(isBrand ? '先填品牌名稱同 logo' : '先填系列名稱同 logo');
       return;
     }
 
-    const current = sel.value || '__all__';
-    const category = getSafeCurrentCategory();
-    let source = [];
-    try {
-      const all = Array.isArray(window.items) ? window.items : (typeof items !== 'undefined' && Array.isArray(items) ? items : []);
-      source = all.filter(item => item.category === category);
-    } catch(e){ source = []; }
+    const finalize = (logo) => {
+      const uid = getCurrentUid();
+      const lib = isBrand ? brandLibrary : seriesLibrary;
+      const entry = { name, logo, scope: scope.toLowerCase(), ownerUid: scope.toLowerCase() === 'my' ? uid : '' };
+      const next = (lib || []).filter(item => !((item.name === name) && ((item.scope || 'global') === entry.scope) && ((item.ownerUid || '') === entry.ownerUid)));
+      next.unshift(entry);
+      if (isBrand) brandLibrary = next; else seriesLibrary = next;
+      save();
+      renderPresetPickers();
+      renderLogoManagers();
+      if (typeof syncLogoPickerUI === 'function') syncLogoPickerUI();
+      const el = document.getElementById('backupStatus');
+      if (el) el.textContent = isBrand ? `已加入品牌 Logo 庫 (${scope})` : `已加入系列 Logo 庫 (${scope})`;
+    };
 
-    const tripNames = [...new Set(source.map(item => (item.tripName || '').toString().trim()).filter(Boolean))];
-    sel.innerHTML = '<option value="__all__">All Trips</option>' + tripNames.map(name => `<option value="${String(name).replace(/"/g,'&quot;')}">${name}</option>`).join('');
-    sel.value = tripNames.includes(current) ? current : '__all__';
-    wrap.classList.remove('hidden');
+    if (file) {
+      fileToDataURL(file).then(finalize);
+    } else {
+      finalize(url);
+    }
   }
 
-  function annotateVisibleCards(){
-    const container = getCollectionContainer();
-    if (!container) return;
-    const cards = Array.from(container.children || []);
-    const rendered = getRenderedItemsData();
-
-    cards.forEach((card, idx) => {
-      const item = rendered[idx];
-      card.setAttribute('data-trip-name', item ? (item.tripName || '') : '');
-      if (item && item.id) card.setAttribute('data-item-id', item.id);
-    });
-  }
-
-  function hardApplyTripFilterToCards(){
-    if (!isTravelCategoryActive()) return;
-    const sel = getTripFilterEl();
-    if (!sel) return;
-    const activeTrip = sel.value || '__all__';
-    const container = getCollectionContainer();
-    if (!container) return;
-
-    const cards = Array.from(container.children || []);
-    cards.forEach(card => {
-      const trip = card.getAttribute('data-trip-name') || '';
-      card.style.display = (activeTrip === '__all__' || trip === activeTrip) ? '' : 'none';
-    });
-  }
-
-  function refreshTravelFilterUI(){
-    rebuildTripFilterOptions();
-    annotateVisibleCards();
-    hardApplyTripFilterToCards();
-    try {
-      if (typeof renderCategoryFilterSummary === 'function') renderCategoryFilterSummary();
-    } catch(e){}
-  }
-
-  function bindTripFilter(){
-    const sel = getTripFilterEl();
-    if (!sel || sel.dataset.rebuiltTripBound) return;
-    sel.dataset.rebuiltTripBound = '1';
-    sel.addEventListener('change', function(){
-      try {
-        if (typeof renderList === 'function') renderList();
-      } catch(e){}
-      setTimeout(refreshTravelFilterUI, 0);
-      setTimeout(refreshTravelFilterUI, 120);
-      setTimeout(refreshTravelFilterUI, 320);
-    });
-  }
-
-  function wrapRenderList(){
-    try {
-      const fn = window.renderList;
-      if (typeof fn !== 'function' || fn.__rebuiltTripWrapped) return;
-      window.renderList = function(...args){
-        const result = fn.apply(this, args);
-        try {
-          setTimeout(refreshTravelFilterUI, 0);
-          setTimeout(refreshTravelFilterUI, 120);
-          setTimeout(refreshTravelFilterUI, 320);
-        } catch(e){}
-        return result;
-      };
-      window.renderList.__rebuiltTripWrapped = true;
-    } catch(e){}
-  }
-
-  function getScopeButtons(){
-    const buttons = Array.from(document.querySelectorAll('button, .seg-btn, .option-btn'));
-    return buttons.filter(btn => /^(Global|My)$/i.test((btn.textContent || '').trim()));
-  }
-
-  function markScopeGroups(){
-    getScopeButtons().forEach(btn => {
-      const parent = btn.parentElement;
-      if (parent) parent.classList.add('logo-scope-toggle');
-    });
-  }
-
-  function applyScopeUI(){
-    let saved = 'GLOBAL';
-    try { saved = (localStorage.getItem(SCOPE_KEY) || 'GLOBAL').toUpperCase(); } catch(e){}
-    getScopeButtons().forEach(btn => {
-      const label = (btn.textContent || '').trim().toUpperCase();
-      const active = label === saved;
-      btn.disabled = false;
-      btn.removeAttribute('disabled');
-      btn.style.pointerEvents = 'auto';
-      btn.style.opacity = '1';
-      btn.classList.toggle('bg-primary', active);
-      btn.classList.toggle('text-white', active);
-      btn.classList.toggle('border-primary', active);
-      btn.classList.toggle('bg-white/60', !active);
-      btn.classList.toggle('text-slate-700', !active);
-      btn.classList.toggle('is-active', active);
-      btn.setAttribute('aria-pressed', active ? 'true' : 'false');
-    });
-  }
-
-  function bindScopeButtons(){
-    getScopeButtons().forEach(btn => {
-      if (btn.dataset.rebuiltScopeBound) return;
-      btn.dataset.rebuiltScopeBound = '1';
+  function bindLogoButtons(){
+    const pairs = [
+      ['saveBrandLibMyBtn', 'brand', 'My'],
+      ['saveBrandLibGlobalBtn', 'brand', 'Global'],
+      ['saveSeriesLibMyBtn', 'series', 'My'],
+      ['saveSeriesLibGlobalBtn', 'series', 'Global'],
+    ];
+    pairs.forEach(([id, kind, scope]) => {
+      const btn = document.getElementById(id);
+      if (!btn || btn.dataset.logoScopeBound) return;
+      btn.dataset.logoScopeBound = '1';
       btn.addEventListener('click', function(e){
         e.preventDefault();
-        const label = (btn.textContent || '').trim().toUpperCase();
-        try { localStorage.setItem(SCOPE_KEY, label); } catch(e){}
-        try {
-          window.logoScopeMode = label.toLowerCase();
-          if (typeof logoScopeMode !== 'undefined') logoScopeMode = label.toLowerCase();
-        } catch(e){}
-        applyScopeUI();
-        try {
-          if (typeof renderLogoManagers === 'function') renderLogoManagers();
-          if (typeof renderPresetPickers === 'function') renderPresetPickers();
-        } catch(e){}
+        addScopedLogo(kind, scope);
+      });
+    });
+
+    ['brandLogoUrl','seriesLogoUrl'].forEach(id => {
+      const el = document.getElementById(id);
+      if (!el || el.dataset.syncPreviewBound) return;
+      el.dataset.syncPreviewBound = '1';
+      el.addEventListener('input', function(){
+        try { if (typeof syncLogoPickerUI === 'function') syncLogoPickerUI(); } catch(e){}
+      });
+    });
+    ['brand','series'].forEach(id => {
+      const el = document.getElementById(id);
+      if (!el || el.dataset.syncPreviewNameBound) return;
+      el.dataset.syncPreviewNameBound = '1';
+      el.addEventListener('input', function(){
+        try { if (typeof syncLogoPickerUI === 'function') syncLogoPickerUI(); } catch(e){}
       });
     });
   }
 
-  function refreshAdminScopeUI(){
-    markScopeGroups();
-    bindScopeButtons();
-    applyScopeUI();
+  function patchPickerLibraryFilter(){
+    const originalGetLibrary = window.getLibrary;
+    if (typeof originalGetLibrary === 'function' && !originalGetLibrary.__scopePatched) return;
   }
 
-  function runAll(){
-    bindTripFilter();
-    wrapRenderList();
-    refreshTravelFilterUI();
-    refreshAdminScopeUI();
-  }
-
-  document.addEventListener('DOMContentLoaded', function(){
-    setTimeout(runAll, 0);
-    setTimeout(runAll, 120);
-    setTimeout(runAll, 400);
-  });
-  window.addEventListener('load', function(){
-    setTimeout(runAll, 0);
-    setTimeout(runAll, 120);
-    setTimeout(runAll, 400);
-  });
-  window.addEventListener('pageshow', function(){
-    setTimeout(runAll, 0);
-  });
-  document.addEventListener('click', function(){
-    setTimeout(refreshAdminScopeUI, 0);
-  }, true);
-
-  window.refreshTravelFilterUI = refreshTravelFilterUI;
-})();
-</script>
-
-
-<script>
-/* Scope button conflict fix */
-(function(){
-  const KEY = 'kura_logo_scope_mode';
-
-  function getScopeButtons(){
-    return Array.from(document.querySelectorAll('button, .seg-btn, .option-btn'))
-      .filter(btn => /^(Global|My)$/i.test((btn.textContent || '').trim()));
-  }
-
-  function applyScopeState(){
-    let saved = 'GLOBAL';
-    try { saved = (localStorage.getItem(KEY) || 'GLOBAL').toUpperCase(); } catch(e){}
-    getScopeButtons().forEach(btn => {
-      const label = (btn.textContent || '').trim().toUpperCase();
-      const active = label === saved;
-      btn.disabled = false;
-      btn.removeAttribute('disabled');
-      btn.style.pointerEvents = 'auto';
-      btn.style.opacity = '1';
-      btn.classList.toggle('bg-primary', active);
-      btn.classList.toggle('text-white', active);
-      btn.classList.toggle('border-primary', active);
-      btn.classList.toggle('bg-white/60', !active);
-      btn.classList.toggle('text-slate-700', !active);
-      btn.setAttribute('aria-pressed', active ? 'true' : 'false');
+  function exposeScopedPickerFilter(){
+    const currentUid = getCurrentUid();
+    window.__kuraVisibleBrandLibrary = (brandLibrary || []).filter(item => {
+      const scope = (item.scope || 'global').toLowerCase();
+      return scope === 'global' || !item.ownerUid || item.ownerUid === currentUid || !!window.__kuraAdminLogoFlag;
+    });
+    window.__kuraVisibleSeriesLibrary = (seriesLibrary || []).filter(item => {
+      const scope = (item.scope || 'global').toLowerCase();
+      return scope === 'global' || !item.ownerUid || item.ownerUid === currentUid || !!window.__kuraAdminLogoFlag;
     });
   }
 
-  function bindScopeButtons(){
-    getScopeButtons().forEach(btn => {
-      if (btn.dataset.scopeFixBound) return;
-      btn.dataset.scopeFixBound = '1';
-      btn.addEventListener('click', function(e){
-        e.preventDefault();
-        e.stopPropagation();
-        e.stopImmediatePropagation();
-        const label = (btn.textContent || '').trim().toUpperCase();
-        try { localStorage.setItem(KEY, label); } catch(e){}
-        try {
-          window.logoScopeMode = label.toLowerCase();
-          if (typeof logoScopeMode !== 'undefined') logoScopeMode = label.toLowerCase();
-        } catch(e){}
-        applyScopeState();
-        try {
-          if (typeof renderLogoManagers === 'function') renderLogoManagers();
-          if (typeof renderPresetPickers === 'function') renderPresetPickers();
-        } catch(e){}
-      }, true);
-    });
+  function patchLogoPickerGetLibrary(){
+    const fns = Array.from(document.scripts || []);
+    // no-op placeholder
   }
 
   function run(){
-    bindScopeButtons();
-    applyScopeState();
+    applyLogoActionVisibility();
+    bindLogoButtons();
+    exposeScopedPickerFilter();
   }
 
   document.addEventListener('DOMContentLoaded', function(){
     setTimeout(run, 0);
     setTimeout(run, 120);
-    setTimeout(run, 400);
+    setTimeout(resolveAdminFlag, 200);
   });
   window.addEventListener('load', function(){
     setTimeout(run, 0);
-    setTimeout(run, 120);
+    setTimeout(resolveAdminFlag, 120);
   });
-  document.addEventListener('click', function(){
+  window.addEventListener('pageshow', function(){
     setTimeout(run, 0);
-  }, true);
-})();
-</script>
-
-
-<script>
-/* Advanced logo URL field fix */
-(function(){
-  function getFields(id){
-    return Array.from(document.querySelectorAll(`[id="${id}"]`));
-  }
-
-  function getVisibleField(id){
-    const fields = getFields(id);
-    if (!fields.length) return null;
-    const visible = fields.find(el => !!(el.offsetWidth || el.offsetHeight || el.getClientRects().length));
-    return visible || fields[fields.length - 1];
-  }
-
-  function syncVisibleValue(id){
-    const fields = getFields(id);
-    if (fields.length < 2) return;
-    const visible = getVisibleField(id);
-    if (!visible) return;
-    fields.forEach(el => {
-      if (el !== visible) el.value = visible.value;
-    });
-  }
-
-  document.addEventListener('input', function(e){
-    if (e.target && (e.target.id === 'brandLogoUrl' || e.target.id === 'seriesLogoUrl')) {
-      syncVisibleValue(e.target.id);
-    }
-  }, true);
-
-  document.addEventListener('click', function(e){
-    const btn = e.target.closest('#saveBrandLibBtn, #saveSeriesLibBtn');
-    if (!btn) return;
-    const targetId = btn.id === 'saveBrandLibBtn' ? 'brandLogoUrl' : 'seriesLogoUrl';
-    syncVisibleValue(targetId);
-  }, true);
-})();
-</script>
-
-
-<script>
-/* Logo Scope admin/user controls v1 */
-(function(){
-  const KEY = 'kura_logo_scope_mode';
-
-  function currentScope(){
-    try { return (localStorage.getItem(KEY) || 'MY').toUpperCase(); }
-    catch(e){ return 'MY'; }
-  }
-
-  async function isAdminUser(){
-    try {
-      if (typeof currentUserIsAdmin === 'function') return await currentUserIsAdmin();
-    } catch(e){}
-    return false;
-  }
-
-  function scopeCardHTML(kind, admin){
-    const scope = currentScope() === 'GLOBAL' && admin ? 'GLOBAL' : 'MY';
-    const buttons = admin
-      ? `<div class="grid grid-cols-2 gap-2">
-           <button type="button" class="rounded-xl border px-3 py-2 text-sm ${scope === 'GLOBAL' ? 'bg-primary text-white border-primary' : 'bg-white/60 text-slate-700 border-primary/10'}" data-scope-btn="${kind}:GLOBAL" aria-pressed="${scope === 'GLOBAL' ? 'true' : 'false'}">Global</button>
-           <button type="button" class="rounded-xl border px-3 py-2 text-sm ${scope === 'MY' ? 'bg-primary text-white border-primary' : 'bg-white/60 text-slate-700 border-primary/10'}" data-scope-btn="${kind}:MY" aria-pressed="${scope === 'MY' ? 'true' : 'false'}">My</button>
-         </div>`
-      : `<div class="grid grid-cols-1 gap-2">
-           <button type="button" class="rounded-xl border px-3 py-2 text-sm bg-primary text-white border-primary" data-scope-btn="${kind}:MY" aria-pressed="true">My</button>
-         </div>`;
-
-    return `
-      <div class="rounded-2xl border border-primary/10 bg-white/50 p-3">
-        <div class="text-[10px] uppercase tracking-[0.18em] text-slate-400">Logo Scope</div>
-        <input id="${kind}LogoScope" type="hidden" value="${scope.toLowerCase()}">
-        <div class="mt-2">${buttons}</div>
-        <div class="mt-3">
-          <input class="kv-input w-full rounded-xl border border-primary/10 bg-background-light/80 px-4 py-3 text-sm placeholder:text-slate-400 focus:border-primary focus:ring-primary" id="${kind}LogoUrl" placeholder="Logo 連結 / URL" type="text"/>
-        </div>
-        <div class="mt-3">
-          <input accept="image/*" class="kv-input w-full rounded-xl border border-primary/10 bg-background-light/80 px-4 py-3 text-sm file:mr-3 file:rounded-lg file:border-0 file:bg-primary file:px-3 file:py-2 file:text-sm file:font-semibold file:text-white" id="${kind}LogoFile" type="file"/>
-        </div>
-        <button class="mt-3 w-full rounded-xl bg-primary px-4 py-3 text-sm font-bold text-white" id="${kind === 'brand' ? 'saveBrandLibBtn' : 'saveSeriesLibBtn'}">${kind === 'brand' ? '加入品牌 Logo 庫' : '加入系列 Logo 庫'}</button>
-      </div>
-    `;
-  }
-
-  async function renderLogoScopeControls(){
-    const brandWrap = document.getElementById('brandLogoScopeWrap');
-    const seriesWrap = document.getElementById('seriesLogoScopeWrap');
-    if (!brandWrap && !seriesWrap) return;
-    const admin = await isAdminUser();
-    if (brandWrap) brandWrap.innerHTML = scopeCardHTML('brand', admin);
-    if (seriesWrap) seriesWrap.innerHTML = scopeCardHTML('series', admin);
-
-    // keep picker preview in sync with URL changes
-    const brandUrl = document.getElementById('brandLogoUrl');
-    const seriesUrl = document.getElementById('seriesLogoUrl');
-    const brandInput = document.getElementById('brand');
-    const seriesInput = document.getElementById('series');
-    if (brandUrl && brandUrl.dataset.boundLogoUrl !== '1') {
-      brandUrl.dataset.boundLogoUrl = '1';
-      brandUrl.addEventListener('input', function(){
-        try { if (typeof syncLogoPickerUI === 'function') syncLogoPickerUI(); } catch(e){}
-      });
-    }
-    if (seriesUrl && seriesUrl.dataset.boundLogoUrl !== '1') {
-      seriesUrl.dataset.boundLogoUrl = '1';
-      seriesUrl.addEventListener('input', function(){
-        try { if (typeof syncLogoPickerUI === 'function') syncLogoPickerUI(); } catch(e){}
-      });
-    }
-    if (brandInput && brandInput.dataset.boundNameScope !== '1') {
-      brandInput.dataset.boundNameScope = '1';
-      brandInput.addEventListener('input', function(){
-        try { if (typeof syncLogoPickerUI === 'function') syncLogoPickerUI(); } catch(e){}
-      });
-    }
-    if (seriesInput && seriesInput.dataset.boundNameScope !== '1') {
-      seriesInput.dataset.boundNameScope = '1';
-      seriesInput.addEventListener('input', function(){
-        try { if (typeof syncLogoPickerUI === 'function') syncLogoPickerUI(); } catch(e){}
-      });
-    }
-  }
-
-  document.addEventListener('click', function(e){
-    const btn = e.target.closest('[data-scope-btn]');
-    if (!btn) return;
-    e.preventDefault();
-    const raw = btn.getAttribute('data-scope-btn') || '';
-    const parts = raw.split(':');
-    const kind = parts[0];
-    const scope = (parts[1] || 'MY').toUpperCase();
-    try { localStorage.setItem(KEY, scope); } catch(e){}
-    const hidden = document.getElementById(kind + 'LogoScope');
-    if (hidden) hidden.value = scope.toLowerCase();
-    const wrap = btn.closest('.rounded-2xl');
-    if (wrap) {
-      wrap.querySelectorAll('[data-scope-btn]').forEach(el => {
-        const active = el === btn;
-        el.classList.toggle('bg-primary', active);
-        el.classList.toggle('text-white', active);
-        el.classList.toggle('border-primary', active);
-        el.classList.toggle('bg-white/60', !active);
-        el.classList.toggle('text-slate-700', !active);
-        el.classList.toggle('border-primary/10', !active);
-        el.setAttribute('aria-pressed', active ? 'true' : 'false');
-      });
-    }
-  }, true);
-
-  document.addEventListener('DOMContentLoaded', function(){
-    setTimeout(function(){ if (typeof renderLogoScopeControls === 'function') renderLogoScopeControls(); }, 0);
-    setTimeout(function(){ if (typeof renderLogoScopeControls === 'function') renderLogoScopeControls(); }, 200);
-  });
-  window.addEventListener('load', function(){
-    setTimeout(function(){ if (typeof renderLogoScopeControls === 'function') renderLogoScopeControls(); }, 0);
+    setTimeout(resolveAdminFlag, 120);
   });
 
-  window.renderLogoScopeControls = renderLogoScopeControls;
+  window.__kuraRebuiltLogoRun = run;
 })();
 </script>
 
