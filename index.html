@@ -669,6 +669,11 @@ html.kura-typo-stable .font-medium {
 }
 </style>
 
+
+<style>
+/* Travel extra fields v4 */
+#travelExtraWrap.hidden{ display:none !important; }
+</style>
 </head>
 <body class="bg-background-light font-display text-slate-900 washi-texture">
 <script>
@@ -802,6 +807,11 @@ html.kura-typo-stable .font-medium {
 <option value="Transport">交通 / Transport</option>
 <option value="Misc">雜行 / Misc</option>
 </select>
+</div>
+<div class="grid grid-cols-1 gap-3 sm:grid-cols-3 mt-3 hidden" id="travelExtraWrap">
+<input class="kv-input rounded-xl border border-primary/10 bg-background-light/80 px-4 py-3 text-sm placeholder:text-slate-400 focus:border-primary focus:ring-primary" id="tripName" placeholder="Trip Name"/>
+<input class="kv-input rounded-xl border border-primary/10 bg-background-light/80 px-4 py-3 text-sm placeholder:text-slate-400 focus:border-primary focus:ring-primary" id="travelArea" placeholder="City / Area"/>
+<input class="kv-input rounded-xl border border-primary/10 bg-background-light/80 px-4 py-3 text-sm placeholder:text-slate-400 focus:border-primary focus:ring-primary" id="travelShop" placeholder="Shop"/>
 </div>
 <div class="mt-3">
 <button class="w-full rounded-xl bg-black px-4 py-3 text-sm font-bold text-white" id="aiFillBtn" type="button">AI 拍攝填寫</button>
@@ -1030,7 +1040,7 @@ html.kura-typo-stable .font-medium {
 <div class="rounded-[28px] bg-white/75 border border-primary/10 shadow-sm p-6">
 <h3 class="text-[11px] uppercase tracking-[0.3em] text-slate-400 font-bold mb-6 px-2">Management Tools</h3>
 <div class="grid grid-cols-4 gap-y-8 gap-x-3" id="profileToolsGrid">
-<button class="flex flex-col items-center gap-2 text-center" id="toolChronicle"><div class="w-12 h-12 rounded-2xl bg-background-light border border-primary/10 flex items-center justify-center text-primary"><span class="material-symbols-outlined text-2xl">history_edu</span></div><span class="text-[10px] font-medium text-slate-600" data-i18n="toolArchiveHistory">Archive History</span></button>
+<button class="flex flex-col items-center gap-2 text-center" id="toolChronicle"><div class="w-12 h-12 rounded-2xl bg-background-light border border-primary/10 flex items-center justify-center text-primary"><span class="material-symbols-outlined text-2xl">history_edu</span></div><span class="text-[10px] font-medium text-slate-600" data-i18n="toolArchiveHistory">Chronicle</span></button>
 <button class="flex flex-col items-center gap-2 text-center" id="toolTheme"><div class="w-12 h-12 rounded-2xl bg-background-light border border-primary/10 flex items-center justify-center text-primary"><span class="material-symbols-outlined text-2xl">contrast</span></div><span class="text-[10px] font-medium text-slate-600" data-i18n="toolTheme">Theme</span></button>
 <button class="flex flex-col items-center gap-2 text-center" id="toolNotifications"><div class="w-12 h-12 rounded-2xl bg-background-light border border-primary/10 flex items-center justify-center text-primary"><span class="material-symbols-outlined text-2xl">notifications_active</span></div><span class="text-[10px] font-medium text-slate-600" data-i18n="toolNotifications">Notifications</span></button>
 <button class="flex flex-col items-center gap-2 text-center" id="toolLanguage"><div class="w-12 h-12 rounded-2xl bg-background-light border border-primary/10 flex items-center justify-center text-primary"><span class="material-symbols-outlined text-2xl">translate</span></div><span class="text-[10px] font-medium text-slate-600" data-i18n="toolLanguage">Language</span></button>
@@ -1136,6 +1146,7 @@ html.kura-typo-stable .font-medium {
 <div class="mt-2 text-xl font-bold text-primary" id="detailPrice">$0</div>
 <input id="detailPurchaseCurrency" type="hidden"/>
 <div class="mt-2 text-sm text-slate-500 hidden" id="detailTravelTypeRow"><span class="text-slate-400">Type</span><span class="ml-2 text-slate-700" id="detailTravelType">-</span></div>
+<div class="mt-2 text-sm text-slate-500 hidden" id="detailTripInfoRow"><span class="text-slate-400">Trip</span><span class="ml-2 text-slate-700" id="detailTripInfo">-</span></div>
 </div>
 <div>
 <div class="text-xs uppercase tracking-widest text-slate-400">Date</div>
@@ -1316,6 +1327,9 @@ html.kura-typo-stable .font-medium {
                 price: raw.price || "",
                 purchaseCurrency: (raw.purchaseCurrency || raw.currency || "HKD").toUpperCase(),
                 travelType: raw.travelType || "",
+                tripName: raw.tripName || "",
+                travelArea: raw.travelArea || "",
+                travelShop: raw.travelShop || "",
                 date: raw.date || "",
                 status: raw.status || "未開封",
                 category: raw.category || "其他",
@@ -1845,10 +1859,26 @@ function renderOverviewCards() {
                     </div>`;
                 }).filter(Boolean).join("");
 
+                const tripNames = [...new Set(arr.map(item => item.tripName || "").filter(Boolean))];
+                const areas = [...new Set(arr.map(item => item.travelArea || "").filter(Boolean))];
+                const shops = [...new Set(arr.map(item => item.travelShop || "").filter(Boolean))];
+
                 extraTop = `
                     ${period ? `<div class="mt-3 rounded-xl border border-primary/10 bg-white/60 px-3 py-2">
                         <div class="text-[10px] uppercase tracking-[0.18em] text-slate-400">Purchase period</div>
                         <div class="mt-1 text-sm text-slate-800">${period}</div>
+                    </div>` : ""}
+                    ${tripNames.length ? `<div class="mt-3 rounded-xl border border-primary/10 bg-white/60 px-3 py-2">
+                        <div class="text-[10px] uppercase tracking-[0.18em] text-slate-400">Trip Name</div>
+                        <div class="mt-1 text-sm text-slate-800">${tripNames.join(" / ")}</div>
+                    </div>` : ""}
+                    ${areas.length ? `<div class="mt-3 rounded-xl border border-primary/10 bg-white/60 px-3 py-2">
+                        <div class="text-[10px] uppercase tracking-[0.18em] text-slate-400">City / Area</div>
+                        <div class="mt-1 text-sm text-slate-800">${areas.join(" / ")}</div>
+                    </div>` : ""}
+                    ${shops.length ? `<div class="mt-3 rounded-xl border border-primary/10 bg-white/60 px-3 py-2">
+                        <div class="text-[10px] uppercase tracking-[0.18em] text-slate-400">Shop</div>
+                        <div class="mt-1 text-sm text-slate-800">${shops.join(" / ")}</div>
                     </div>` : ""}
                     ${typeRows ? `<div class="mt-3">
                         <div class="mb-2 text-[10px] uppercase tracking-[0.18em] text-slate-400">Travel Breakdown</div>
@@ -2072,6 +2102,9 @@ function renderOverviewCards() {
                 price: document.getElementById("price").value,
                 purchaseCurrency: document.getElementById("purchaseCurrency").value,
                 travelType: document.getElementById("travelType").value,
+                tripName: document.getElementById("tripName").value,
+                travelArea: document.getElementById("travelArea").value,
+                travelShop: document.getElementById("travelShop").value,
                 date: document.getElementById("date").value,
                 status: document.getElementById("status").value,
                 category: document.getElementById("category").value.trim() || "其他",
@@ -2126,6 +2159,9 @@ function renderOverviewCards() {
             document.getElementById("price").value = item.price || "";
             document.getElementById("purchaseCurrency").value = item.purchaseCurrency || "HKD";
             document.getElementById("travelType").value = item.travelType || "";
+            document.getElementById("tripName").value = item.tripName || "";
+            document.getElementById("travelArea").value = item.travelArea || "";
+            document.getElementById("travelShop").value = item.travelShop || "";
             document.getElementById("date").value = item.date || "";
             document.getElementById("status").value = item.status || "未開封";
             document.getElementById("category").value = item.category || "";
@@ -4119,6 +4155,13 @@ function syncMuseumModeLabel(){
         Misc: "雜行 / Misc"
       };
       travelTypeEl.textContent = showTravelType ? (__map[item.travelType] || item.travelType) : "-";
+      const tripRow = document.getElementById("detailTripInfoRow");
+      const tripInfo = document.getElementById("detailTripInfo");
+      if (tripRow && tripInfo) {
+        const pieces = [item.tripName, item.travelArea, item.travelShop].filter(Boolean);
+        tripRow.classList.toggle("hidden", !(showTravelType && pieces.length));
+        tripInfo.textContent = pieces.length ? pieces.join(" · ") : "-";
+      }
     }
     document.getElementById("detailDate").textContent = item.date || "-";
     document.getElementById("detailCode").textContent = item.itemCode || "-";
@@ -5035,7 +5078,7 @@ function syncMuseumModeLabel(){
       navWish:'WISH LIST',
       navCategory:'CATEGORY',
       navProfile:'PROFILE',
-      toolArchiveHistory:'Archive History',
+      toolArchiveHistory:'Chronicle',
       toolTheme:'Theme',
       toolNotifications:'Notifications',
       toolLanguage:'Language',
@@ -6221,13 +6264,23 @@ html[data-typography] :is(h1,h2,h3,h4,h5,h6,.page-title,.section-title,.header-t
   function syncTravelTypeVisibility(){
     const cat = document.getElementById('category');
     const wrap = document.getElementById('travelTypeWrap');
+    const extraWrap = document.getElementById('travelExtraWrap');
     const field = document.getElementById('travelType');
+    const tripName = document.getElementById('tripName');
+    const travelArea = document.getElementById('travelArea');
+    const travelShop = document.getElementById('travelShop');
     if (!cat || !wrap || !field) return;
     const raw = String(cat.value || '').trim();
     const upper = raw.toUpperCase();
     const show = upper === 'TRAVEL' || raw === '旅行';
     wrap.classList.toggle('hidden', !show);
-    if (!show) field.value = '';
+    if (extraWrap) extraWrap.classList.toggle('hidden', !show);
+    if (!show) {
+      field.value = '';
+      if (tripName) tripName.value = '';
+      if (travelArea) travelArea.value = '';
+      if (travelShop) travelShop.value = '';
+    }
   }
   document.addEventListener('input', function(e){
     if (e.target && e.target.id === 'category') syncTravelTypeVisibility();
