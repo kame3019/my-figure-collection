@@ -730,21 +730,8 @@ details[open] input[type="text"]#seriesLogoUrl{
 
 
 <style>
-/* Logo system rebuilt v3 minimal safe */
-#saveBrandLibGlobalBtn.hidden,
-#saveSeriesLibGlobalBtn.hidden{display:none !important;}
-</style>
-
-
-<style>
-/* Logo scope popup v4 */
-#logoScopeModal.show{ display:flex !important; }
-</style>
-
-
-<style>
-/* Logo scope popup v5 clean */
-#logoScopeModal.show{ display:flex !important; }
+/* Admin Global popup fix from v3_rebuilt_v2 */
+#logoAddScopeModal.show{ display:flex !important; }
 </style>
 
 </head>
@@ -961,7 +948,7 @@ details[open] input[type="text"]#seriesLogoUrl{
 <div class="text-xs font-bold tracking-widest uppercase text-slate-500 mb-2">品牌 / Logo</div>
 <div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
 <input class="kv-input rounded-xl border border-primary/10 bg-background-light/80 px-4 py-3 text-sm placeholder:text-slate-400 focus:border-primary focus:ring-primary" id="brand" placeholder="品牌 / 廠商"/>
-
+<input class="hidden" id="brandLogoUrl" placeholder="品牌 logo 網址"/>
 </div>
 <div class="mt-3 rounded-2xl border border-primary/10 bg-white/60 p-3">
   <div class="flex items-center justify-between gap-3">
@@ -982,25 +969,23 @@ details[open] input[type="text"]#seriesLogoUrl{
   </div>
   <div class="mt-2 text-[11px] text-slate-400">Suggested by brand name · searchable picker · recent logos</div>
 </div>
-<div class="mt-3 rounded-2xl border border-primary/10 bg-white/50 p-3">
-  <div class="text-[10px] uppercase tracking-[0.18em] text-slate-400">Logo Scope</div>
+<details class="mt-3 rounded-2xl border border-primary/10 bg-white/50 p-3">
+  <summary class="cursor-pointer text-xs uppercase tracking-[0.16em] text-slate-500">Advanced Brand Logo</summary>
   <div class="mt-3">
     <input class="kv-input w-full rounded-xl border border-primary/10 bg-background-light/80 px-4 py-3 text-sm placeholder:text-slate-400 focus:border-primary focus:ring-primary" id="brandLogoUrl" placeholder="Logo 連結 / URL" type="text"/>
   </div>
   <div class="mt-3">
     <input accept="image/*" class="kv-input w-full rounded-xl border border-primary/10 bg-background-light/80 px-4 py-3 text-sm file:mr-3 file:rounded-lg file:border-0 file:bg-primary file:px-3 file:py-2 file:text-sm file:font-semibold file:text-white" id="brandLogoFile" type="file"/>
   </div>
-  <div class="mt-3">
-    <button class="w-full rounded-xl bg-primary px-4 py-3 text-sm font-bold text-white" id="openBrandScopeModalBtn" type="button">加入 Logo</button>
-  </div>
-</div>
+  <button class="mt-3 w-full rounded-xl bg-primary px-4 py-3 text-sm font-bold text-white" id="saveBrandLibBtn">加入品牌 Logo 庫</button>
+</details>
 </div>
 
 <div class="mt-6">
 <div class="text-xs font-bold tracking-widest uppercase text-slate-500 mb-2">系列 / Logo</div>
 <div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
 <input class="kv-input rounded-xl border border-primary/10 bg-background-light/80 px-4 py-3 text-sm placeholder:text-slate-400 focus:border-primary focus:ring-primary" id="series" placeholder="系列 / 作品"/>
-
+<input class="hidden" id="seriesLogoUrl" placeholder="系列 logo 網址"/>
 </div>
 <div class="mt-3 rounded-2xl border border-primary/10 bg-white/60 p-3">
   <div class="flex items-center justify-between gap-3">
@@ -1021,18 +1006,16 @@ details[open] input[type="text"]#seriesLogoUrl{
   </div>
   <div class="mt-2 text-[11px] text-slate-400">Suggested by series name · searchable picker · recent logos</div>
 </div>
-<div class="mt-3 rounded-2xl border border-primary/10 bg-white/50 p-3">
-  <div class="text-[10px] uppercase tracking-[0.18em] text-slate-400">Logo Scope</div>
+<details class="mt-3 rounded-2xl border border-primary/10 bg-white/50 p-3">
+  <summary class="cursor-pointer text-xs uppercase tracking-[0.16em] text-slate-500">Advanced Series Logo</summary>
   <div class="mt-3">
     <input class="kv-input w-full rounded-xl border border-primary/10 bg-background-light/80 px-4 py-3 text-sm placeholder:text-slate-400 focus:border-primary focus:ring-primary" id="seriesLogoUrl" placeholder="Logo 連結 / URL" type="text"/>
   </div>
   <div class="mt-3">
     <input accept="image/*" class="kv-input w-full rounded-xl border border-primary/10 bg-background-light/80 px-4 py-3 text-sm file:mr-3 file:rounded-lg file:border-0 file:bg-primary file:px-3 file:py-2 file:text-sm file:font-semibold file:text-white" id="seriesLogoFile" type="file"/>
   </div>
-  <div class="mt-3">
-    <button class="w-full rounded-xl bg-primary px-4 py-3 text-sm font-bold text-white" id="openSeriesScopeModalBtn" type="button">加入 Logo</button>
-  </div>
-</div>
+  <button class="mt-3 w-full rounded-xl bg-primary px-4 py-3 text-sm font-bold text-white" id="saveSeriesLibBtn">加入系列 Logo 庫</button>
+</details>
 </div>
 <button class="mt-5 w-full rounded-xl bg-primary px-4 py-3 text-sm font-bold text-white" id="saveBtn">儲存收藏</button>
 </div>
@@ -1478,14 +1461,12 @@ details[open] input[type="text"]#seriesLogoUrl{
         function loadData() {
             try {
                 brandLibrary = JSON.parse(localStorage.getItem(BRAND_LIB_KEY) || "[]");
-                brandLibrary = (brandLibrary || []).map(item => ({ ...item, scope: item.scope || "global", ownerUid: item.ownerUid || "" }));
             } catch (e) {
                 brandLibrary = [];
             }
 
             try {
                 seriesLibrary = JSON.parse(localStorage.getItem(SERIES_LIB_KEY) || "[]");
-                seriesLibrary = (seriesLibrary || []).map(item => ({ ...item, scope: item.scope || "global", ownerUid: item.ownerUid || "" }));
             } catch (e) {
                 seriesLibrary = [];
             }
@@ -2355,10 +2336,8 @@ function renderOverviewCards() {
 
             const logo = file ? await fileToDataURL(file) : url;
             const currentUid = window.kuraFirebase?.auth?.currentUser?.uid || "";
-            const record = { name, logo, scope: scope.toLowerCase(), ownerUid: scope.toLowerCase() === "my" ? currentUid : "" };
-
-            brandLibrary = brandLibrary.filter(item => !(item.name === name && (item.scope || "global") === record.scope && (item.ownerUid || "") === record.ownerUid));
-            brandLibrary.unshift(record);
+            brandLibrary = brandLibrary.filter(item => !(item.name === name && (item.scope || "global") === scope.toLowerCase() && (item.ownerUid || "") === (scope.toLowerCase() === "my" ? currentUid : "")));
+            brandLibrary.unshift({ name, logo, scope: scope.toLowerCase(), ownerUid: scope.toLowerCase() === "my" ? currentUid : "" });
 
             save();
             renderPresetPickers();
@@ -2378,10 +2357,8 @@ function renderOverviewCards() {
 
             const logo = file ? await fileToDataURL(file) : url;
             const currentUid = window.kuraFirebase?.auth?.currentUser?.uid || "";
-            const record = { name, logo, scope: scope.toLowerCase(), ownerUid: scope.toLowerCase() === "my" ? currentUid : "" };
-
-            seriesLibrary = seriesLibrary.filter(item => !(item.name === name && (item.scope || "global") === record.scope && (item.ownerUid || "") === record.ownerUid));
-            seriesLibrary.unshift(record);
+            seriesLibrary = seriesLibrary.filter(item => !(item.name === name && (item.scope || "global") === scope.toLowerCase() && (item.ownerUid || "") === (scope.toLowerCase() === "my" ? currentUid : "")));
+            seriesLibrary.unshift({ name, logo, scope: scope.toLowerCase(), ownerUid: scope.toLowerCase() === "my" ? currentUid : "" });
 
             save();
             renderPresetPickers();
@@ -2392,9 +2369,9 @@ function renderOverviewCards() {
         function renderLogoManagers() {
             const currentUid = window.kuraFirebase?.auth?.currentUser?.uid || "";
             const canDelete = (item) => {
-                const scope = (item.scope || "global").toLowerCase();
-                if (scope === "global") return !!window.__kuraAdminLogoFlag;
-                return !item.ownerUid || item.ownerUid === currentUid || !!window.__kuraAdminLogoFlag;
+              const scope = (item.scope || "global").toLowerCase();
+              if (scope === "global") return !!window.__kuraAdminLogoPopupFlag;
+              return !item.ownerUid || item.ownerUid === currentUid || !!window.__kuraAdminLogoPopupFlag;
             };
 
             document.getElementById("brandLibCount").textContent = brandLibrary.length + " 個";
@@ -2405,8 +2382,8 @@ function renderOverviewCards() {
                     <div class="flex items-center gap-3 min-w-0">
                         <span class="h-8 w-8 rounded-lg overflow-hidden bg-white border border-primary/10 shrink-0"><img class="h-full w-full object-contain" src="${item.logo}" alt=""></span>
                         <div class="min-w-0">
-                            <span class="font-medium truncate block">${item.name}</span>
-                            <span class="text-[10px] uppercase tracking-[0.14em] text-slate-400">${(item.scope || "global") === "global" ? "Global" : "My"}</span>
+                          <span class="font-medium truncate block">${item.name}</span>
+                          <span class="text-[10px] uppercase tracking-[0.14em] text-slate-400">${(item.scope || "global") === "global" ? "Global" : "My"}</span>
                         </div>
                     </div>
                     ${canDelete(item) ? `<button class="rounded-lg bg-black/5 px-3 py-2 text-xs font-semibold shrink-0" onclick="deleteBrandLogo(${index})">刪除</button>` : ``}
@@ -2418,8 +2395,8 @@ function renderOverviewCards() {
                     <div class="flex items-center gap-3 min-w-0">
                         <span class="h-8 w-8 rounded-lg overflow-hidden bg-white border border-primary/10 shrink-0"><img class="h-full w-full object-contain" src="${item.logo}" alt=""></span>
                         <div class="min-w-0">
-                            <span class="font-medium truncate block">${item.name}</span>
-                            <span class="text-[10px] uppercase tracking-[0.14em] text-slate-400">${(item.scope || "global") === "global" ? "Global" : "My"}</span>
+                          <span class="font-medium truncate block">${item.name}</span>
+                          <span class="text-[10px] uppercase tracking-[0.14em] text-slate-400">${(item.scope || "global") === "global" ? "Global" : "My"}</span>
                         </div>
                     </div>
                     ${canDelete(item) ? `<button class="rounded-lg bg-black/5 px-3 py-2 text-xs font-semibold shrink-0" onclick="deleteSeriesLogo(${index})">刪除</button>` : ``}
@@ -2432,8 +2409,8 @@ function renderOverviewCards() {
             const currentUid = window.kuraFirebase?.auth?.currentUser?.uid || "";
             if (!item) return;
             const scope = (item.scope || "global").toLowerCase();
-            if (scope === "global" && !window.__kuraAdminLogoFlag) return;
-            if (scope === "my" && item.ownerUid && item.ownerUid !== currentUid && !window.__kuraAdminLogoFlag) return;
+            if (scope === "global" && !window.__kuraAdminLogoPopupFlag) return;
+            if (scope === "my" && item.ownerUid && item.ownerUid !== currentUid && !window.__kuraAdminLogoPopupFlag) return;
             if (!confirm("確定刪除品牌 Logo：" + item.name + "？")) return;
             brandLibrary.splice(index, 1);
             save();
@@ -2447,8 +2424,8 @@ function renderOverviewCards() {
             const currentUid = window.kuraFirebase?.auth?.currentUser?.uid || "";
             if (!item) return;
             const scope = (item.scope || "global").toLowerCase();
-            if (scope === "global" && !window.__kuraAdminLogoFlag) return;
-            if (scope === "my" && item.ownerUid && item.ownerUid !== currentUid && !window.__kuraAdminLogoFlag) return;
+            if (scope === "global" && !window.__kuraAdminLogoPopupFlag) return;
+            if (scope === "my" && item.ownerUid && item.ownerUid !== currentUid && !window.__kuraAdminLogoPopupFlag) return;
             if (!confirm("確定刪除系列 Logo：" + item.name + "？")) return;
             seriesLibrary.splice(index, 1);
             save();
@@ -2842,10 +2819,8 @@ function syncMuseumModeLabel(){
 
         document.getElementById("statsYearFilter").onchange = renderStats;
         document.getElementById("saveBtn").onclick = saveRecord;
-        if (document.getElementById("saveBrandLibBtn")) document.getElementById("saveBrandLibBtn").onclick = function(){ addBrandLibrary("my"); };
-        if (document.getElementById("saveBrandLibGlobalBtn")) document.getElementById("saveBrandLibGlobalBtn").onclick = function(){ addBrandLibrary("global"); };
-        if (document.getElementById("saveSeriesLibBtn")) document.getElementById("saveSeriesLibBtn").onclick = function(){ addSeriesLibrary("my"); };
-        if (document.getElementById("saveSeriesLibGlobalBtn")) document.getElementById("saveSeriesLibGlobalBtn").onclick = function(){ addSeriesLibrary("global"); };
+        document.getElementById("saveBrandLibBtn").onclick = function(){ openLogoAddScopePopup("brand"); };
+        document.getElementById("saveSeriesLibBtn").onclick = function(){ openLogoAddScopePopup("series"); };
         document.getElementById("exportBtn").onclick = exportBackup;
         document.getElementById("importBtn").onclick = function() {
             document.getElementById("importFile").click();
@@ -6572,7 +6547,7 @@ html[data-typography] :is(h1,h2,h3,h4,h5,h6,.page-title,.section-title,.header-t
     return (raw || []).filter(item => {
       const scope = (item.scope || 'global').toLowerCase();
       if (scope === 'global') return true;
-      if (window.__kuraAdminLogoFlag) return true;
+      if (window.__kuraAdminLogoPopupFlag) return true;
       return !item.ownerUid || item.ownerUid === currentUid;
     });
   }
@@ -6853,141 +6828,351 @@ html[data-typography] :is(h1,h2,h3,h4,h5,h6,.page-title,.section-title,.header-t
 </script>
 
 
-<div class="fixed inset-0 z-[95] hidden items-end justify-center bg-black/45 p-4 md:items-center" id="logoScopeModal">
+<script>
+/* Rebuilt fixes: TRAVEL filter + Global/My */
+(function(){
+  const SCOPE_KEY = 'kura_logo_scope_mode';
+
+  function getSafeCurrentCategory(){
+    try { return (window.currentCategory || currentCategory || '').toString(); } catch(e){ return ''; }
+  }
+
+  function isTravelCategoryActive(){
+    const c = getSafeCurrentCategory();
+    return c.toUpperCase() === 'TRAVEL' || c === '旅行';
+  }
+
+  function getTripFilterEl(){
+    return document.getElementById('travelGroupFilter');
+  }
+
+  function getCollectionContainer(){
+    return document.getElementById('collectionGrid')
+        || document.getElementById('collectionList')
+        || document.getElementById('archiveGrid')
+        || document.getElementById('archiveList');
+  }
+
+  function getRenderedItemsData(){
+    try {
+      const source = Array.isArray(window.items) ? window.items : (typeof items !== 'undefined' && Array.isArray(items) ? items : []);
+      const category = getSafeCurrentCategory();
+      const search = (typeof window.currentSearch !== 'undefined' ? window.currentSearch : (typeof currentSearch !== 'undefined' ? currentSearch : '')) || '';
+      const viewMode = (typeof window.view !== 'undefined' ? window.view : (typeof view !== 'undefined' ? view : 'owned')) || 'owned';
+      const tripSel = getTripFilterEl();
+      const trip = tripSel ? (tripSel.value || '__all__') : '__all__';
+      return source.filter(item => {
+        const viewPass = viewMode === 'wishlist' ? item.status === '願望清單' : item.status !== '願望清單';
+        const categoryPass = category ? item.category === category : true;
+        const tripPass = isTravelCategoryActive() ? (trip === '__all__' ? true : ((item.tripName || '') === trip)) : true;
+        const hay = `${item.name || ""} ${item.brand || ""} ${item.series || ""} ${item.tripName || ""} ${item.travelType || ""}`.toLowerCase();
+        const searchPass = search ? hay.includes(String(search).toLowerCase()) : true;
+        return viewPass && categoryPass && tripPass && searchPass;
+      });
+    } catch(e){
+      return [];
+    }
+  }
+
+  function rebuildTripFilterOptions(){
+    const wrap = document.getElementById('travelGroupFilterWrap');
+    const sel = getTripFilterEl();
+    if (!wrap || !sel) return;
+
+    if (!isTravelCategoryActive()){
+      wrap.classList.add('hidden');
+      sel.innerHTML = '<option value="__all__">All Trips</option>';
+      return;
+    }
+
+    const current = sel.value || '__all__';
+    const category = getSafeCurrentCategory();
+    let source = [];
+    try {
+      const all = Array.isArray(window.items) ? window.items : (typeof items !== 'undefined' && Array.isArray(items) ? items : []);
+      source = all.filter(item => item.category === category);
+    } catch(e){ source = []; }
+
+    const tripNames = [...new Set(source.map(item => (item.tripName || '').toString().trim()).filter(Boolean))];
+    sel.innerHTML = '<option value="__all__">All Trips</option>' + tripNames.map(name => `<option value="${String(name).replace(/"/g,'&quot;')}">${name}</option>`).join('');
+    sel.value = tripNames.includes(current) ? current : '__all__';
+    wrap.classList.remove('hidden');
+  }
+
+  function annotateVisibleCards(){
+    const container = getCollectionContainer();
+    if (!container) return;
+    const cards = Array.from(container.children || []);
+    const rendered = getRenderedItemsData();
+
+    cards.forEach((card, idx) => {
+      const item = rendered[idx];
+      card.setAttribute('data-trip-name', item ? (item.tripName || '') : '');
+      if (item && item.id) card.setAttribute('data-item-id', item.id);
+    });
+  }
+
+  function hardApplyTripFilterToCards(){
+    if (!isTravelCategoryActive()) return;
+    const sel = getTripFilterEl();
+    if (!sel) return;
+    const activeTrip = sel.value || '__all__';
+    const container = getCollectionContainer();
+    if (!container) return;
+
+    const cards = Array.from(container.children || []);
+    cards.forEach(card => {
+      const trip = card.getAttribute('data-trip-name') || '';
+      card.style.display = (activeTrip === '__all__' || trip === activeTrip) ? '' : 'none';
+    });
+  }
+
+  function refreshTravelFilterUI(){
+    rebuildTripFilterOptions();
+    annotateVisibleCards();
+    hardApplyTripFilterToCards();
+    try {
+      if (typeof renderCategoryFilterSummary === 'function') renderCategoryFilterSummary();
+    } catch(e){}
+  }
+
+  function bindTripFilter(){
+    const sel = getTripFilterEl();
+    if (!sel || sel.dataset.rebuiltTripBound) return;
+    sel.dataset.rebuiltTripBound = '1';
+    sel.addEventListener('change', function(){
+      try {
+        if (typeof renderList === 'function') renderList();
+      } catch(e){}
+      setTimeout(refreshTravelFilterUI, 0);
+      setTimeout(refreshTravelFilterUI, 120);
+      setTimeout(refreshTravelFilterUI, 320);
+    });
+  }
+
+  function wrapRenderList(){
+    try {
+      const fn = window.renderList;
+      if (typeof fn !== 'function' || fn.__rebuiltTripWrapped) return;
+      window.renderList = function(...args){
+        const result = fn.apply(this, args);
+        try {
+          setTimeout(refreshTravelFilterUI, 0);
+          setTimeout(refreshTravelFilterUI, 120);
+          setTimeout(refreshTravelFilterUI, 320);
+        } catch(e){}
+        return result;
+      };
+      window.renderList.__rebuiltTripWrapped = true;
+    } catch(e){}
+  }
+
+  function getScopeButtons(){
+    const buttons = Array.from(document.querySelectorAll('button, .seg-btn, .option-btn'));
+    return buttons.filter(btn => /^(Global|My)$/i.test((btn.textContent || '').trim()));
+  }
+
+  function markScopeGroups(){
+    getScopeButtons().forEach(btn => {
+      const parent = btn.parentElement;
+      if (parent) parent.classList.add('logo-scope-toggle');
+    });
+  }
+
+  function applyScopeUI(){
+    let saved = 'GLOBAL';
+    try { saved = (localStorage.getItem(SCOPE_KEY) || 'GLOBAL').toUpperCase(); } catch(e){}
+    getScopeButtons().forEach(btn => {
+      const label = (btn.textContent || '').trim().toUpperCase();
+      const active = label === saved;
+      btn.disabled = false;
+      btn.removeAttribute('disabled');
+      btn.style.pointerEvents = 'auto';
+      btn.style.opacity = '1';
+      btn.classList.toggle('bg-primary', active);
+      btn.classList.toggle('text-white', active);
+      btn.classList.toggle('border-primary', active);
+      btn.classList.toggle('bg-white/60', !active);
+      btn.classList.toggle('text-slate-700', !active);
+      btn.classList.toggle('is-active', active);
+      btn.setAttribute('aria-pressed', active ? 'true' : 'false');
+    });
+  }
+
+  function bindScopeButtons(){
+    getScopeButtons().forEach(btn => {
+      if (btn.dataset.rebuiltScopeBound) return;
+      btn.dataset.rebuiltScopeBound = '1';
+      btn.addEventListener('click', function(e){
+        e.preventDefault();
+        const label = (btn.textContent || '').trim().toUpperCase();
+        try { localStorage.setItem(SCOPE_KEY, label); } catch(e){}
+        try {
+          window.logoScopeMode = label.toLowerCase();
+          if (typeof logoScopeMode !== 'undefined') logoScopeMode = label.toLowerCase();
+        } catch(e){}
+        applyScopeUI();
+        try {
+          if (typeof renderLogoManagers === 'function') renderLogoManagers();
+          if (typeof renderPresetPickers === 'function') renderPresetPickers();
+        } catch(e){}
+      });
+    });
+  }
+
+  function refreshAdminScopeUI(){
+    markScopeGroups();
+    bindScopeButtons();
+    applyScopeUI();
+  }
+
+  function runAll(){
+    bindTripFilter();
+    wrapRenderList();
+    refreshTravelFilterUI();
+    refreshAdminScopeUI();
+  }
+
+  document.addEventListener('DOMContentLoaded', function(){
+    setTimeout(runAll, 0);
+    setTimeout(runAll, 120);
+    setTimeout(runAll, 400);
+  });
+  window.addEventListener('load', function(){
+    setTimeout(runAll, 0);
+    setTimeout(runAll, 120);
+    setTimeout(runAll, 400);
+  });
+  window.addEventListener('pageshow', function(){
+    setTimeout(runAll, 0);
+  });
+  document.addEventListener('click', function(){
+    setTimeout(refreshAdminScopeUI, 0);
+  }, true);
+
+  window.refreshTravelFilterUI = refreshTravelFilterUI;
+})();
+</script>
+
+
+<div class="fixed inset-0 z-[96] hidden items-end justify-center bg-black/45 p-4 md:items-center" id="logoAddScopeModal">
   <div class="w-full max-w-sm rounded-[28px] border border-primary/10 bg-[var(--bg)] shadow-2xl">
     <div class="flex items-center justify-between border-b border-primary/10 px-5 py-4">
       <div>
         <div class="text-[10px] uppercase tracking-[0.18em] text-slate-400">Logo Scope</div>
-        <div class="mt-1 text-base text-slate-900" id="logoScopeModalTitle">加入 Logo</div>
+        <div class="mt-1 text-base text-slate-900" id="logoAddScopeModalTitle">加入 Logo</div>
       </div>
-      <button class="rounded-xl border border-primary/10 bg-white/70 px-3 py-2 text-xs text-slate-600" id="closeLogoScopeModalBtn" type="button">Close</button>
+      <button class="rounded-xl border border-primary/10 bg-white/70 px-3 py-2 text-xs text-slate-600" id="closeLogoAddScopeModalBtn" type="button">Close</button>
     </div>
     <div class="px-5 py-4">
-      <div class="grid grid-cols-1 gap-2" id="logoScopeModalActions">
-        <button class="rounded-xl bg-primary px-4 py-3 text-sm font-bold text-white" id="logoScopeMyBtn" type="button">加入 Logo (My)</button>
-        <button class="hidden rounded-xl bg-black/5 px-4 py-3 text-sm font-bold text-slate-700" id="logoScopeGlobalBtn" type="button">加入 Logo (Global)</button>
+      <div class="grid grid-cols-1 gap-2">
+        <button class="rounded-xl bg-primary px-4 py-3 text-sm font-bold text-white" id="logoAddMyBtn" type="button">加入 Logo (My)</button>
+        <button class="hidden rounded-xl bg-black/5 px-4 py-3 text-sm font-bold text-slate-700" id="logoAddGlobalBtn" type="button">加入 Logo (Global)</button>
       </div>
     </div>
   </div>
 </div>
 
 
-
 <script>
-/* Logo scope popup v5 clean */
+/* Admin Global popup fix from v3_rebuilt_v2 */
 (function(){
   let currentLogoKind = null;
 
-  async function resolveAdminFlag(retries = 6, delay = 250){
+  async function resolveAdminPopupFlag(retries = 8, delay = 250){
     for (let i = 0; i < retries; i++) {
       try {
+        const uid = window.kuraFirebase?.auth?.currentUser?.uid || "";
         const ok = typeof currentUserIsAdmin === 'function' ? await currentUserIsAdmin() : false;
         if (ok) {
-          window.__kuraAdminLogoFlag = true;
+          window.__kuraAdminLogoPopupFlag = true;
           return true;
         }
-        const uid = window.kuraFirebase?.auth?.currentUser?.uid || "";
         if (uid) {
-          window.__kuraAdminLogoFlag = false;
+          window.__kuraAdminLogoPopupFlag = false;
           return false;
         }
       } catch(e){}
       await new Promise(r => setTimeout(r, delay));
     }
-    window.__kuraAdminLogoFlag = false;
+    window.__kuraAdminLogoPopupFlag = false;
     return false;
   }
 
-  async function openLogoScopeModal(kind){
+  async function openLogoAddScopePopup(kind){
     currentLogoKind = kind;
-    const modal = document.getElementById('logoScopeModal');
-    const title = document.getElementById('logoScopeModalTitle');
-    const globalBtn = document.getElementById('logoScopeGlobalBtn');
+    const modal = document.getElementById('logoAddScopeModal');
+    const title = document.getElementById('logoAddScopeModalTitle');
+    const globalBtn = document.getElementById('logoAddGlobalBtn');
     if (!modal || !title || !globalBtn) return;
     title.textContent = kind === 'brand' ? '加入 Brand Logo' : '加入 Series Logo';
-    const isAdmin = await resolveAdminFlag();
+    const isAdmin = await resolveAdminPopupFlag();
     globalBtn.classList.toggle('hidden', !isAdmin);
     modal.classList.add('show');
   }
 
-  function closeLogoScopeModal(){
-    const modal = document.getElementById('logoScopeModal');
+  function closeLogoAddScopeModal(){
+    const modal = document.getElementById('logoAddScopeModal');
     if (modal) modal.classList.remove('show');
     currentLogoKind = null;
   }
 
-  function bindLogoScopePopup(){
-    const brandOpen = document.getElementById('openBrandScopeModalBtn');
-    const seriesOpen = document.getElementById('openSeriesScopeModalBtn');
-    const closeBtn = document.getElementById('closeLogoScopeModalBtn');
-    const myBtn = document.getElementById('logoScopeMyBtn');
-    const globalBtn = document.getElementById('logoScopeGlobalBtn');
-    const modal = document.getElementById('logoScopeModal');
+  function bindLogoAddScopePopup(){
+    const closeBtn = document.getElementById('closeLogoAddScopeModalBtn');
+    const myBtn = document.getElementById('logoAddMyBtn');
+    const globalBtn = document.getElementById('logoAddGlobalBtn');
+    const modal = document.getElementById('logoAddScopeModal');
 
-    if (brandOpen && !brandOpen.dataset.scopePopupBound) {
-      brandOpen.dataset.scopePopupBound = '1';
-      brandOpen.addEventListener('click', function(e){
-        e.preventDefault();
-        openLogoScopeModal('brand');
-      });
-    }
-    if (seriesOpen && !seriesOpen.dataset.scopePopupBound) {
-      seriesOpen.dataset.scopePopupBound = '1';
-      seriesOpen.addEventListener('click', function(e){
-        e.preventDefault();
-        openLogoScopeModal('series');
-      });
-    }
-    if (closeBtn && !closeBtn.dataset.scopePopupBound) {
-      closeBtn.dataset.scopePopupBound = '1';
+    if (closeBtn && !closeBtn.dataset.boundLogoAddScope) {
+      closeBtn.dataset.boundLogoAddScope = '1';
       closeBtn.addEventListener('click', function(e){
         e.preventDefault();
-        closeLogoScopeModal();
+        closeLogoAddScopeModal();
       });
     }
-    if (modal && !modal.dataset.scopePopupBound) {
-      modal.dataset.scopePopupBound = '1';
+    if (modal && !modal.dataset.boundLogoAddScope) {
+      modal.dataset.boundLogoAddScope = '1';
       modal.addEventListener('click', function(e){
-        if (e.target === modal) closeLogoScopeModal();
+        if (e.target === modal) closeLogoAddScopeModal();
       });
     }
-    if (myBtn && !myBtn.dataset.scopePopupBound) {
-      myBtn.dataset.scopePopupBound = '1';
+    if (myBtn && !myBtn.dataset.boundLogoAddScope) {
+      myBtn.dataset.boundLogoAddScope = '1';
       myBtn.addEventListener('click', function(e){
         e.preventDefault();
         if (!currentLogoKind) return;
-        if (currentLogoKind === 'brand' && typeof addBrandLibrary === 'function') addBrandLibrary('my');
-        if (currentLogoKind === 'series' && typeof addSeriesLibrary === 'function') addSeriesLibrary('my');
-        closeLogoScopeModal();
+        if (currentLogoKind === 'brand') addBrandLibrary('my');
+        if (currentLogoKind === 'series') addSeriesLibrary('my');
+        closeLogoAddScopeModal();
       });
     }
-    if (globalBtn && !globalBtn.dataset.scopePopupBound) {
-      globalBtn.dataset.scopePopupBound = '1';
+    if (globalBtn && !globalBtn.dataset.boundLogoAddScope) {
+      globalBtn.dataset.boundLogoAddScope = '1';
       globalBtn.addEventListener('click', function(e){
         e.preventDefault();
         if (!currentLogoKind) return;
-        if (currentLogoKind === 'brand' && typeof addBrandLibrary === 'function') addBrandLibrary('global');
-        if (currentLogoKind === 'series' && typeof addSeriesLibrary === 'function') addSeriesLibrary('global');
-        closeLogoScopeModal();
+        if (currentLogoKind === 'brand') addBrandLibrary('global');
+        if (currentLogoKind === 'series') addSeriesLibrary('global');
+        closeLogoAddScopeModal();
       });
     }
   }
 
   document.addEventListener('DOMContentLoaded', function(){
-    setTimeout(bindLogoScopePopup, 0);
-    setTimeout(bindLogoScopePopup, 150);
-    setTimeout(resolveAdminFlag, 300);
+    setTimeout(bindLogoAddScopePopup, 0);
+    setTimeout(bindLogoAddScopePopup, 120);
+    setTimeout(resolveAdminPopupFlag, 300);
   });
   window.addEventListener('load', function(){
-    setTimeout(bindLogoScopePopup, 0);
-    setTimeout(bindLogoScopePopup, 150);
-    setTimeout(resolveAdminFlag, 300);
+    setTimeout(bindLogoAddScopePopup, 0);
+    setTimeout(bindLogoAddScopePopup, 120);
+    setTimeout(resolveAdminPopupFlag, 300);
   });
   window.addEventListener('pageshow', function(){
-    setTimeout(resolveAdminFlag, 150);
+    setTimeout(resolveAdminPopupFlag, 150);
   });
 
-  window.refreshLogoAdminVisibility = resolveAdminFlag;
+  window.openLogoAddScopePopup = openLogoAddScopePopup;
 })();
 </script>
 
