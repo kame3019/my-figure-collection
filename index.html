@@ -7217,8 +7217,9 @@ html[data-typography] :is(h1,h2,h3,h4,h5,h6,.page-title,.section-title,.header-t
 
 
 
+
 <script>
-/* Admin Global popup fix v6 direct firebase */
+/* Admin Global popup fix v7 instant refresh */
 (function(){
   let currentLogoKind = null;
 
@@ -7263,6 +7264,33 @@ html[data-typography] :is(h1,h2,h3,h4,h5,h6,.page-title,.section-title,.header-t
     currentLogoKind = null;
   }
 
+  function injectLocalVisibleRecord(kind, record){
+    try {
+      if (kind === 'brand') {
+        window.brandLibrary = Array.isArray(window.brandLibrary) ? window.brandLibrary : [];
+        brandLibrary = Array.isArray(brandLibrary) ? brandLibrary : window.brandLibrary;
+        brandLibrary = brandLibrary.filter(item => !(item.name === record.name && (item.scope || 'global') === record.scope && (item.ownerUid || '') === (record.ownerUid || '')));
+        brandLibrary.unshift(record);
+        window.brandLibrary = brandLibrary;
+      } else {
+        window.seriesLibrary = Array.isArray(window.seriesLibrary) ? window.seriesLibrary : [];
+        seriesLibrary = Array.isArray(seriesLibrary) ? seriesLibrary : window.seriesLibrary;
+        seriesLibrary = seriesLibrary.filter(item => !(item.name === record.name && (item.scope || 'global') === record.scope && (item.ownerUid || '') === (record.ownerUid || '')));
+        seriesLibrary.unshift(record);
+        window.seriesLibrary = seriesLibrary;
+      }
+    } catch(e){}
+  }
+
+  function forceLogoUiRefresh(){
+    try { if (typeof renderLogoManagersPatched === 'function') renderLogoManagersPatched(); } catch(e){}
+    try { if (typeof renderLogoManagers === 'function') renderLogoManagers(); } catch(e){}
+    try { if (typeof renderPresetPickers === 'function') renderPresetPickers(); } catch(e){}
+    try { if (typeof syncLogoPickerUI === 'function') syncLogoPickerUI(); } catch(e){}
+    setTimeout(() => { try { if (typeof renderLogoManagersPatched === 'function') renderLogoManagersPatched(); else if (typeof renderLogoManagers === 'function') renderLogoManagers(); } catch(e){} }, 80);
+    setTimeout(() => { try { if (typeof renderLogoManagersPatched === 'function') renderLogoManagersPatched(); else if (typeof renderLogoManagers === 'function') renderLogoManagers(); } catch(e){} }, 220);
+  }
+
   async function persistLogo(kind, scope){
     const api = (typeof fb === 'function') ? fb() : (window.kuraFirebase || null);
     const uid = (typeof currentUid === 'function') ? currentUid() : (window.kuraFirebase?.auth?.currentUser?.uid || '');
@@ -7304,38 +7332,39 @@ html[data-typography] :is(h1,h2,h3,h4,h5,h6,.page-title,.section-title,.header-t
         : url;
 
       const id = crypto.randomUUID();
+      const record = {
+        name,
+        logo,
+        ownerUid: scope === 'global' ? '' : uid,
+        scope: scope === 'global' ? 'global' : 'personal',
+        createdAt: Date.now(),
+        updatedAt: Date.now()
+      };
+
       const ref = (scope === 'global')
         ? api.doc(api.db, 'appConfig', 'public', isBrand ? 'brandLogos' : 'seriesLogos', id)
         : api.doc(api.db, 'users', uid, isBrand ? 'brandLogos' : 'seriesLogos', id);
 
       await api.setDoc(ref, {
-        name,
-        logo,
-        ownerUid: uid,
-        createdAt: Date.now(),
-        updatedAt: Date.now()
+        name: record.name,
+        logo: record.logo,
+        ownerUid: record.ownerUid,
+        createdAt: record.createdAt,
+        updatedAt: record.updatedAt
       });
+
+      // Immediate optimistic local refresh before async merged reload
+      injectLocalVisibleRecord(isBrand ? 'brand' : 'series', record);
+      forceLogoUiRefresh();
 
       if (urlEl) urlEl.value = '';
       if (fileEl) fileEl.value = '';
 
-      if (typeof loadMergedLibraries === 'function') {
-        await loadMergedLibraries();
-      } else {
-        // fallback local refresh
-        if (isBrand) {
-          window.brandLibrary = Array.isArray(window.brandLibrary) ? window.brandLibrary : [];
-          window.brandLibrary.unshift({ name, logo, ownerUid: uid, scope: scope === 'global' ? 'global' : 'personal' });
-        } else {
-          window.seriesLibrary = Array.isArray(window.seriesLibrary) ? window.seriesLibrary : [];
-          window.seriesLibrary.unshift({ name, logo, ownerUid: uid, scope: scope === 'global' ? 'global' : 'personal' });
-        }
-      }
-
       try {
-        if (typeof renderLogoManagersPatched === 'function') renderLogoManagersPatched();
-        else if (typeof renderLogoManagers === 'function') renderLogoManagers();
+        if (typeof loadMergedLibraries === 'function') await loadMergedLibraries();
       } catch(e){}
+
+      forceLogoUiRefresh();
 
       const backup = $('backupStatus');
       if (backup) backup.textContent = isBrand
@@ -7358,8 +7387,8 @@ html[data-typography] :is(h1,h2,h3,h4,h5,h6,.page-title,.section-title,.header-t
     const globalBtn = $('logoScopeGlobalBtn');
     const modal = $('logoScopeModal');
 
-    if (brandBtn && !brandBtn.dataset.scopePopupBoundV6) {
-      brandBtn.dataset.scopePopupBoundV6 = '1';
+    if (brandBtn && !brandBtn.dataset.scopePopupBoundV7) {
+      brandBtn.dataset.scopePopupBoundV7 = '1';
       brandBtn.onclick = null;
       brandBtn.addEventListener('click', function(e){
         e.preventDefault();
@@ -7370,8 +7399,8 @@ html[data-typography] :is(h1,h2,h3,h4,h5,h6,.page-title,.section-title,.header-t
       }, true);
     }
 
-    if (seriesBtn && !seriesBtn.dataset.scopePopupBoundV6) {
-      seriesBtn.dataset.scopePopupBoundV6 = '1';
+    if (seriesBtn && !seriesBtn.dataset.scopePopupBoundV7) {
+      seriesBtn.dataset.scopePopupBoundV7 = '1';
       seriesBtn.onclick = null;
       seriesBtn.addEventListener('click', function(e){
         e.preventDefault();
@@ -7382,16 +7411,16 @@ html[data-typography] :is(h1,h2,h3,h4,h5,h6,.page-title,.section-title,.header-t
       }, true);
     }
 
-    if (closeBtn && !closeBtn.dataset.scopePopupBoundV6) {
-      closeBtn.dataset.scopePopupBoundV6 = '1';
+    if (closeBtn && !closeBtn.dataset.scopePopupBoundV7) {
+      closeBtn.dataset.scopePopupBoundV7 = '1';
       closeBtn.addEventListener('click', function(e){
         e.preventDefault();
         closeScopePopup();
       });
     }
 
-    if (myBtn && !myBtn.dataset.scopePopupBoundV6) {
-      myBtn.dataset.scopePopupBoundV6 = '1';
+    if (myBtn && !myBtn.dataset.scopePopupBoundV7) {
+      myBtn.dataset.scopePopupBoundV7 = '1';
       myBtn.addEventListener('click', async function(e){
         e.preventDefault();
         if (!currentLogoKind) return;
@@ -7400,8 +7429,8 @@ html[data-typography] :is(h1,h2,h3,h4,h5,h6,.page-title,.section-title,.header-t
       });
     }
 
-    if (globalBtn && !globalBtn.dataset.scopePopupBoundV6) {
-      globalBtn.dataset.scopePopupBoundV6 = '1';
+    if (globalBtn && !globalBtn.dataset.scopePopupBoundV7) {
+      globalBtn.dataset.scopePopupBoundV7 = '1';
       globalBtn.addEventListener('click', async function(e){
         e.preventDefault();
         if (!currentLogoKind) return;
@@ -7410,8 +7439,8 @@ html[data-typography] :is(h1,h2,h3,h4,h5,h6,.page-title,.section-title,.header-t
       });
     }
 
-    if (modal && !modal.dataset.scopePopupBoundV6) {
-      modal.dataset.scopePopupBoundV6 = '1';
+    if (modal && !modal.dataset.scopePopupBoundV7) {
+      modal.dataset.scopePopupBoundV7 = '1';
       modal.addEventListener('click', function(e){
         if (e.target === modal) closeScopePopup();
       });
