@@ -755,6 +755,7 @@ details[open] input[type="text"]#seriesLogoUrl{
 
 <!-- Kura Archive Stable Release Travel Final -->
 
+<!-- Detail exact-key fix v8 -->
 <body class="bg-background-light font-display text-slate-900 washi-texture">
 <script>
 (function(){
@@ -2054,7 +2055,7 @@ function renderOverviewCards() {
             const label = labelConfig(item, index);
 
             return `
-                <div class="flex gap-4 p-3 kv-surface rounded-xl bg-white border border-slate-100 shadow-sm cursor-pointer transition hover:border-primary/20" data-detail-open="1" data-item-id="${item.id}">
+                <div class="flex gap-4 p-3 kv-surface rounded-xl bg-white border border-slate-100 shadow-sm cursor-pointer transition hover:border-primary/20" data-detail-open="1" data-item-key="${item.id}__${index}" data-item-id="${item.id}">
                     <div class="relative w-24 h-24 rounded-lg overflow-hidden shrink-0 kv-artframe bg-white bg-center bg-no-repeat bg-contain" style="background-image:url('${item.image || makeDefaultImage(item.name || "Figure")}')">
                         ${item.cornerLabel ? `<div class="absolute top-1 left-1 ${label.classes} text-[8px] font-bold py-1 px-[3px] vertical-text tracking-widest uppercase rounded-sm">${label.text}</div>` : ""}
                     </div>
@@ -2084,6 +2085,11 @@ function renderOverviewCards() {
 
         function renderList() {
             const arr = filteredItems();
+            try {
+              window.__kuraExactDetailMap = Object.fromEntries(
+                arr.map((item, index) => [`${item.id || ""}__${index}`, item])
+              );
+            } catch(e) {}
             const list = document.getElementById("collectionList");
 
             const __lang = localStorage.getItem("kura_ui_lang") || "zh";
@@ -2110,7 +2116,7 @@ function renderOverviewCards() {
                 list.innerHTML = arr.map((item, index) => {
                     const label = labelConfig(item, index);
                     return `
-                        <div class="kv-surface rounded-xl bg-white border border-slate-100 shadow-sm overflow-hidden cursor-pointer transition hover:border-primary/20" data-detail-open="1" data-item-id="${item.id}">
+                        <div class="kv-surface rounded-xl bg-white border border-slate-100 shadow-sm overflow-hidden cursor-pointer transition hover:border-primary/20" data-detail-open="1" data-item-key="${item.id}__${index}" data-item-id="${item.id}">
                             <div class="aspect-square w-full kv-artframe kv-artframe bg-white bg-center bg-no-repeat bg-contain relative" style="background-image:url('${item.image || makeDefaultImage(item.name || "Figure")}')">
                                 <div class="absolute top-3 left-3 ${label.classes} text-[10px] font-bold py-2 px-1 vertical-text uppercase tracking-widest rounded-sm">${label.text}</div>
                                 <div class="absolute right-3 bottom-3">${statusBadge(item)}</div>
@@ -2139,7 +2145,7 @@ function renderOverviewCards() {
             if (mode === "compact") {
                 list.className = "space-y-3";
                 list.innerHTML = arr.map(item => `
-                    <div class="flex items-center gap-3 p-3 kv-surface rounded-xl bg-white border border-slate-100 shadow-sm cursor-pointer transition hover:border-primary/20" data-detail-open="1" data-item-id="${item.id}">
+                    <div class="flex items-center gap-3 p-3 kv-surface rounded-xl bg-white border border-slate-100 shadow-sm cursor-pointer transition hover:border-primary/20" data-detail-open="1" data-item-key="${item.id}__${index}" data-item-id="${item.id}">
                         <div class="h-20 w-20 rounded-lg kv-artframe bg-white bg-center bg-no-repeat bg-contain shrink-0" style="background-image:url('${item.image || makeDefaultImage(item.name || "Figure")}')"></div>
                         <div class="flex-1 min-w-0">
                             <div class="font-bold truncate">${item.name || "未命名收藏"}</div>
@@ -2158,7 +2164,7 @@ function renderOverviewCards() {
                 list.innerHTML = arr.map((item, index) => {
                     const label = labelConfig(item, index);
                     return `
-                        <div class="rounded-xl overflow-hidden bg-white border border-slate-100 shadow-sm cursor-pointer transition hover:border-primary/20" data-detail-open="1" data-item-id="${item.id}">
+                        <div class="rounded-xl overflow-hidden bg-white border border-slate-100 shadow-sm cursor-pointer transition hover:border-primary/20" data-detail-open="1" data-item-key="${item.id}__${index}" data-item-id="${item.id}">
                             <div class="h-28 sm:h-32 kv-artframe kv-artframe bg-white bg-center bg-no-repeat bg-contain relative" style="background-image:url('${item.image || makeDefaultImage(item.name || "Figure")}')">
                                 <div class="absolute top-2 left-2 ${label.classes} text-[8px] font-bold py-1 px-[3px] vertical-text tracking-widest uppercase rounded-sm">${label.text}</div>
                             </div>
@@ -4285,6 +4291,11 @@ function syncMuseumModeLabel(){
   }
 
   function findItem(id) {
+    try {
+      if (window.__kuraExactDetailMap && window.__kuraExactDetailMap[id]) {
+        return window.__kuraExactDetailMap[id];
+      }
+    } catch(e) {}
     return safeItems().find(item => item.id === id);
   }
 
@@ -4529,8 +4540,8 @@ function syncMuseumModeLabel(){
   document.addEventListener("click", function (e) {
     const card = e.target.closest("[data-detail-open='1']");
     if (card) {
-      const id = card.getAttribute("data-item-id");
-      if (id) openItemDetail(id);
+      const key = card.getAttribute("data-item-key") || card.getAttribute("data-item-id");
+      if (key) openItemDetail(key);
       return;
     }
 
