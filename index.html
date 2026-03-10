@@ -375,7 +375,22 @@
         body {
             min-height: max(884px, 100dvh);
         }
-    </style>
+    
+
+/* Final freeze typography consistency */
+.category-page-title,
+#pageCategory .category-page-title,
+#pageCategory > .mb-6 h2 {
+  font-family: var(--app-font) !important;
+  font-style: normal !important;
+  font-weight: 300 !important;
+  letter-spacing: -0.02em;
+}
+#homeMuseumMode {
+  font-family: var(--app-font) !important;
+}
+
+</style>
 <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
 <style id="stable-detail-popup-style">
         .detail-backdrop { backdrop-filter: blur(10px); }
@@ -554,7 +569,10 @@
 <section class="px-6 py-6">
 <div class="flex items-center justify-between mb-4">
 <h3 class="text-lg font-bold" id="archiveTitle">Archive Catalogue</h3>
+<div class="flex items-center gap-3">
+<div class="text-[10px] text-slate-400 font-medium tracking-widest uppercase border-b border-primary/20 pb-1 hidden" id="homeMuseumMode">Museum Mode</div>
 <div class="text-primary text-sm font-bold" id="resultNote">0 件</div>
+</div>
 </div>
 <div id="collectionList"></div>
 </section>
@@ -708,10 +726,8 @@
 <section class="page px-4 py-6" id="pageCategory">
 <div class="mb-6 flex items-end justify-between">
 <div>
-<h2 class="text-2xl font-light tracking-tight italic">Categories</h2>
-<p class="text-[10px] text-primary uppercase tracking-[0.2em] font-medium">分類管理</p>
+<h2 class="text-2xl font-light tracking-tight category-page-title">Categories</h2>
 </div>
-<div class="text-[10px] text-slate-400 font-medium tracking-widest uppercase border-b border-primary/20 pb-1">Museum Mode</div>
 </div>
 <div class="grid grid-cols-3 gap-3" id="categoryCardGrid"></div>
 <div class="mt-6 rounded-xl border border-primary/10 bg-white/60 p-4 shadow-sm">
@@ -2181,11 +2197,21 @@
             renderExhibitionRail();
         };
 
+function syncMuseumModeLabel(){
+  const label = document.getElementById('homeMuseumMode');
+  if(!label) return;
+  const isWall = (typeof mode !== 'undefined' && mode === 'wall');
+  label.classList.toggle('hidden', !isWall);
+}
+
+
+        syncMuseumModeLabel();
         document.querySelectorAll(".modeBtn").forEach(btn => {
             btn.onclick = function() {
                 mode = this.dataset.mode;
                 document.querySelectorAll(".modeBtn").forEach(el => el.classList.remove("mode-active"));
                 this.classList.add("mode-active");
+                syncMuseumModeLabel();
                 renderList();
             };
         });
@@ -5162,7 +5188,7 @@
       }
     };
     wrap('render', ()=>{ forceBindCollectionControls(); });
-    wrap('renderList', ()=>{ forceBindCollectionControls(); });
+    wrap('renderList', ()=>{ forceBindCollectionControls(); syncMuseumModeLabel(); });
     wrap('renderCategoryChips', ()=>{ forceBindCollectionControls(); });
     wrap('openToolsSheet', ()=>{ forceBindCollectionControls(); });
     wrap('closeToolsSheet', ()=>{ forceBindCollectionControls(); });
@@ -5175,6 +5201,8 @@
     hardenAfterRender();
     setTimeout(forceBindCollectionControls, 0);
     setTimeout(forceBindCollectionControls, 300);
+    setTimeout(syncMuseumModeLabel, 0);
+    setTimeout(syncMuseumModeLabel, 300);
   }
 
   if(document.readyState==='loading') document.addEventListener('DOMContentLoaded', boot); else boot();
