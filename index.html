@@ -5286,5 +5286,123 @@ function syncMuseumModeLabel(){
 })();
 
 </script>
+
+
+<style id="typography-final-system">
+:root{
+  --font-en: "Aptos", "Segoe UI", "Calibri", "Gill Sans", "Trebuchet MS", sans-serif;
+  --font-zh: "Noto Serif TC", "Source Han Serif TC", "PingFang TC", "Microsoft JhengHei", serif;
+  --font-ja: "Noto Serif JP", "Hiragino Mincho ProN", "Yu Mincho", "MS PMincho", serif;
+}
+
+html[data-typography="en"] body,
+html[data-typography="en"] body *:not(.material-symbols-outlined):not(.material-icons) {
+  font-family: var(--font-en) !important;
+  font-weight: 400;
+}
+
+html[data-typography="zh"] body,
+html[data-typography="zh"] body *:not(.material-symbols-outlined):not(.material-icons) {
+  font-family: var(--font-zh) !important;
+  font-weight: 400;
+}
+
+html[data-typography="ja"] body,
+html[data-typography="ja"] body *:not(.material-symbols-outlined):not(.material-icons) {
+  font-family: var(--font-ja) !important;
+  font-weight: 400;
+}
+
+html[data-typography] :is(h1,h2,h3,h4,h5,h6,#pageCategoryTitle,.page-title,.section-title,.header-title,.modal-title,.sheet-title,.panel-title,[data-page-title]) {
+  font-style: normal !important;
+  font-weight: 700 !important;
+}
+
+html[data-typography="en"] :is(h1,h2,h3,h4,h5,h6,#pageCategoryTitle,.page-title,.section-title,.header-title,.modal-title,.sheet-title,.panel-title,[data-page-title]) {
+  font-family: var(--font-en) !important;
+}
+
+html[data-typography="zh"] :is(h1,h2,h3,h4,h5,h6,#pageCategoryTitle,.page-title,.section-title,.header-title,.modal-title,.sheet-title,.panel-title,[data-page-title]) {
+  font-family: var(--font-zh) !important;
+}
+
+html[data-typography="ja"] :is(h1,h2,h3,h4,h5,h6,#pageCategoryTitle,.page-title,.section-title,.header-title,.modal-title,.sheet-title,.panel-title,[data-page-title]) {
+  font-family: var(--font-ja) !important;
+}
+
+html[data-typography] :is(.font-bold,.font-semibold,strong,b):not(h1):not(h2):not(h3):not(h4):not(h5):not(h6):not(#pageCategoryTitle):not(.page-title):not(.section-title):not(.header-title):not(.modal-title):not(.sheet-title):not(.panel-title) {
+  font-weight: 400 !important;
+}
+
+.material-symbols-outlined,
+.material-icons{
+  font-family: 'Material Symbols Outlined' !important;
+}
+</style>
+
+<script id="typography-final-system-script">
+(function(){
+  const FONT = {
+    en: '"Aptos", "Segoe UI", "Calibri", "Gill Sans", "Trebuchet MS", sans-serif',
+    zh: '"Noto Serif TC", "Source Han Serif TC", "PingFang TC", "Microsoft JhengHei", serif',
+    ja: '"Noto Serif JP", "Hiragino Mincho ProN", "Yu Mincho", "MS PMincho", serif'
+  };
+
+  function currentTypographyLang(){
+    try {
+      if (typeof getLang === 'function') return getLang();
+    } catch(e) {}
+    const lang = (document.documentElement.lang || '').toLowerCase();
+    if (lang.startsWith('ja')) return 'ja';
+    if (lang.startsWith('en')) return 'en';
+    return 'zh';
+  }
+
+  function applyTypographyFinal(){
+    const lang = currentTypographyLang();
+    const family = FONT[lang] || FONT.zh;
+    document.documentElement.setAttribute('data-typography', lang);
+    document.documentElement.style.setProperty('--font-active', family);
+
+    const catTitle = document.getElementById('pageCategoryTitle');
+    if (catTitle){
+      catTitle.style.setProperty('font-family', family, 'important');
+      catTitle.style.setProperty('font-style', 'normal', 'important');
+      catTitle.style.setProperty('font-weight', '700', 'important');
+    }
+  }
+
+  const oldApplyI18n = window.applyI18n;
+  if (typeof oldApplyI18n === 'function' && !oldApplyI18n.__typographyFinalWrapped){
+    window.applyI18n = function(){
+      const r = oldApplyI18n.apply(this, arguments);
+      applyTypographyFinal();
+      return r;
+    };
+    window.applyI18n.__typographyFinalWrapped = true;
+  }
+
+  function bootTypographyFinal(){
+    applyTypographyFinal();
+    if (document.body && !document.body.__typographyObserver){
+      const mo = new MutationObserver(function(){ applyTypographyFinal(); });
+      mo.observe(document.body, { childList:true, subtree:true });
+      document.body.__typographyObserver = true;
+    }
+    setTimeout(applyTypographyFinal, 0);
+    setTimeout(applyTypographyFinal, 200);
+    requestAnimationFrame(applyTypographyFinal);
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', bootTypographyFinal);
+  } else {
+    bootTypographyFinal();
+  }
+  window.addEventListener('load', applyTypographyFinal);
+  window.addEventListener('pageshow', applyTypographyFinal);
+})();
+</script>
+
 </body>
 </html>
