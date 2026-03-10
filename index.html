@@ -742,6 +742,15 @@ details[open] input[type="text"]#seriesLogoUrl{
 #seriesLogoScopeWrap{ display:none !important; }
 </style>
 
+
+<style>
+/* Admin Global popup fix v4 */
+#logoScopeModal{
+  align-items:center !important;
+  justify-content:center !important;
+}
+</style>
+
 </head>
 
 <!-- Kura Archive Stable Release Travel Final -->
@@ -7205,34 +7214,46 @@ html[data-typography] :is(h1,h2,h3,h4,h5,h6,.page-title,.section-title,.header-t
 
 
 
+
 <script>
-/* Admin Global popup fix v3 */
+/* Admin Global popup fix v4 */
 (function(){
   let currentLogoKind = null;
 
   function $(id){ return document.getElementById(id); }
 
+  function getVisibleFieldValue(id){
+    const nodes = Array.from(document.querySelectorAll(`[id="${id}"]`));
+    if (!nodes.length) return "";
+    const visible = nodes.find(el => !!(el.offsetWidth || el.offsetHeight || el.getClientRects().length));
+    return ((visible || nodes[nodes.length - 1]).value || "").trim();
+  }
+
+  function getVisibleFile(id){
+    const nodes = Array.from(document.querySelectorAll(`[id="${id}"]`));
+    if (!nodes.length) return null;
+    const visible = nodes.find(el => !!(el.offsetWidth || el.offsetHeight || el.getClientRects().length));
+    const target = visible || nodes[nodes.length - 1];
+    return target?.files?.[0] || null;
+  }
+
   async function resolveAdminStrict(){
-    // Check multiple admin sources, but do not touch any other system.
     try {
       if (typeof isAdmin === 'function') {
         const ok = await isAdmin();
         if (ok) return true;
       }
     } catch(e){}
-
     try {
       if (typeof currentUserIsAdmin === 'function') {
         const ok = await currentUserIsAdmin();
         if (ok) return true;
       }
     } catch(e){}
-
     try {
       const panel = document.getElementById('globalAdminPanel');
       if (panel && !panel.classList.contains('hidden')) return true;
     } catch(e){}
-
     try {
       const uid = window.kuraFirebase?.auth?.currentUser?.uid || '';
       if (!uid) return false;
@@ -7242,7 +7263,6 @@ html[data-typography] :is(h1,h2,h3,h4,h5,h6,.page-title,.section-title,.header-t
         return !!snap?.exists?.();
       }
     } catch(e){}
-
     return false;
   }
 
@@ -7254,12 +7274,9 @@ html[data-typography] :is(h1,h2,h3,h4,h5,h6,.page-title,.section-title,.header-t
     if (!modal || !title || !globalBtn) return;
 
     title.textContent = kind === 'brand' ? '加入 Brand Logo' : '加入 Series Logo';
-
-    // Re-check admin at the exact moment of opening.
     const admin = await resolveAdminStrict();
-    window.__kuraAdminLogoFlag = admin;
+    window.__kuraAdminLogoPopupFlag = admin;
     globalBtn.classList.toggle('hidden', !admin);
-
     modal.classList.add('show');
   }
 
@@ -7269,22 +7286,55 @@ html[data-typography] :is(h1,h2,h3,h4,h5,h6,.page-title,.section-title,.header-t
     currentLogoKind = null;
   }
 
-  async function saveWithScope(scope){
-    if (!currentLogoKind) return;
+  async function saveScopedLogo(kind, scope){
+    const isBrand = kind === 'brand';
+    const name = ((isBrand ? $('brand') : $('series'))?.value || '').trim();
+    const url = getVisibleFieldValue(isBrand ? 'brandLogoUrl' : 'seriesLogoUrl');
+    const file = getVisibleFile(isBrand ? 'brandLogoFile' : 'seriesLogoFile');
+
+    if (!name || (!url && !file)) {
+      alert(isBrand ? '先填品牌名稱同 logo' : '先填系列名稱同 logo');
+      return;
+    }
+
     if (scope === 'global') {
       const admin = await resolveAdminStrict();
       if (!admin) return;
     }
 
-    if (currentLogoKind === 'brand') {
-      if (typeof addBrandLibrary === 'function') {
-        await addBrandLibrary(scope === 'global' ? 'global' : 'my');
-      }
-    } else if (currentLogoKind === 'series') {
-      if (typeof addSeriesLibrary === 'function') {
-        await addSeriesLibrary(scope === 'global' ? 'global' : 'my');
-      }
+    const logo = file ? await fileToDataURL(file) : url;
+    const currentUid = window.kuraFirebase?.auth?.currentUser?.uid || '';
+    const record = {
+      name,
+      logo,
+      scope: scope.toLowerCase(),
+      ownerUid: scope.toLowerCase() === 'my' ? currentUid : ''
+    };
+
+    if (isBrand) {
+      brandLibrary = (brandLibrary || []).filter(item => !(
+        item.name === name &&
+        (item.scope || 'global') === record.scope &&
+        (item.ownerUid || '') === record.ownerUid
+      ));
+      brandLibrary.unshift(record);
+    } else {
+      seriesLibrary = (seriesLibrary || []).filter(item => !(
+        item.name === name &&
+        (item.scope || 'global') === record.scope &&
+        (item.ownerUid || '') === record.ownerUid
+      ));
+      seriesLibrary.unshift(record);
     }
+
+    if (typeof save === 'function') save();
+    if (typeof renderPresetPickers === 'function') renderPresetPickers();
+    if (typeof renderLogoManagers === 'function') renderLogoManagers();
+    if (typeof syncLogoPickerUI === 'function') syncLogoPickerUI();
+
+    const backup = $('backupStatus');
+    if (backup) backup.textContent = isBrand ? `已加入品牌 Logo 庫 (${scope})` : `已加入系列 Logo 庫 (${scope})`;
+
     closeScopePopup();
   }
 
@@ -7296,8 +7346,8 @@ html[data-typography] :is(h1,h2,h3,h4,h5,h6,.page-title,.section-title,.header-t
     const globalBtn = $('logoScopeGlobalBtn');
     const modal = $('logoScopeModal');
 
-    if (brandBtn && !brandBtn.dataset.scopePopupBoundV3) {
-      brandBtn.dataset.scopePopupBoundV3 = '1';
+    if (brandBtn && !brandBtn.dataset.scopePopupBoundV4) {
+      brandBtn.dataset.scopePopupBoundV4 = '1';
       brandBtn.onclick = null;
       brandBtn.addEventListener('click', function(e){
         e.preventDefault();
@@ -7308,8 +7358,8 @@ html[data-typography] :is(h1,h2,h3,h4,h5,h6,.page-title,.section-title,.header-t
       }, true);
     }
 
-    if (seriesBtn && !seriesBtn.dataset.scopePopupBoundV3) {
-      seriesBtn.dataset.scopePopupBoundV3 = '1';
+    if (seriesBtn && !seriesBtn.dataset.scopePopupBoundV4) {
+      seriesBtn.dataset.scopePopupBoundV4 = '1';
       seriesBtn.onclick = null;
       seriesBtn.addEventListener('click', function(e){
         e.preventDefault();
@@ -7320,32 +7370,34 @@ html[data-typography] :is(h1,h2,h3,h4,h5,h6,.page-title,.section-title,.header-t
       }, true);
     }
 
-    if (closeBtn && !closeBtn.dataset.scopePopupBoundV3) {
-      closeBtn.dataset.scopePopupBoundV3 = '1';
+    if (closeBtn && !closeBtn.dataset.scopePopupBoundV4) {
+      closeBtn.dataset.scopePopupBoundV4 = '1';
       closeBtn.addEventListener('click', function(e){
         e.preventDefault();
         closeScopePopup();
       });
     }
 
-    if (myBtn && !myBtn.dataset.scopePopupBoundV3) {
-      myBtn.dataset.scopePopupBoundV3 = '1';
+    if (myBtn && !myBtn.dataset.scopePopupBoundV4) {
+      myBtn.dataset.scopePopupBoundV4 = '1';
       myBtn.addEventListener('click', function(e){
         e.preventDefault();
-        saveWithScope('my');
+        if (!currentLogoKind) return;
+        saveScopedLogo(currentLogoKind, 'my');
       });
     }
 
-    if (globalBtn && !globalBtn.dataset.scopePopupBoundV3) {
-      globalBtn.dataset.scopePopupBoundV3 = '1';
+    if (globalBtn && !globalBtn.dataset.scopePopupBoundV4) {
+      globalBtn.dataset.scopePopupBoundV4 = '1';
       globalBtn.addEventListener('click', function(e){
         e.preventDefault();
-        saveWithScope('global');
+        if (!currentLogoKind) return;
+        saveScopedLogo(currentLogoKind, 'global');
       });
     }
 
-    if (modal && !modal.dataset.scopePopupBoundV3) {
-      modal.dataset.scopePopupBoundV3 = '1';
+    if (modal && !modal.dataset.scopePopupBoundV4) {
+      modal.dataset.scopePopupBoundV4 = '1';
       modal.addEventListener('click', function(e){
         if (e.target === modal) closeScopePopup();
       });
