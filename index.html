@@ -734,6 +734,14 @@ details[open] input[type="text"]#seriesLogoUrl{
 #logoAddScopeModal.show{ display:flex !important; }
 </style>
 
+
+<style>
+/* Admin Global popup fix v2 */
+#logoScopeModal.show{ display:flex !important; }
+#brandLogoScopeWrap,
+#seriesLogoScopeWrap{ display:none !important; }
+</style>
+
 </head>
 
 <!-- Kura Archive Stable Release Travel Final -->
@@ -948,7 +956,7 @@ details[open] input[type="text"]#seriesLogoUrl{
 <div class="text-xs font-bold tracking-widest uppercase text-slate-500 mb-2">品牌 / Logo</div>
 <div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
 <input class="kv-input rounded-xl border border-primary/10 bg-background-light/80 px-4 py-3 text-sm placeholder:text-slate-400 focus:border-primary focus:ring-primary" id="brand" placeholder="品牌 / 廠商"/>
-<input class="hidden" id="brandLogoUrl" placeholder="品牌 logo 網址"/>
+
 </div>
 <div class="mt-3 rounded-2xl border border-primary/10 bg-white/60 p-3">
   <div class="flex items-center justify-between gap-3">
@@ -985,7 +993,7 @@ details[open] input[type="text"]#seriesLogoUrl{
 <div class="text-xs font-bold tracking-widest uppercase text-slate-500 mb-2">系列 / Logo</div>
 <div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
 <input class="kv-input rounded-xl border border-primary/10 bg-background-light/80 px-4 py-3 text-sm placeholder:text-slate-400 focus:border-primary focus:ring-primary" id="series" placeholder="系列 / 作品"/>
-<input class="hidden" id="seriesLogoUrl" placeholder="系列 logo 網址"/>
+
 </div>
 <div class="mt-3 rounded-2xl border border-primary/10 bg-white/60 p-3">
   <div class="flex items-center justify-between gap-3">
@@ -7173,6 +7181,188 @@ html[data-typography] :is(h1,h2,h3,h4,h5,h6,.page-title,.section-title,.header-t
   });
 
   window.openLogoAddScopePopup = openLogoAddScopePopup;
+})();
+</script>
+
+
+<div class="fixed inset-0 z-[95] hidden items-end justify-center bg-black/45 p-4 md:items-center" id="logoScopeModal">
+  <div class="w-full max-w-sm rounded-[28px] border border-primary/10 bg-[var(--bg)] shadow-2xl">
+    <div class="flex items-center justify-between border-b border-primary/10 px-5 py-4">
+      <div>
+        <div class="text-[10px] uppercase tracking-[0.18em] text-slate-400">Logo Scope</div>
+        <div class="mt-1 text-base text-slate-900" id="logoScopeModalTitle">加入 Logo</div>
+      </div>
+      <button class="rounded-xl border border-primary/10 bg-white/70 px-3 py-2 text-xs text-slate-600" id="closeLogoScopeModalBtn" type="button">Close</button>
+    </div>
+    <div class="px-5 py-4">
+      <div class="grid grid-cols-1 gap-2">
+        <button class="rounded-xl bg-primary px-4 py-3 text-sm font-bold text-white" id="logoScopeMyBtn" type="button">加入 Logo (My)</button>
+        <button class="hidden rounded-xl bg-black/5 px-4 py-3 text-sm font-bold text-slate-700" id="logoScopeGlobalBtn" type="button">加入 Logo (Global)</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<script>
+/* Admin Global popup fix v2 */
+(function(){
+  let currentLogoKind = null;
+
+  function $(id){ return document.getElementById(id); }
+
+  function getVisibleValue(id){
+    const nodes = Array.from(document.querySelectorAll(`[id="${id}"]`));
+    if (!nodes.length) return "";
+    const visible = nodes.find(el => !!(el.offsetWidth || el.offsetHeight || el.getClientRects().length));
+    return (visible || nodes[nodes.length - 1]).value || "";
+  }
+
+  function setAllValues(id, value){
+    Array.from(document.querySelectorAll(`[id="${id}"]`)).forEach(el => { el.value = value; });
+  }
+
+  async function isAdminNow(retries = 5, delay = 250){
+    for (let i = 0; i < retries; i++){
+      try {
+        const ok = typeof isAdmin === 'function' ? await isAdmin() : (typeof currentUserIsAdmin === 'function' ? await currentUserIsAdmin() : false);
+        if (ok) return true;
+        const uid = window.kuraFirebase?.auth?.currentUser?.uid || "";
+        if (uid) return false;
+      } catch(e){}
+      await new Promise(r => setTimeout(r, delay));
+    }
+    return false;
+  }
+
+  async function ensureScopeSelectorsExist(){
+    const admin = await isAdminNow();
+    try {
+      if (typeof ensureScopeSelectors === 'function') ensureScopeSelectors(admin);
+    } catch(e){}
+    return admin;
+  }
+
+  async function openScopePopup(kind){
+    currentLogoKind = kind;
+    const modal = $('logoScopeModal');
+    const title = $('logoScopeModalTitle');
+    const globalBtn = $('logoScopeGlobalBtn');
+    if (!modal || !title || !globalBtn) return;
+
+    // sync visible advanced field values across same ids if duplicated
+    if (kind === 'brand'){
+      setAllValues('brandLogoUrl', getVisibleValue('brandLogoUrl'));
+    } else {
+      setAllValues('seriesLogoUrl', getVisibleValue('seriesLogoUrl'));
+    }
+
+    const admin = await ensureScopeSelectorsExist();
+    title.textContent = kind === 'brand' ? '加入 Brand Logo' : '加入 Series Logo';
+    globalBtn.classList.toggle('hidden', !admin);
+    modal.classList.add('show');
+  }
+
+  function closeScopePopup(){
+    const modal = $('logoScopeModal');
+    if (modal) modal.classList.remove('show');
+    currentLogoKind = null;
+  }
+
+  async function saveWithScope(scope){
+    const admin = await ensureScopeSelectorsExist();
+    if (scope === 'global' && !admin) return;
+
+    if (currentLogoKind === 'brand'){
+      const sel = $('brandLogoScope');
+      if (sel) sel.value = scope;
+      setAllValues('brandLogoUrl', getVisibleValue('brandLogoUrl'));
+      if (typeof saveBrandLogoPatched === 'function') await saveBrandLogoPatched();
+      else if (typeof addBrandLibrary === 'function') await addBrandLibrary(scope === 'global' ? 'global' : 'my');
+    } else if (currentLogoKind === 'series'){
+      const sel = $('seriesLogoScope');
+      if (sel) sel.value = scope;
+      setAllValues('seriesLogoUrl', getVisibleValue('seriesLogoUrl'));
+      if (typeof saveSeriesLogoPatched === 'function') await saveSeriesLogoPatched();
+      else if (typeof addSeriesLibrary === 'function') await addSeriesLibrary(scope === 'global' ? 'global' : 'my');
+    }
+    closeScopePopup();
+  }
+
+  function bindButtons(){
+    const brandBtn = $('saveBrandLibBtn');
+    const seriesBtn = $('saveSeriesLibBtn');
+    const closeBtn = $('closeLogoScopeModalBtn');
+    const myBtn = $('logoScopeMyBtn');
+    const globalBtn = $('logoScopeGlobalBtn');
+    const modal = $('logoScopeModal');
+
+    if (brandBtn && !brandBtn.dataset.popupBound){
+      brandBtn.dataset.popupBound = '1';
+      brandBtn.onclick = null;
+      brandBtn.addEventListener('click', function(e){
+        e.preventDefault();
+        e.stopPropagation();
+        if (typeof e.stopImmediatePropagation === 'function') e.stopImmediatePropagation();
+        openScopePopup('brand');
+        return false;
+      }, true);
+    }
+
+    if (seriesBtn && !seriesBtn.dataset.popupBound){
+      seriesBtn.dataset.popupBound = '1';
+      seriesBtn.onclick = null;
+      seriesBtn.addEventListener('click', function(e){
+        e.preventDefault();
+        e.stopPropagation();
+        if (typeof e.stopImmediatePropagation === 'function') e.stopImmediatePropagation();
+        openScopePopup('series');
+        return false;
+      }, true);
+    }
+
+    if (closeBtn && !closeBtn.dataset.popupBound){
+      closeBtn.dataset.popupBound = '1';
+      closeBtn.addEventListener('click', function(e){
+        e.preventDefault();
+        closeScopePopup();
+      });
+    }
+
+    if (myBtn && !myBtn.dataset.popupBound){
+      myBtn.dataset.popupBound = '1';
+      myBtn.addEventListener('click', function(e){
+        e.preventDefault();
+        saveWithScope('personal');
+      });
+    }
+
+    if (globalBtn && !globalBtn.dataset.popupBound){
+      globalBtn.dataset.popupBound = '1';
+      globalBtn.addEventListener('click', function(e){
+        e.preventDefault();
+        saveWithScope('global');
+      });
+    }
+
+    if (modal && !modal.dataset.popupBound){
+      modal.dataset.popupBound = '1';
+      modal.addEventListener('click', function(e){
+        if (e.target === modal) closeScopePopup();
+      });
+    }
+  }
+
+  document.addEventListener('DOMContentLoaded', function(){
+    setTimeout(bindButtons, 0);
+    setTimeout(bindButtons, 120);
+    setTimeout(bindButtons, 400);
+  });
+  window.addEventListener('load', function(){
+    setTimeout(bindButtons, 0);
+    setTimeout(bindButtons, 120);
+    setTimeout(bindButtons, 400);
+  });
 })();
 </script>
 
