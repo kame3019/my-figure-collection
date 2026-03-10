@@ -5,6 +5,21 @@
 <meta charset="utf-8"/>
 <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
 <title>Kura Archive | Member Edition Clean</title>
+<script>
+(function(){
+  try {
+    var key = "kyoto_vault_visual_theme";
+    var theme = localStorage.getItem(key) || sessionStorage.getItem(key) || "pure";
+    window.__INITIAL_VISUAL_THEME__ = theme;
+    document.documentElement.dataset.visualTheme = theme;
+    document.documentElement.classList.add("theme-preload");
+  } catch (e) {
+    window.__INITIAL_VISUAL_THEME__ = "pure";
+    document.documentElement.dataset.visualTheme = "pure";
+    document.documentElement.classList.add("theme-preload");
+  }
+})();
+</script>
 <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
 <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@200..800&amp;display=swap" rel="stylesheet"/>
 <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
@@ -37,6 +52,14 @@
             --app-font: var(--font-latin);
             --font-active: var(--font-latin);
             --heading-weight: 700;
+        }
+
+        html.theme-preload body {
+            visibility: hidden;
+        }
+
+        html.theme-preload.theme-ready body {
+            visibility: visible;
         }
 
         html, body, button, input, select, textarea {
@@ -552,6 +575,22 @@ html[data-typography="ja"] h6 {
     </style>
 </head>
 <body class="bg-background-light font-display text-slate-900 washi-texture">
+<script>
+(function(){
+  var theme = window.__INITIAL_VISUAL_THEME__ || document.documentElement.dataset.visualTheme || "pure";
+  document.documentElement.dataset.visualTheme = theme;
+  if (theme === "blackgold") {
+    document.body.classList.add("theme-blackgold");
+    document.body.classList.remove("theme-springgarden");
+  } else if (theme === "springgarden") {
+    document.body.classList.add("theme-springgarden");
+    document.body.classList.remove("theme-blackgold");
+  } else {
+    document.body.classList.remove("theme-blackgold", "theme-springgarden");
+  }
+  document.documentElement.classList.add("theme-ready");
+})();
+</script>
 <div class="relative flex min-h-screen flex-col overflow-x-hidden pb-24">
 <header class="sticky top-0 z-30 flex items-center justify-between px-6 py-4 bg-background-light/80 backdrop-blur-md border-b border-primary/10">
 <div class="flex items-center gap-2">
@@ -877,7 +916,7 @@ html[data-typography="ja"] h6 {
 </div>
 <div class="rounded-2xl bg-white/70 border border-primary/10 shadow-sm p-5" id="profileThemePanel">
 <div class="flex items-center justify-between mb-4"><div><h3 class="text-lg font-bold" data-i18n="themePanelTitle">Theme</h3><p class="text-xs text-slate-500 uppercase tracking-widest mt-1" data-i18n="themePanelSubtitle">主題切換</p></div><span class="material-symbols-outlined text-accent-gold text-3xl">palette</span></div>
-<div class="grid grid-cols-3 gap-3"><button class="theme-pill rounded-xl border border-primary/10 bg-white/60 px-3 py-4 text-sm font-bold" id="themePureBtn">和風純淨</button><button class="theme-pill rounded-xl border border-primary/10 bg-white/60 px-3 py-4 text-sm font-bold" id="themeBlackGoldBtn">黑金收藏家</button><button class="theme-pill rounded-xl border border-primary/10 bg-white/60 px-3 py-4 text-sm font-bold" id="themeSpringGardenBtn">春意庭園</button></div>
+<div class="grid grid-cols-3 gap-3"><button class="theme-pill rounded-xl border border-primary/10 bg-white/60 px-3 py-4 text-sm font-bold" id="themePureBtn">和風純淨</button><button class="theme-pill rounded-xl border border-primary/10 bg-white/60 px-3 py-4 text-sm font-bold" id="themeBlackGoldBtn">黑金漆器</button><button class="theme-pill rounded-xl border border-primary/10 bg-white/60 px-3 py-4 text-sm font-bold" id="themeSpringGardenBtn">春意庭園</button></div>
 </div>
 </div>
 <div class="rounded-2xl bg-white/70 border border-primary/10 shadow-sm p-5" id="profileNotificationsPanel">
@@ -2620,6 +2659,7 @@ function syncMuseumModeLabel(){
               <select id="adminDefaultTheme" class="w-full rounded-xl border border-primary/10 bg-white/60 px-4 py-3 text-sm">
                 <option value="pure">Pure / 和風</option>
                 <option value="blackgold">Black Gold / 黑金</option>
+                <option value="springgarden">Spring Garden / 春意庭園</option>
               </select>
             </div>
             <div>
@@ -5318,7 +5358,7 @@ html[data-typography="ja"] body *:not(.material-symbols-outlined):not(.material-
 
 html[data-typography] :is(h1,h2,h3,h4,h5,h6,#pageCategoryTitle,.page-title,.section-title,.header-title,.modal-title,.sheet-title,.panel-title,[data-page-title]) {
   font-style: normal !important;
-  font-weight: 700 !important;
+  font-weight: 400 !important;
 }
 
 html[data-typography="en"] :is(h1,h2,h3,h4,h5,h6,#pageCategoryTitle,.page-title,.section-title,.header-title,.modal-title,.sheet-title,.panel-title,[data-page-title]) {
@@ -5350,7 +5390,7 @@ html[data-typography] :is(.font-bold,.font-semibold,strong,b):not(h1):not(h2):no
     zh: '"Noto Serif TC", "Source Han Serif TC", "PingFang TC", "Microsoft JhengHei", serif',
     ja: '"Noto Serif JP", "Hiragino Mincho ProN", "Yu Mincho", "MS PMincho", serif'
   };
-  const HEADING_WEIGHT = { en: '700', zh: '400', ja: '400' };
+  const HEADING_WEIGHT = { en: '400', zh: '400', ja: '400' };
 
   function currentTypographyLang(){
     try {
@@ -5365,7 +5405,7 @@ html[data-typography] :is(.font-bold,.font-semibold,strong,b):not(h1):not(h2):no
   function applyTypographyFinal(){
     const lang = currentTypographyLang();
     const family = FONT[lang] || FONT.zh;
-    const headingWeight = HEADING_WEIGHT[lang] || '700';
+    const headingWeight = HEADING_WEIGHT[lang] || '400';
     document.documentElement.setAttribute('data-typography', lang);
     document.documentElement.style.setProperty('--font-active', family);
     document.documentElement.style.setProperty('--heading-weight', headingWeight);
@@ -5429,10 +5469,8 @@ html[data-typography="zh"] body *:not(.material-symbols-outlined):not(.material-
   font-weight: 400 !important;
 }
 
-/* English titles bold only; zh/ja titles regular */
-html[data-typography="en"] :is(h1,h2,h3,h4,h5,h6,#pageCategoryTitle,.page-title,.section-title,.header-title,.modal-title,.sheet-title,.panel-title,[data-page-title]) {
-  font-weight: 700 !important;
-}
+/* All languages use regular headings */
+html[data-typography="en"] :is(h1,h2,h3,h4,h5,h6,#pageCategoryTitle,.page-title,.section-title,.header-title,.modal-title,.sheet-title,.panel-title,[data-page-title]),
 html[data-typography="zh"] :is(h1,h2,h3,h4,h5,h6,#pageCategoryTitle,.page-title,.section-title,.header-title,.modal-title,.sheet-title,.panel-title,[data-page-title]),
 html[data-typography="ja"] :is(h1,h2,h3,h4,h5,h6,#pageCategoryTitle,.page-title,.section-title,.header-title,.modal-title,.sheet-title,.panel-title,[data-page-title]) {
   font-weight: 400 !important;
@@ -5455,7 +5493,7 @@ html[data-typography="ja"] :is(h1,h2,h3,h4,h5,h6,#pageCategoryTitle,.page-title,
   }
 
   function headingWeight(lang){
-    return lang === 'en' ? '700' : '400';
+    return '400';
   }
 
   function applyCategoryTitleTypography(){
@@ -5588,14 +5626,14 @@ html[data-typography="ja"] #pageCategoryTitle {
     const family = FONT[l] || FONT.zh;
     document.documentElement.setAttribute('data-typography', l);
     document.documentElement.style.setProperty('--font-active', family);
-    document.documentElement.style.setProperty('--heading-weight', l === 'en' ? '700' : '400');
+    document.documentElement.style.setProperty('--heading-weight', '400');
     const title = document.getElementById('pageCategoryTitle') ||
       document.querySelector('#pageCategory .mb-6.flex.items-end.justify-between h2') ||
       document.querySelector('#pageCategory .mb-6 h2');
     if(title){
       title.style.setProperty('font-family', family, 'important');
       title.style.setProperty('font-style', 'normal', 'important');
-      title.style.setProperty('font-weight', l === 'en' ? '700' : '400', 'important');
+      title.style.setProperty('font-weight', '400', 'important');
       title.style.setProperty('font-size', '1.125rem', 'important');
       title.style.setProperty('line-height', '1.75rem', 'important');
       title.style.setProperty('letter-spacing', '0', 'important');
@@ -5641,6 +5679,46 @@ html[data-typography="ja"] #pageCategoryTitle {
   document.addEventListener('DOMContentLoaded', stabilize);
   window.addEventListener('load', stabilize);
   window.addEventListener('pageshow', stabilize);
+})();
+</script>
+
+
+<style id="typography-final-v6-regular-all">
+html[data-typography] :is(h1,h2,h3,h4,h5,h6,.page-title,.section-title,.header-title,.modal-title,.sheet-title,.panel-title,[data-page-title],#pageCategoryTitle,strong,b,.font-bold,.font-semibold){
+  font-weight: 400 !important;
+}
+#pageCategoryTitle{
+  font-weight:400 !important;
+}
+</style>
+<script id="typography-final-v6-regular-all-script">
+(function(){
+  function normalizeWeights(){
+    document.documentElement.style.setProperty('--heading-weight', '400');
+    document.querySelectorAll('h1,h2,h3,h4,h5,h6,.page-title,.section-title,.header-title,.modal-title,.sheet-title,.panel-title,[data-page-title],#pageCategoryTitle,strong,b,.font-bold,.font-semibold').forEach(function(el){
+      if (el.classList && (el.classList.contains('material-symbols-outlined') || el.classList.contains('material-icons'))) return;
+      el.style.setProperty('font-weight','400','important');
+      if (/^H[1-6]$/.test(el.tagName) || el.id === 'pageCategoryTitle') {
+        el.style.setProperty('font-style','normal','important');
+      }
+    });
+  }
+  const fns=['applyI18n','renderList','renderCategoryPage','showPage','setLang'];
+  fns.forEach(function(name){
+    const old=window[name];
+    if(typeof old==='function' && !old.__v6RegularWrapped){
+      window[name]=function(){
+        const out=old.apply(this,arguments);
+        normalizeWeights();
+        requestAnimationFrame(normalizeWeights);
+        return out;
+      };
+      window[name].__v6RegularWrapped=true;
+    }
+  });
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded', normalizeWeights); else normalizeWeights();
+  window.addEventListener('load', normalizeWeights);
+  window.addEventListener('pageshow', normalizeWeights);
 })();
 </script>
 
