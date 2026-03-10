@@ -712,6 +712,15 @@ html.kura-typo-stable .font-medium {
 #travelGroupFilterWrap.hidden{ display:none !important; }
 </style>
 
+
+<style>
+/* Travel group filter v3 fixes */
+details[open] input[type="text"]#brandLogoUrl,
+details[open] input[type="text"]#seriesLogoUrl{
+  display:block !important;
+}
+</style>
+
 </head>
 
 <!-- Kura Archive Stable Release Travel Final -->
@@ -950,6 +959,9 @@ html.kura-typo-stable .font-medium {
 <details class="mt-3 rounded-2xl border border-primary/10 bg-white/50 p-3">
   <summary class="cursor-pointer text-xs uppercase tracking-[0.16em] text-slate-500">Advanced Brand Logo</summary>
   <div class="mt-3">
+    <input class="kv-input w-full rounded-xl border border-primary/10 bg-background-light/80 px-4 py-3 text-sm placeholder:text-slate-400 focus:border-primary focus:ring-primary" id="brandLogoUrl" placeholder="Logo 連結 / URL" type="text"/>
+  </div>
+  <div class="mt-3">
     <input accept="image/*" class="kv-input w-full rounded-xl border border-primary/10 bg-background-light/80 px-4 py-3 text-sm file:mr-3 file:rounded-lg file:border-0 file:bg-primary file:px-3 file:py-2 file:text-sm file:font-semibold file:text-white" id="brandLogoFile" type="file"/>
   </div>
   <button class="mt-3 w-full rounded-xl bg-primary px-4 py-3 text-sm font-bold text-white" id="saveBrandLibBtn">加入品牌 Logo 庫</button>
@@ -983,6 +995,9 @@ html.kura-typo-stable .font-medium {
 </div>
 <details class="mt-3 rounded-2xl border border-primary/10 bg-white/50 p-3">
   <summary class="cursor-pointer text-xs uppercase tracking-[0.16em] text-slate-500">Advanced Series Logo</summary>
+  <div class="mt-3">
+    <input class="kv-input w-full rounded-xl border border-primary/10 bg-background-light/80 px-4 py-3 text-sm placeholder:text-slate-400 focus:border-primary focus:ring-primary" id="seriesLogoUrl" placeholder="Logo 連結 / URL" type="text"/>
+  </div>
   <div class="mt-3">
     <input accept="image/*" class="kv-input w-full rounded-xl border border-primary/10 bg-background-light/80 px-4 py-3 text-sm file:mr-3 file:rounded-lg file:border-0 file:bg-primary file:px-3 file:py-2 file:text-sm file:font-semibold file:text-white" id="seriesLogoFile" type="file"/>
   </div>
@@ -6768,6 +6783,157 @@ html[data-typography] :is(h1,h2,h3,h4,h5,h6,.page-title,.section-title,.header-t
     applyLogoChoice('series', { name, logo }, false);
   };
   window.syncLogoPickerUI = syncLogoPickerUI;
+})();
+</script>
+
+
+<script>
+/* Trip filter hard fix v3 */
+(function(){
+  function getActiveTrip(){
+    const sel = document.getElementById('travelGroupFilter');
+    return sel ? (sel.value || '__all__') : '__all__';
+  }
+
+  function isTravelCategoryActive(){
+    try {
+      return ((currentCategory || '').toUpperCase() === 'TRAVEL') || ((currentCategory || '') === '旅行');
+    } catch(e){ return false; }
+  }
+
+  function syncRenderedTripItems(){
+    if (!isTravelCategoryActive()) return;
+    const activeTrip = getActiveTrip();
+    const cards = document.querySelectorAll('[data-trip-name], .kv-card[data-trip-name], .item-card[data-trip-name]');
+    cards.forEach(el => {
+      const trip = el.getAttribute('data-trip-name') || '';
+      if (activeTrip === '__all__') {
+        el.style.display = '';
+      } else {
+        el.style.display = (trip === activeTrip) ? '' : 'none';
+      }
+    });
+  }
+
+  function annotateTripCardsFromText(){
+    if (!isTravelCategoryActive()) return;
+    const activeTrip = getActiveTrip();
+    const possibleCards = document.querySelectorAll('.kv-card, .item-card, [data-item-id], #collectionGrid > *');
+    possibleCards.forEach(card => {
+      if (card.hasAttribute('data-trip-name')) return;
+      const txt = (card.textContent || '').trim();
+      const sel = document.getElementById('travelGroupFilter');
+      if (!sel) return;
+      const options = Array.from(sel.options).map(o => o.value).filter(v => v && v !== '__all__');
+      const found = options.find(v => txt.includes(v));
+      if (found) card.setAttribute('data-trip-name', found);
+    });
+    syncRenderedTripItems();
+  }
+
+  function refreshTripFilterView(){
+    setTimeout(syncRenderedTripItems, 0);
+    setTimeout(annotateTripCardsFromText, 80);
+    setTimeout(syncRenderedTripItems, 180);
+    setTimeout(annotateTripCardsFromText, 320);
+  }
+
+  document.addEventListener('change', function(e){
+    if (e.target && e.target.id === 'travelGroupFilter') {
+      try {
+        if (typeof renderList === 'function') renderList();
+      } catch(e){}
+      try {
+        if (typeof renderCategoryFilterSummary === 'function') renderCategoryFilterSummary();
+      } catch(e){}
+      refreshTripFilterView();
+    }
+  }, true);
+
+  document.addEventListener('DOMContentLoaded', refreshTripFilterView);
+  window.addEventListener('load', refreshTripFilterView);
+  window.addEventListener('pageshow', refreshTripFilterView);
+
+  try {
+    const fn = window.renderList;
+    if (typeof fn === 'function' && !fn.__tripFilterWrapped) {
+      window.renderList = function(...args){
+        const result = fn.apply(this, args);
+        try { refreshTripFilterView(); } catch(e){}
+        return result;
+      };
+      window.renderList.__tripFilterWrapped = true;
+    }
+  } catch(e){}
+})();
+</script>
+
+
+<script>
+/* Admin Global/My selector fix v3 */
+(function(){
+  function enableAdminScopeOptions(){
+    const buttons = Array.from(document.querySelectorAll('button, .seg-btn, .option-btn'));
+    const matches = buttons.filter(btn => /^(global|my)$/i.test((btn.textContent || '').trim()));
+    matches.forEach(btn => {
+      btn.disabled = false;
+      btn.removeAttribute('disabled');
+      btn.style.pointerEvents = 'auto';
+      btn.style.opacity = '1';
+    });
+  }
+
+  function bindAdminScopeClicks(){
+    const buttons = Array.from(document.querySelectorAll('button, .seg-btn, .option-btn'));
+    buttons.forEach(btn => {
+      const label = (btn.textContent || '').trim();
+      if (!/^(Global|My)$/i.test(label) || btn.dataset.scopeBound) return;
+      btn.dataset.scopeBound = '1';
+      btn.addEventListener('click', function(){
+        try {
+          const siblings = btn.parentElement ? Array.from(btn.parentElement.querySelectorAll('button, .seg-btn, .option-btn')) : [];
+          siblings.forEach(sib => {
+            if (/^(Global|My)$/i.test((sib.textContent || '').trim())) {
+              sib.classList.remove('bg-primary', 'text-white', 'border-primary');
+              sib.classList.add('bg-white/60', 'text-slate-700');
+              sib.setAttribute('aria-pressed', 'false');
+            }
+          });
+          btn.classList.add('bg-primary', 'text-white', 'border-primary');
+          btn.classList.remove('bg-white/60', 'text-slate-700');
+          btn.setAttribute('aria-pressed', 'true');
+          try { localStorage.setItem('kura_logo_scope_mode', label.toUpperCase()); } catch(e){}
+        } catch(e){}
+      });
+    });
+  }
+
+  function restoreAdminScopeState(){
+    let saved = 'GLOBAL';
+    try { saved = localStorage.getItem('kura_logo_scope_mode') || 'GLOBAL'; } catch(e){}
+    const buttons = Array.from(document.querySelectorAll('button, .seg-btn, .option-btn'));
+    buttons.forEach(btn => {
+      const label = (btn.textContent || '').trim().toUpperCase();
+      if (label !== 'GLOBAL' && label !== 'MY') return;
+      const active = label === saved.toUpperCase();
+      btn.classList.toggle('bg-primary', active);
+      btn.classList.toggle('text-white', active);
+      btn.classList.toggle('border-primary', active);
+      btn.classList.toggle('bg-white/60', !active);
+      btn.classList.toggle('text-slate-700', !active);
+      btn.setAttribute('aria-pressed', active ? 'true' : 'false');
+    });
+  }
+
+  function run(){
+    enableAdminScopeOptions();
+    bindAdminScopeClicks();
+    restoreAdminScopeState();
+  }
+
+  document.addEventListener('DOMContentLoaded', function(){ setTimeout(run, 0); setTimeout(run, 150); setTimeout(run, 400); });
+  window.addEventListener('load', function(){ setTimeout(run, 0); setTimeout(run, 150); });
+  document.addEventListener('click', function(){ setTimeout(run, 0); setTimeout(run, 120); }, true);
 })();
 </script>
 
