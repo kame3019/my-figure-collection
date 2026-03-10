@@ -643,6 +643,32 @@ html.kura-typo-stable .font-medium {
 /* Travel summary v1 */
 #travelTypeWrap.hidden{ display:none !important; }
 </style>
+
+<style>
+/* Mobile-safe category modal actions */
+@media (max-width: 768px){
+  .category-modal-panel{
+    max-height: 88vh !important;
+    display: flex !important;
+    flex-direction: column !important;
+  }
+  .category-modal-body{
+    overflow: auto !important;
+    -webkit-overflow-scrolling: touch;
+    padding-bottom: 96px !important;
+  }
+  .category-modal-actions{
+    position: sticky !important;
+    bottom: 0 !important;
+    z-index: 20 !important;
+    background: rgba(255,255,255,0.96) !important;
+    backdrop-filter: blur(8px);
+    border-top: 1px solid rgba(15,23,42,0.08);
+    padding: 12px 0 calc(12px + env(safe-area-inset-bottom)) !important;
+  }
+}
+</style>
+
 </head>
 <body class="bg-background-light font-display text-slate-900 washi-texture">
 <script>
@@ -769,12 +795,12 @@ html.kura-typo-stable .font-medium {
 </div>
 <div class="grid grid-cols-1 gap-3 mt-3 hidden" id="travelTypeWrap">
 <select class="kv-input rounded-xl border border-primary/10 bg-background-light/80 px-4 py-3 text-sm focus:border-primary focus:ring-primary" id="travelType">
-<option value="">Travel Type</option>
-<option value="Hotel">Hotel</option>
-<option value="Shopping">Shopping</option>
-<option value="Food">Food</option>
-<option value="Transport">Transport</option>
-<option value="Misc">Misc</option>
+<option value="">Type</option>
+<option value="Hotel">酒店 / Hotel</option>
+<option value="Shopping">購物 / Shopping</option>
+<option value="Food">餐飲 / Food</option>
+<option value="Transport">交通 / Transport</option>
+<option value="Misc">雜行 / Misc</option>
 </select>
 </div>
 <div class="mt-3">
@@ -1109,6 +1135,7 @@ html.kura-typo-stable .font-medium {
 <div class="text-xs uppercase tracking-widest text-slate-400">Price</div>
 <div class="mt-2 text-xl font-bold text-primary" id="detailPrice">$0</div>
 <input id="detailPurchaseCurrency" type="hidden"/>
+<div class="mt-2 text-sm text-slate-500 hidden" id="detailTravelTypeRow"><span class="text-slate-400">Type</span><span class="ml-2 text-slate-700" id="detailTravelType">-</span></div>
 </div>
 <div>
 <div class="text-xs uppercase tracking-widest text-slate-400">Date</div>
@@ -1708,7 +1735,12 @@ function renderOverviewCards() {
                                 ${renderItemLogos(item)}
                             </div>
                             <div class="bg-gold/10 px-2 py-1 rounded shrink-0">
-                                <span class="text-gold font-bold text-sm">${money(item.price, item.purchaseCurrency)}</span>
+                                <span class="text-gold font-bold text-sm">${money(item.price, item.purchaseCurrency)}</span>${(() => {
+      const __cat = String(item.category || "").trim();
+      const __show = (__cat.toUpperCase() === "TRAVEL" || __cat === "旅行") && item.travelType;
+      const __map = { Hotel: "酒店 / Hotel", Shopping: "購物 / Shopping", Food: "餐飲 / Food", Transport: "交通 / Transport", Misc: "雜行 / Misc" };
+      return __show ? `<span class="ml-2 text-[10px] tracking-[0.14em] text-slate-400">Type · ${__map[item.travelType] || item.travelType}</span>` : ``;
+    })()}
                             </div>
                         </div>
                     </div>
@@ -1783,7 +1815,7 @@ function renderOverviewCards() {
             count.textContent = arr.length + (arr.length === 1 ? " item" : " items");
 
             let extraTop = "";
-            if ((currentCategory || "").toUpperCase() === "TRAVEL") {
+            if (((currentCategory || "").toUpperCase() === "TRAVEL") || (currentCategory || "") === "旅行") {
                 const dated = arr
                     .map(item => item.date || "")
                     .filter(Boolean)
@@ -1808,7 +1840,7 @@ function renderOverviewCards() {
                     const codes = ["HKD","USD","JPY"].filter(code => Math.abs(byCode[code] || 0) > 0.00001);
                     if (!codes.length) return "";
                     return `<div class="rounded-xl border border-primary/10 bg-white/60 px-3 py-2">
-                        <div class="text-[10px] uppercase tracking-[0.18em] text-slate-400">${type}</div>
+                        <div class="text-[10px] uppercase tracking-[0.18em] text-slate-400">${({Hotel:"酒店 / Hotel",Shopping:"購物 / Shopping",Food:"餐飲 / Food",Transport:"交通 / Transport",Misc:"雜行 / Misc"}[type] || type)}</div>
                         <div class="mt-1 space-y-1">${codes.map(code => `<div class="text-xs text-slate-700">${money(byCode[code], code)}</div>`).join("")}</div>
                     </div>`;
                 }).filter(Boolean).join("");
@@ -1856,7 +1888,12 @@ function renderOverviewCards() {
                         </div>
 
                         <div class="flex items-center justify-between mt-2 gap-2">
-                            <span class="text-lg font-bold text-primary">${money(item.price, item.purchaseCurrency)}</span>
+                            <span class="text-lg font-bold text-primary">${money(item.price, item.purchaseCurrency)}</span>${(() => {
+      const __cat = String(item.category || "").trim();
+      const __show = (__cat.toUpperCase() === "TRAVEL" || __cat === "旅行") && item.travelType;
+      const __map = { Hotel: "酒店 / Hotel", Shopping: "購物 / Shopping", Food: "餐飲 / Food", Transport: "交通 / Transport", Misc: "雜行 / Misc" };
+      return __show ? `<span class="ml-2 text-[10px] tracking-[0.14em] text-slate-400">Type · ${__map[item.travelType] || item.travelType}</span>` : ``;
+    })()}
                             ${statusBadge(item)}
                         </div>
 
@@ -1903,7 +1940,12 @@ function renderOverviewCards() {
                                 <p class="text-slate-500 text-xs mt-1">${item.brand || "未填品牌"} • ${item.series || "未填系列"}</p>
                                 ${renderItemLogos(item, "small")}
                                 <div class="mt-3 flex items-center justify-between">
-                                    <span class="text-lg font-bold text-primary">${money(item.price, item.purchaseCurrency)}</span>
+                                    <span class="text-lg font-bold text-primary">${money(item.price, item.purchaseCurrency)}</span>${(() => {
+      const __cat = String(item.category || "").trim();
+      const __show = (__cat.toUpperCase() === "TRAVEL" || __cat === "旅行") && item.travelType;
+      const __map = { Hotel: "酒店 / Hotel", Shopping: "購物 / Shopping", Food: "餐飲 / Food", Transport: "交通 / Transport", Misc: "雜行 / Misc" };
+      return __show ? `<span class="ml-2 text-[10px] tracking-[0.14em] text-slate-400">Type · ${__map[item.travelType] || item.travelType}</span>` : ``;
+    })()}
                                     <span class="text-xs text-slate-400">${item.date || ""}</span>
                                 </div>
 
@@ -2361,7 +2403,12 @@ function renderOverviewCards() {
                         <div class="mt-1 text-xs text-slate-500 truncate">${item.brand || "未填品牌"} • ${item.series || "未填系列"}</div>
                         ${renderItemLogos(item, "small")}
                         <div class="mt-2 flex items-center justify-between gap-2">
-                            <span class="text-sm font-bold text-primary">${money(item.price, item.purchaseCurrency)}</span>
+                            <span class="text-sm font-bold text-primary">${money(item.price, item.purchaseCurrency)}</span>${(() => {
+      const __cat = String(item.category || "").trim();
+      const __show = (__cat.toUpperCase() === "TRAVEL" || __cat === "旅行") && item.travelType;
+      const __map = { Hotel: "酒店 / Hotel", Shopping: "購物 / Shopping", Food: "餐飲 / Food", Transport: "交通 / Transport", Misc: "雜行 / Misc" };
+      return __show ? `<span class="ml-2 text-[10px] tracking-[0.14em] text-slate-400">Type · ${__map[item.travelType] || item.travelType}</span>` : ``;
+    })()}
                             <span class="text-[11px] text-slate-400">${item.date || ""}</span>
                         </div>
                     </div>
@@ -3685,7 +3732,7 @@ function syncMuseumModeLabel(){
         <button
           class="rounded-lg bg-black/5 px-3 py-2 text-xs font-semibold shrink-0"
           data-admin-delete-user-logo="1"
-          data-logo-type="${type}"
+          data-logo-type="${({Hotel:"酒店 / Hotel",Shopping:"購物 / Shopping",Food:"餐飲 / Food",Transport:"交通 / Transport",Misc:"雜行 / Misc"}[type] || type)}"
           data-owner-uid="${escapeHtml(item.ownerUid)}"
           data-logo-id="${escapeHtml(item.id)}"
           data-logo-name="${escapeHtml(item.name)}"
@@ -4058,6 +4105,21 @@ function syncMuseumModeLabel(){
     document.getElementById("detailLogos").innerHTML = logoPills(item);
     document.getElementById("detailPrice").textContent = typeof money === "function" ? money(item.price, item.purchaseCurrency) : `$${item.price || 0}`;
     document.getElementById("detailPurchaseCurrency").value = item.purchaseCurrency || "HKD";
+    const travelRow = document.getElementById("detailTravelTypeRow");
+    const travelTypeEl = document.getElementById("detailTravelType");
+    if (travelRow && travelTypeEl) {
+      const __catRaw = String(item.category || "").trim();
+      const showTravelType = (__catRaw.toUpperCase() === "TRAVEL" || __catRaw === "旅行") && String(item.travelType || "").trim();
+      travelRow.classList.toggle("hidden", !showTravelType);
+      const __map = {
+        Hotel: "酒店 / Hotel",
+        Shopping: "購物 / Shopping",
+        Food: "餐飲 / Food",
+        Transport: "交通 / Transport",
+        Misc: "雜行 / Misc"
+      };
+      travelTypeEl.textContent = showTravelType ? (__map[item.travelType] || item.travelType) : "-";
+    }
     document.getElementById("detailDate").textContent = item.date || "-";
     document.getElementById("detailCode").textContent = item.itemCode || "-";
     document.getElementById("detailLocation").textContent = item.location || "-";
@@ -6161,7 +6223,9 @@ html[data-typography] :is(h1,h2,h3,h4,h5,h6,.page-title,.section-title,.header-t
     const wrap = document.getElementById('travelTypeWrap');
     const field = document.getElementById('travelType');
     if (!cat || !wrap || !field) return;
-    const show = String(cat.value || '').trim().toUpperCase() === 'TRAVEL';
+    const raw = String(cat.value || '').trim();
+    const upper = raw.toUpperCase();
+    const show = upper === 'TRAVEL' || raw === '旅行';
     wrap.classList.toggle('hidden', !show);
     if (!show) field.value = '';
   }
@@ -6179,6 +6243,53 @@ html[data-typography] :is(h1,h2,h3,h4,h5,h6,.page-title,.section-title,.header-t
     setTimeout(syncTravelTypeVisibility, 0);
   });
   window.syncTravelTypeVisibility = syncTravelTypeVisibility;
+})();
+</script>
+
+
+<script>
+/* Category modal mobile action fix */
+(function(){
+  function tagCategoryModalStructure(){
+    const candidates = Array.from(document.querySelectorAll('div[role="dialog"], .fixed.inset-0, .fixed'));
+    candidates.forEach(modal => {
+      const allButtons = Array.from(modal.querySelectorAll('button'));
+      const saveBtn = allButtons.find(btn => /儲存分類|保存分類|Save Category|新增分類|Add Category/i.test((btn.textContent || '').trim()));
+      const cancelBtn = allButtons.find(btn => /取消|Cancel/i.test((btn.textContent || '').trim()));
+      if (!saveBtn) return;
+
+      let panel = saveBtn.closest('div[class*="rounded"]');
+      if (!panel) panel = modal.querySelector('div[class*="rounded"]');
+      if (panel) panel.classList.add('category-modal-panel');
+
+      const actions = saveBtn.parentElement;
+      if (actions && cancelBtn && cancelBtn.parentElement === actions) {
+        actions.classList.add('category-modal-actions');
+      }
+
+      if (panel && actions) {
+        const kids = Array.from(panel.children);
+        const bodyKids = kids.filter(el => el !== actions);
+        bodyKids.forEach(el => el.classList.add('category-modal-body'));
+      }
+    });
+  }
+
+  document.addEventListener('DOMContentLoaded', function(){
+    setTimeout(tagCategoryModalStructure, 0);
+    setTimeout(tagCategoryModalStructure, 150);
+    setTimeout(tagCategoryModalStructure, 400);
+  });
+  window.addEventListener('load', function(){
+    setTimeout(tagCategoryModalStructure, 0);
+    setTimeout(tagCategoryModalStructure, 150);
+  });
+  document.addEventListener('click', function(){
+    setTimeout(tagCategoryModalStructure, 0);
+    setTimeout(tagCategoryModalStructure, 120);
+  }, true);
+
+  window.tagCategoryModalStructure = tagCategoryModalStructure;
 })();
 </script>
 
