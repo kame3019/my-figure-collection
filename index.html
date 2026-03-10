@@ -5444,5 +5444,138 @@ html[data-typography] :is(.font-bold,.font-semibold,strong,b):not(h1):not(h2):no
 })();
 </script>
 
+
+<style id="typography-final-v3-overrides">
+/* Chinese: all pages regular weight */
+html[data-typography="zh"] body,
+html[data-typography="zh"] body *:not(.material-symbols-outlined):not(.material-icons) {
+  font-weight: 400 !important;
+}
+
+/* English titles bold only; zh/ja titles regular */
+html[data-typography="en"] :is(h1,h2,h3,h4,h5,h6,#pageCategoryTitle,.page-title,.section-title,.header-title,.modal-title,.sheet-title,.panel-title,[data-page-title]) {
+  font-weight: 700 !important;
+}
+html[data-typography="zh"] :is(h1,h2,h3,h4,h5,h6,#pageCategoryTitle,.page-title,.section-title,.header-title,.modal-title,.sheet-title,.panel-title,[data-page-title]),
+html[data-typography="ja"] :is(h1,h2,h3,h4,h5,h6,#pageCategoryTitle,.page-title,.section-title,.header-title,.modal-title,.sheet-title,.panel-title,[data-page-title]) {
+  font-weight: 400 !important;
+}
+</style>
+<script id="typography-final-v3-script">
+(function(){
+  const FONT = {
+    en: '"Aptos", "Segoe UI", "Calibri", "Gill Sans", "Trebuchet MS", sans-serif',
+    zh: '"Noto Serif TC", "Source Han Serif TC", "PingFang TC", "Microsoft JhengHei", serif',
+    ja: '"Noto Serif JP", "Hiragino Mincho ProN", "Yu Mincho", "MS PMincho", serif'
+  };
+
+  function currentLang(){
+    try { if (typeof getLang === 'function') return getLang(); } catch(e) {}
+    const lang = (document.documentElement.lang || '').toLowerCase();
+    if (lang.startsWith('ja')) return 'ja';
+    if (lang.startsWith('en')) return 'en';
+    return 'zh';
+  }
+
+  function headingWeight(lang){
+    return lang === 'en' ? '700' : '400';
+  }
+
+  function applyCategoryTitleTypography(){
+    const lang = currentLang();
+    const family = FONT[lang] || FONT.zh;
+    const weight = headingWeight(lang);
+    const title = document.getElementById('pageCategoryTitle')
+      || document.querySelector('#pageCategory .mb-6.flex.items-end.justify-between h2')
+      || document.querySelector('#pageCategory .mb-6 h2');
+    if (!title) return;
+    title.style.setProperty('font-family', family, 'important');
+    title.style.setProperty('font-style', 'normal', 'important');
+    title.style.setProperty('font-weight', weight, 'important');
+    title.style.setProperty('font-size', '1.125rem', 'important');
+    title.style.setProperty('line-height', '1.75rem', 'important');
+    title.style.setProperty('letter-spacing', '0', 'important');
+  }
+
+  function applyTypographyStable(){
+    const lang = currentLang();
+    const family = FONT[lang] || FONT.zh;
+    document.documentElement.setAttribute('data-typography', lang);
+    document.documentElement.style.setProperty('--font-active', family);
+    document.documentElement.style.setProperty('--heading-weight', headingWeight(lang));
+    applyCategoryTitleTypography();
+  }
+
+  function syncLocalizedHeader(){
+    try { if (typeof applyI18n === 'function') applyI18n(); } catch(e) {}
+    applyTypographyStable();
+  }
+
+  if (typeof window.renderList === 'function' && !window.renderList.__localizedWrapped) {
+    const oldRenderList = window.renderList;
+    window.renderList = function(){
+      const out = oldRenderList.apply(this, arguments);
+      syncLocalizedHeader();
+      try { if (typeof syncMuseumModeLabel === 'function') syncMuseumModeLabel(); } catch(e) {}
+      return out;
+    };
+    window.renderList.__localizedWrapped = true;
+  }
+
+  if (typeof window.showPage === 'function' && !window.showPage.__typoLocalizedWrapped) {
+    const oldShowPage = window.showPage;
+    window.showPage = function(){
+      const out = oldShowPage.apply(this, arguments);
+      syncLocalizedHeader();
+      requestAnimationFrame(syncLocalizedHeader);
+      return out;
+    };
+    window.showPage.__typoLocalizedWrapped = true;
+  }
+
+  if (typeof window.renderCategoryPage === 'function' && !window.renderCategoryPage.__typoLocalizedWrapped) {
+    const oldRenderCategoryPage = window.renderCategoryPage;
+    window.renderCategoryPage = function(){
+      const out = oldRenderCategoryPage.apply(this, arguments);
+      applyTypographyStable();
+      requestAnimationFrame(applyTypographyStable);
+      return out;
+    };
+    window.renderCategoryPage.__typoLocalizedWrapped = true;
+  }
+
+  function rebindModeButtons(){
+    document.querySelectorAll('.modeBtn').forEach(btn => {
+      if (btn.dataset.localizedModeBound === '1') return;
+      btn.dataset.localizedModeBound = '1';
+      btn.onclick = function(ev){
+        if (ev) { ev.preventDefault(); }
+        try { mode = this.dataset.mode; } catch(e) {}
+        document.querySelectorAll('.modeBtn').forEach(el => el.classList.toggle('mode-active', el === this));
+        try { if (typeof syncMuseumModeLabel === 'function') syncMuseumModeLabel(); } catch(e) {}
+        try { if (typeof renderList === 'function') renderList(); } catch(e) { syncLocalizedHeader(); }
+      };
+    });
+  }
+
+  function boot(){
+    applyTypographyStable();
+    rebindModeButtons();
+    const page = document.getElementById('pageCategory');
+    if (page && !page.__localizedTypoObserved) {
+      const mo = new MutationObserver(() => {
+        applyCategoryTitleTypography();
+      });
+      mo.observe(page, { childList: true, subtree: true, characterData: true });
+      page.__localizedTypoObserved = true;
+    }
+  }
+
+  document.addEventListener('DOMContentLoaded', boot);
+  window.addEventListener('load', boot);
+  window.addEventListener('pageshow', boot);
+})();
+</script>
+
 </body>
 </html>
