@@ -676,33 +676,17 @@ html.kura-typo-stable .font-medium {
 </style>
 
 <style>
-/* Travel v5 cleanup */
+/* Travel v6 safe cleanup */
 .meta-empty-hidden:empty{display:none!important}
 </style>
 <script>
 (function(){
-  function cleanupEmptyMeta(){
-    try{
-      document.querySelectorAll('span,div,p').forEach(function(el){
-        const t = (el.textContent || '').trim();
-        if (!t) return;
-        if (t === '/' || t === '·' || t === '- / -') el.style.display = 'none';
-      });
-    }catch(e){}
-  }
   document.addEventListener('blur', function(e){
     if (e.target && e.target.id === 'date' && !e.target.value){
       e.target.type = 'text';
       e.target.placeholder = '購買/消費日期';
     }
   }, true);
-  document.addEventListener('DOMContentLoaded', function(){
-    setTimeout(cleanupEmptyMeta, 0);
-    setTimeout(cleanupEmptyMeta, 150);
-  });
-  window.addEventListener('load', function(){
-    setTimeout(cleanupEmptyMeta, 0);
-  });
 })();
 </script>
 
@@ -921,7 +905,7 @@ html.kura-typo-stable .font-medium {
 <div class="mt-3">
 <input accept="image/*" class="kv-input w-full rounded-xl border border-primary/10 bg-background-light/80 px-4 py-3 text-sm file:mr-3 file:rounded-lg file:border-0 file:bg-primary file:px-3 file:py-2 file:text-sm file:font-semibold file:text-white" id="brandLogoFile" type="file"/>
 </div>
-<button class="mt-3 w-full rounded-xl bg-primary px-4 py-3 text-sm font-bold text-white" id="saveLibBtn">加入品牌 Logo 庫</button>
+<button class="mt-3 w-full rounded-xl bg-primary px-4 py-3 text-sm font-bold text-white" id="saveBrandLibBtn">加入品牌 Logo 庫</button>
 </div>
 <div class="mt-6">
 <div class="text-xs font-bold tracking-widest uppercase text-slate-500 mb-2">系列 / Logo</div>
@@ -937,7 +921,7 @@ html.kura-typo-stable .font-medium {
 <div class="mt-3">
 <input accept="image/*" class="kv-input w-full rounded-xl border border-primary/10 bg-background-light/80 px-4 py-3 text-sm file:mr-3 file:rounded-lg file:border-0 file:bg-primary file:px-3 file:py-2 file:text-sm file:font-semibold file:text-white" id="seriesLogoFile" type="file"/>
 </div>
-<button class="mt-3 w-full rounded-xl bg-primary px-4 py-3 text-sm font-bold text-white" id="saveLibBtn">加入系列 Logo 庫</button>
+<button class="mt-3 w-full rounded-xl bg-primary px-4 py-3 text-sm font-bold text-white" id="saveSeriesLibBtn">加入系列 Logo 庫</button>
 </div>
 <button class="mt-5 w-full rounded-xl bg-primary px-4 py-3 text-sm font-bold text-white" id="saveBtn">儲存收藏</button>
 </div>
@@ -1022,14 +1006,14 @@ html.kura-typo-stable .font-medium {
 </div>
 <div class="kv-surface rounded-xl bg-white border border-slate-100 shadow-sm p-4">
 <div class="flex items-center justify-between mb-3">
-<h4 class="font-bold"> Breakdown</h4>
+<h4 class="font-bold">Brand Breakdown</h4>
 <span class="material-symbols-outlined text-primary">donut_large</span>
 </div>
 <div id="brandBreakdown"></div>
 </div>
 <div class="kv-surface rounded-xl bg-white border border-slate-100 shadow-sm p-4">
 <div class="flex items-center justify-between mb-3">
-<h4 class="font-bold"> Breakdown</h4>
+<h4 class="font-bold">Series Breakdown</h4>
 <span class="material-symbols-outlined text-gold">stacked_bar_chart</span>
 </div>
 <div id="seriesBreakdown"></div>
@@ -1169,7 +1153,7 @@ html.kura-typo-stable .font-medium {
 <div>
 <div class="inline-flex rounded-xl bg-emerald-400/85 px-3 py-1 text-xs font-bold text-white" id="detailCornerLabel"></div>
 <h2 class="mt-3 text-2xl font-bold leading-tight" id="detailName">未命名收藏</h2>
-<p class="mt-2 text-sm text-slate-500" id="detail"></p>
+<p class="mt-2 text-sm text-slate-500" id="detailBrandSeries"></p>
 </div>
 <div class="flex flex-wrap justify-end gap-2" id="detailLogos"></div>
 </div>
@@ -1778,7 +1762,7 @@ function renderOverviewCards() {
                         <div class="mt-4 flex justify-between items-start gap-3">
                             <div class="min-w-0 flex-1">
                                 <h4 class="font-bold text-lg leading-tight">${item.name || "Untitled"}</h4>
-                                <p class="text-sm text-slate-500 truncate">${item.brand || ""} • ${item.series || ""}</p>
+                                <p class="text-sm text-slate-500 truncate">${item.brand || "未填品牌"} • ${item.series || "未填系列"}</p>
                                 ${renderItemLogos(item)}
                             </div>
                             <div class="bg-gold/10 px-2 py-1 rounded shrink-0">
@@ -1935,7 +1919,7 @@ function renderOverviewCards() {
                     <div class="flex flex-col justify-between flex-1 py-0.5 min-w-0">
                         <div>
                             <h3 class="font-bold text-base leading-tight">${item.name || "未命名收藏"}</h3>
-                            <p class="text-slate-500 text-xs mt-1 truncate">${item.brand || ""} • ${item.series || ""}</p>
+                            <p class="text-slate-500 text-xs mt-1 truncate">${item.brand || "未填品牌"} • ${item.series || "未填系列"}</p>
                             ${renderItemLogos(item, "small")}
                             <p class="text-slate-400 text-[11px] mt-1 truncate">${item.category || "其他"} ${item.date ? "• " + item.date : ""}</p>
                         </div>
@@ -1990,7 +1974,7 @@ function renderOverviewCards() {
                             </div>
                             <div class="p-4">
                                 <h3 class="font-bold text-base leading-tight">${item.name || "未命名收藏"}</h3>
-                                <p class="text-slate-500 text-xs mt-1">${item.brand || ""} • ${item.series || ""}</p>
+                                <p class="text-slate-500 text-xs mt-1">${item.brand || "未填品牌"} • ${item.series || "未填系列"}</p>
                                 ${renderItemLogos(item, "small")}
                                 <div class="mt-3 flex items-center justify-between">
                                     <span class="text-lg font-bold text-primary">${money(item.price, item.purchaseCurrency)}</span>${(() => {
@@ -2016,7 +2000,7 @@ function renderOverviewCards() {
                         <div class="h-20 w-20 rounded-lg kv-artframe bg-white bg-center bg-no-repeat bg-contain shrink-0" style="background-image:url('${item.image || makeDefaultImage(item.name || "Figure")}')"></div>
                         <div class="flex-1 min-w-0">
                             <div class="font-bold truncate">${item.name || "未命名收藏"}</div>
-                            <div class="text-xs text-slate-500 mt-1 truncate">${item.brand || ""} • ${item.series || ""}</div>
+                            <div class="text-xs text-slate-500 mt-1 truncate">${item.brand || "未填品牌"} • ${item.series || "未填系列"}</div>
                             ${renderItemLogos(item, "small")}
                             <div class="mt-2 flex flex-wrap items-center gap-2"><div class="text-primary font-bold">${money(item.price, item.purchaseCurrency)}</div>${statusBadge(item)}</div>
                         </div>
@@ -2052,20 +2036,20 @@ function renderOverviewCards() {
 
         function renderPresetPickers() {
             document.getElementById("brandPresetPicker").innerHTML = brandLibrary.map(item => `
-                <button class="rounded-full border border-primary/10 bg-white/60 px-3 py-2 text-xs font-semibold" type="button" onclick="applyPreset('${escapeText(item.name)}','${escapeText(item.logo)}')">${item.name}</button>
+                <button class="rounded-full border border-primary/10 bg-white/60 px-3 py-2 text-xs font-semibold" type="button" onclick="applyBrandPreset('${escapeText(item.name)}','${escapeText(item.logo)}')">${item.name}</button>
             `).join("");
 
             document.getElementById("seriesPresetPicker").innerHTML = seriesLibrary.map(item => `
-                <button class="rounded-full border border-primary/10 bg-white/60 px-3 py-2 text-xs font-semibold" type="button" onclick="applyPreset('${escapeText(item.name)}','${escapeText(item.logo)}')">${item.name}</button>
+                <button class="rounded-full border border-primary/10 bg-white/60 px-3 py-2 text-xs font-semibold" type="button" onclick="applySeriesPreset('${escapeText(item.name)}','${escapeText(item.logo)}')">${item.name}</button>
             `).join("");
         }
 
-        window.applyPreset = function(name, logo) {
+        window.applyBrandPreset = function(name, logo) {
             document.getElementById("brand").value = name;
             document.getElementById("brandLogoUrl").value = logo;
         };
 
-        window.applyPreset = function(name, logo) {
+        window.applySeriesPreset = function(name, logo) {
             document.getElementById("series").value = name;
             document.getElementById("seriesLogoUrl").value = logo;
         };
@@ -2212,7 +2196,7 @@ function renderOverviewCards() {
             render();
         };
 
-        async function addLibrary() {
+        async function addBrandLibrary() {
             const name = document.getElementById("brand").value.trim();
             const url = document.getElementById("brandLogoUrl").value.trim();
             const file = document.getElementById("brandLogoFile").files[0];
@@ -2232,7 +2216,7 @@ function renderOverviewCards() {
             document.getElementById("backupStatus").textContent = "已加入品牌 Logo 庫";
         }
 
-        async function addLibrary() {
+        async function addSeriesLibrary() {
             const name = document.getElementById("series").value.trim();
             const url = document.getElementById("seriesLogoUrl").value.trim();
             const file = document.getElementById("seriesLogoFile").files[0];
@@ -2262,7 +2246,7 @@ function renderOverviewCards() {
                         <span class="h-8 w-8 rounded-lg overflow-hidden bg-white border border-primary/10 shrink-0"><img class="h-full w-full object-contain" src="${item.logo}" alt=""></span>
                         <span class="font-medium truncate">${item.name}</span>
                     </div>
-                    <button class="rounded-lg bg-black/5 px-3 py-2 text-xs font-semibold shrink-0" onclick="deleteLogo(${index})">刪除</button>
+                    <button class="rounded-lg bg-black/5 px-3 py-2 text-xs font-semibold shrink-0" onclick="deleteBrandLogo(${index})">刪除</button>
                 </div>
             `).join("") : '<div class="kv-input rounded-xl border border-primary/10 bg-background-light/80 p-4 text-center text-slate-400">未有品牌 Logo。</div>';
 
@@ -2272,12 +2256,12 @@ function renderOverviewCards() {
                         <span class="h-8 w-8 rounded-lg overflow-hidden bg-white border border-primary/10 shrink-0"><img class="h-full w-full object-contain" src="${item.logo}" alt=""></span>
                         <span class="font-medium truncate">${item.name}</span>
                     </div>
-                    <button class="rounded-lg bg-black/5 px-3 py-2 text-xs font-semibold shrink-0" onclick="deleteLogo(${index})">刪除</button>
+                    <button class="rounded-lg bg-black/5 px-3 py-2 text-xs font-semibold shrink-0" onclick="deleteSeriesLogo(${index})">刪除</button>
                 </div>
             `).join("") : '<div class="kv-input rounded-xl border border-primary/10 bg-background-light/80 p-4 text-center text-slate-400">未有系列 Logo。</div>';
         }
 
-        window.deleteLogo = function(index) {
+        window.deleteBrandLogo = function(index) {
             const item = brandLibrary[index];
             if (!item) return;
             if (!confirm("確定刪除品牌 Logo：" + item.name + "？")) return;
@@ -2288,7 +2272,7 @@ function renderOverviewCards() {
             document.getElementById("backupStatus").textContent = "已刪除品牌 Logo";
         };
 
-        window.deleteLogo = function(index) {
+        window.deleteSeriesLogo = function(index) {
             const item = seriesLibrary[index];
             if (!item) return;
             if (!confirm("確定刪除系列 Logo：" + item.name + "？")) return;
@@ -2397,8 +2381,8 @@ function renderOverviewCards() {
             const monthMap = {};
 
             filtered.forEach(item => {
-                const brand = item.brand || "";
-                const series = item.series || "";
+                const brand = item.brand || "未填品牌";
+                const series = item.series || "未填系列";
                 const month = item.date ? item.date.slice(0, 7) : "未填日期";
                 brandMap[brand] = (brandMap[brand] || 0) + Number(item.price || 0);
                 seriesMap[series] = (seriesMap[series] || 0) + Number(item.price || 0);
@@ -2459,7 +2443,7 @@ function renderOverviewCards() {
                     <div class="h-20 w-20 rounded-lg overflow-hidden kv-artframe bg-white bg-center bg-no-repeat bg-contain shrink-0" style="background-image:url('${item.image || makeDefaultImage(item.name || "Figure")}')"></div>
                     <div class="min-w-0 flex-1">
                         <div class="font-bold leading-tight">${item.name || "未命名收藏"}</div>
-                        <div class="mt-1 text-xs text-slate-500 truncate">${item.brand || ""} • ${item.series || ""}</div>
+                        <div class="mt-1 text-xs text-slate-500 truncate">${item.brand || "未填品牌"} • ${item.series || "未填系列"}</div>
                         ${renderItemLogos(item, "small")}
                         <div class="mt-2 flex items-center justify-between gap-2">
                             <span class="text-sm font-bold text-primary">${money(item.price, item.purchaseCurrency)}</span>${(() => {
@@ -2676,8 +2660,8 @@ function syncMuseumModeLabel(){
 
         document.getElementById("statsYearFilter").onchange = renderStats;
         document.getElementById("saveBtn").onclick = saveRecord;
-        document.getElementById("saveLibBtn").onclick = addLibrary;
-        document.getElementById("saveLibBtn").onclick = addLibrary;
+        document.getElementById("saveBrandLibBtn").onclick = addBrandLibrary;
+        document.getElementById("saveSeriesLibBtn").onclick = addSeriesLibrary;
         document.getElementById("exportBtn").onclick = exportBackup;
         document.getElementById("importBtn").onclick = function() {
             document.getElementById("importFile").click();
@@ -3234,19 +3218,19 @@ function syncMuseumModeLabel(){
     return document.getElementById(id);
   }
 
-  function readLibrary() {
+  function readBrandLibrary() {
     try { return Array.isArray(brandLibrary) ? brandLibrary : []; } catch (e) { return Array.isArray(window.brandLibrary) ? window.brandLibrary : []; }
   }
 
-  function readLibrary() {
+  function readSeriesLibrary() {
     try { return Array.isArray(seriesLibrary) ? seriesLibrary : []; } catch (e) { return Array.isArray(window.seriesLibrary) ? window.seriesLibrary : []; }
   }
 
-  function setLibrary(next) {
+  function setBrandLibrary(next) {
     try { brandLibrary = next; } catch (e) { window.brandLibrary = next; }
   }
 
-  function setLibrary(next) {
+  function setSeriesLibrary(next) {
     try { seriesLibrary = next; } catch (e) { window.seriesLibrary = next; }
   }
 
@@ -3321,13 +3305,13 @@ function syncMuseumModeLabel(){
 
       const res = await Promise.all(jobs);
 
-      const global = res[0].docs.map(d => normalizeLogo(d, "global", "brand"));
-      const global = res[1].docs.map(d => normalizeLogo(d, "global", "series"));
-      const my = uid ? res[2].docs.map(d => normalizeLogo(d, "personal", "brand")) : [];
-      const my = uid ? res[3].docs.map(d => normalizeLogo(d, "personal", "series")) : [];
+      const globalBrand = res[0].docs.map(d => normalizeLogo(d, "global", "brand"));
+      const globalSeries = res[1].docs.map(d => normalizeLogo(d, "global", "series"));
+      const myBrand = uid ? res[2].docs.map(d => normalizeLogo(d, "personal", "brand")) : [];
+      const mySeries = uid ? res[3].docs.map(d => normalizeLogo(d, "personal", "series")) : [];
 
-      setLibrary([...global, ...my].sort((a, b) => (a.name || "").localeCompare(b.name || "")));
-      setLibrary([...global, ...my].sort((a, b) => (a.name || "").localeCompare(b.name || "")));
+      setBrandLibrary([...globalBrand, ...myBrand].sort((a, b) => (a.name || "").localeCompare(b.name || "")));
+      setSeriesLibrary([...globalSeries, ...mySeries].sort((a, b) => (a.name || "").localeCompare(b.name || "")));
 
       if (typeof renderPresetPickers === "function") renderPresetPickers();
       renderLogoManagersPatched();
@@ -3338,8 +3322,8 @@ function syncMuseumModeLabel(){
   }
 
   function ensureScopeSelectors(admin) {
-    const brandBtn = $("saveLibBtn");
-    const seriesBtn = $("saveLibBtn");
+    const brandBtn = $("saveBrandLibBtn");
+    const seriesBtn = $("saveSeriesLibBtn");
     if (!brandBtn || !seriesBtn) return;
 
     let brandWrap = $("brandLogoScopeWrap");
@@ -3348,7 +3332,7 @@ function syncMuseumModeLabel(){
       brandWrap.id = "brandLogoScopeWrap";
       brandWrap.className = "mt-3";
       brandWrap.innerHTML = `
-        <label class="text-xs font-bold tracking-widest uppercase text-slate-500 mb-2 block"> Logo Scope</label>
+        <label class="text-xs font-bold tracking-widest uppercase text-slate-500 mb-2 block">Brand Logo Scope</label>
         <select id="brandLogoScope" class="w-full rounded-xl border border-primary/10 bg-white/60 px-4 py-3 text-sm"></select>
       `;
       brandBtn.parentNode.insertBefore(brandWrap, brandBtn);
@@ -3360,7 +3344,7 @@ function syncMuseumModeLabel(){
       seriesWrap.id = "seriesLogoScopeWrap";
       seriesWrap.className = "mt-3";
       seriesWrap.innerHTML = `
-        <label class="text-xs font-bold tracking-widest uppercase text-slate-500 mb-2 block"> Logo Scope</label>
+        <label class="text-xs font-bold tracking-widest uppercase text-slate-500 mb-2 block">Series Logo Scope</label>
         <select id="seriesLogoScope" class="w-full rounded-xl border border-primary/10 bg-white/60 px-4 py-3 text-sm"></select>
       `;
       seriesBtn.parentNode.insertBefore(seriesWrap, seriesBtn);
@@ -3381,8 +3365,8 @@ function syncMuseumModeLabel(){
 
   async function updateButtons() {
     const admin = await isAdmin();
-    const brandBtn = $("saveLibBtn");
-    const seriesBtn = $("saveLibBtn");
+    const brandBtn = $("saveBrandLibBtn");
+    const seriesBtn = $("saveSeriesLibBtn");
 
     ensureScopeSelectors(admin);
 
@@ -3390,18 +3374,18 @@ function syncMuseumModeLabel(){
       brandBtn.style.display = "";
       brandBtn.disabled = false;
       brandBtn.classList.remove("hidden", "opacity-60");
-      brandBtn.textContent = admin ? "加入 Logo（Global / My）" : "加入我的  Logo";
+      brandBtn.textContent = admin ? "加入 Logo（Global / My）" : "加入我的 Brand Logo";
     }
 
     if (seriesBtn) {
       seriesBtn.style.display = "";
       seriesBtn.disabled = false;
       seriesBtn.classList.remove("hidden", "opacity-60");
-      seriesBtn.textContent = admin ? "加入 Logo（Global / My）" : "加入我的  Logo";
+      seriesBtn.textContent = admin ? "加入 Logo（Global / My）" : "加入我的 Series Logo";
     }
   }
 
-  async function saveLogoPatched() {
+  async function saveBrandLogoPatched() {
     const api = fb();
     const uid = currentUid();
     if (!api || !uid) {
@@ -3412,7 +3396,7 @@ function syncMuseumModeLabel(){
     const admin = await isAdmin();
     const scope = $("brandLogoScope")?.value || "personal";
     if (scope === "global" && !admin) {
-      alert("只有 admin 可以新增 Global  Logo");
+      alert("只有 admin 可以新增 Global Brand Logo");
       return;
     }
 
@@ -3445,14 +3429,14 @@ function syncMuseumModeLabel(){
       if ($("brandLogoFile")) $("brandLogoFile").value = "";
 
       await loadMergedLibraries();
-      if ($("backupStatus")) $("backupStatus").textContent = "已加入  Logo";
+      if ($("backupStatus")) $("backupStatus").textContent = "已加入 Brand Logo";
     } catch (err) {
       console.error(err);
-      alert(err.message || "加入  Logo 失敗");
+      alert(err.message || "加入 Brand Logo 失敗");
     }
   }
 
-  async function saveLogoPatched() {
+  async function saveSeriesLogoPatched() {
     const api = fb();
     const uid = currentUid();
     if (!api || !uid) {
@@ -3463,7 +3447,7 @@ function syncMuseumModeLabel(){
     const admin = await isAdmin();
     const scope = $("seriesLogoScope")?.value || "personal";
     if (scope === "global" && !admin) {
-      alert("只有 admin 可以新增 Global  Logo");
+      alert("只有 admin 可以新增 Global Series Logo");
       return;
     }
 
@@ -3496,17 +3480,17 @@ function syncMuseumModeLabel(){
       if ($("seriesLogoFile")) $("seriesLogoFile").value = "";
 
       await loadMergedLibraries();
-      if ($("backupStatus")) $("backupStatus").textContent = "已加入  Logo";
+      if ($("backupStatus")) $("backupStatus").textContent = "已加入 Series Logo";
     } catch (err) {
       console.error(err);
-      alert(err.message || "加入  Logo 失敗");
+      alert(err.message || "加入 Series Logo 失敗");
     }
   }
 
   function renderLogoManagersPatched() {
     const uid = currentUid();
-    const brands = readLibrary();
-    const series = readLibrary();
+    const brands = readBrandLibrary();
+    const series = readSeriesLibrary();
 
     if ($("brandLibCount")) $("brandLibCount").textContent = brands.length + " 個";
     if ($("seriesLibCount")) $("seriesLibCount").textContent = series.length + " 個";
@@ -3523,7 +3507,7 @@ function syncMuseumModeLabel(){
               <div class="text-[10px] uppercase tracking-widest text-slate-400 mt-1">${scopeLabel(item, uid)}</div>
             </div>
           </div>
-          <button class="rounded-lg bg-black/5 px-3 py-2 text-xs font-semibold shrink-0" onclick="deleteLogo(${index})">刪除</button>
+          <button class="rounded-lg bg-black/5 px-3 py-2 text-xs font-semibold shrink-0" onclick="deleteBrandLogo(${index})">刪除</button>
         </div>
       `).join("") : '<div class="rounded-xl border border-primary/10 bg-background-light/80 p-4 text-center text-slate-400">未有品牌 Logo。</div>';
     }
@@ -3540,33 +3524,33 @@ function syncMuseumModeLabel(){
               <div class="text-[10px] uppercase tracking-widest text-slate-400 mt-1">${scopeLabel(item, uid)}</div>
             </div>
           </div>
-          <button class="rounded-lg bg-black/5 px-3 py-2 text-xs font-semibold shrink-0" onclick="deleteLogo(${index})">刪除</button>
+          <button class="rounded-lg bg-black/5 px-3 py-2 text-xs font-semibold shrink-0" onclick="deleteSeriesLogo(${index})">刪除</button>
         </div>
       `).join("") : '<div class="rounded-xl border border-primary/10 bg-background-light/80 p-4 text-center text-slate-400">未有系列 Logo。</div>';
     }
   }
 
-  window.deleteLogo = async function (index) {
+  window.deleteBrandLogo = async function (index) {
     const api = fb();
     const uid = currentUid();
     if (!api || !uid) return;
 
-    const item = readLibrary()[index];
+    const item = readBrandLibrary()[index];
     if (!item) return;
 
     const admin = await isAdmin();
 
     if (item.scope === "global" && !admin) {
-      alert("只有 admin 可以刪除 Global  Logo");
+      alert("只有 admin 可以刪除 Global Brand Logo");
       return;
     }
 
     if (item.scope === "personal" && !admin && item.ownerUid !== uid) {
-      alert("你不能刪除其他人的  Logo");
+      alert("你不能刪除其他人的 Brand Logo");
       return;
     }
 
-    if (!confirm("確定刪除  Logo：" + item.name + "？")) return;
+    if (!confirm("確定刪除 Brand Logo：" + item.name + "？")) return;
 
     try {
       const ref = item.scope === "global"
@@ -3578,31 +3562,31 @@ function syncMuseumModeLabel(){
       if (typeof loadAllUserLogosForAdmin === "function") await loadAllUserLogosForAdmin();
     } catch (err) {
       console.error(err);
-      alert(err.message || "刪除  Logo 失敗");
+      alert(err.message || "刪除 Brand Logo 失敗");
     }
   };
 
-  window.deleteLogo = async function (index) {
+  window.deleteSeriesLogo = async function (index) {
     const api = fb();
     const uid = currentUid();
     if (!api || !uid) return;
 
-    const item = readLibrary()[index];
+    const item = readSeriesLibrary()[index];
     if (!item) return;
 
     const admin = await isAdmin();
 
     if (item.scope === "global" && !admin) {
-      alert("只有 admin 可以刪除 Global  Logo");
+      alert("只有 admin 可以刪除 Global Series Logo");
       return;
     }
 
     if (item.scope === "personal" && !admin && item.ownerUid !== uid) {
-      alert("你不能刪除其他人的  Logo");
+      alert("你不能刪除其他人的 Series Logo");
       return;
     }
 
-    if (!confirm("確定刪除  Logo：" + item.name + "？")) return;
+    if (!confirm("確定刪除 Series Logo：" + item.name + "？")) return;
 
     try {
       const ref = item.scope === "global"
@@ -3614,22 +3598,22 @@ function syncMuseumModeLabel(){
       if (typeof loadAllUserLogosForAdmin === "function") await loadAllUserLogosForAdmin();
     } catch (err) {
       console.error(err);
-      alert(err.message || "刪除  Logo 失敗");
+      alert(err.message || "刪除 Series Logo 失敗");
     }
   };
 
   function bindPatchedButtons() {
-    const brandBtn = $("saveLibBtn");
-    const seriesBtn = $("saveLibBtn");
+    const brandBtn = $("saveBrandLibBtn");
+    const seriesBtn = $("saveSeriesLibBtn");
 
     if (brandBtn) {
-      brandBtn.onclick = saveLogoPatched;
+      brandBtn.onclick = saveBrandLogoPatched;
       brandBtn.style.display = "";
       brandBtn.disabled = false;
     }
 
     if (seriesBtn) {
-      seriesBtn.onclick = saveLogoPatched;
+      seriesBtn.onclick = saveSeriesLogoPatched;
       seriesBtn.style.display = "";
       seriesBtn.disabled = false;
     }
@@ -3749,13 +3733,13 @@ function syncMuseumModeLabel(){
 
       <div class="grid grid-cols-1 gap-4">
         <div>
-          <div class="font-semibold mb-2">User  Logos</div>
-          <div id="adminUserLogos" class="space-y-2"></div>
+          <div class="font-semibold mb-2">User Brand Logos</div>
+          <div id="adminUserBrandLogos" class="space-y-2"></div>
         </div>
 
         <div>
-          <div class="font-semibold mb-2">User  Logos</div>
-          <div id="adminUserLogos" class="space-y-2"></div>
+          <div class="font-semibold mb-2">User Series Logos</div>
+          <div id="adminUserSeriesLogos" class="space-y-2"></div>
         </div>
       </div>
     `;
@@ -3773,7 +3757,7 @@ function syncMuseumModeLabel(){
     if (!target) return;
 
     if (!items.length) {
-      target.innerHTML = `<div class="rounded-xl border border-primary/10 bg-background-light/80 p-4 text-center text-slate-400">未有 User ${type === "brand" ? "" : ""} Logos。</div>`;
+      target.innerHTML = `<div class="rounded-xl border border-primary/10 bg-background-light/80 p-4 text-center text-slate-400">未有 User ${type === "brand" ? "Brand" : "Series"} Logos。</div>`;
       return;
     }
 
@@ -3841,10 +3825,10 @@ function syncMuseumModeLabel(){
         .filter(x => x.path.startsWith("users/") && x.ownerUid && x.ownerUid !== me)
         .sort((a, b) => (a.name || "").localeCompare(b.name || ""));
 
-      renderList("adminUserLogos", brandItems, "brand");
-      renderList("adminUserLogos", seriesItems, "series");
+      renderList("adminUserBrandLogos", brandItems, "brand");
+      renderList("adminUserSeriesLogos", seriesItems, "series");
 
-      setStatus(`已載入 ${brandItems.length} 個  Logos，${seriesItems.length} 個  Logos`);
+      setStatus(`已載入 ${brandItems.length} 個 Brand Logos，${seriesItems.length} 個 Series Logos`);
     } catch (err) {
       console.error("loadAllUserLogosForAdmin failed:", err);
       setStatus("讀取失敗：" + (err.message || "Unknown error"));
@@ -4160,7 +4144,7 @@ function syncMuseumModeLabel(){
     document.getElementById("detailCategory").textContent = item.category || "其他";
     document.getElementById("detailStatus").textContent = item.status || "-";
     document.getElementById("detailName").textContent = item.name || "未命名收藏";
-    document.getElementById("detail").textContent = [item.brand, item.series].filter(Boolean).join(" • ") || " / 系列";
+    document.getElementById("detailBrandSeries").textContent = [item.brand, item.series].filter(Boolean).join(" • ") || "未填品牌 / 系列";
     document.getElementById("detailLogos").innerHTML = logoPills(item);
     document.getElementById("detailPrice").textContent = typeof money === "function" ? money(item.price, item.purchaseCurrency) : `$${item.price || 0}`;
     document.getElementById("detailPurchaseCurrency").value = item.purchaseCurrency || "HKD";
