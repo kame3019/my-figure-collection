@@ -603,10 +603,10 @@ html[data-typography="ja"] h6 {
 
 
 <style>
-/* Category filter summary v4 */
-#categoryFilterSummary.is-visible{ display:block !important; }
+/* Category summary final fix */
+#categoryFilterSummary .text-sm,
+#categoryFilterSummary .text-base{font-weight:400!important}
 </style>
-
 </head>
 <body class="bg-background-light font-display text-slate-900 washi-texture">
 <script>
@@ -694,6 +694,17 @@ html[data-typography="ja"] h6 {
 <div class="text-[10px] text-slate-400 font-medium tracking-widest uppercase border-b border-primary/20 pb-1 hidden" id="homeMuseumMode">Museum Mode</div>
 <div class="text-primary text-sm font-bold" id="resultNote">0 件</div>
 </div>
+</div>
+<div class="hidden mb-4 rounded-2xl border border-primary/10 bg-white/70 px-4 py-3 shadow-sm" id="categoryFilterSummary">
+  <div class="flex items-start justify-between gap-3">
+    <div>
+      <div class="text-[10px] uppercase tracking-[0.18em] text-slate-400">Category Summary</div>
+      <div class="mt-1 text-base text-slate-900" id="categoryFilterSummaryTitle">-</div>
+      <div class="mt-1 text-xs text-slate-500" id="categoryFilterSummaryCount">0 items</div>
+    </div>
+    <button class="rounded-xl border border-primary/10 bg-white/70 px-3 py-2 text-xs text-slate-600" id="categoryFilterSummaryClearBtn" type="button">Clear</button>
+  </div>
+  <div class="mt-3 grid gap-2 sm:grid-cols-3" id="categoryFilterSummaryTotals"></div>
 </div>
 <div id="collectionList"></div>
 </section>
@@ -1685,6 +1696,54 @@ function renderOverviewCards() {
             });
         }
 
+
+        function renderCategoryFilterSummary() {
+            const box = document.getElementById("categoryFilterSummary");
+            const title = document.getElementById("categoryFilterSummaryTitle");
+            const count = document.getElementById("categoryFilterSummaryCount");
+            const totals = document.getElementById("categoryFilterSummaryTotals");
+            if (!box || !title || !count || !totals) return;
+
+            if (!currentCategory) {
+                box.classList.add("hidden");
+                totals.innerHTML = "";
+                return;
+            }
+
+            const arr = items.filter(item =>
+                (view === "wishlist" ? item.status === "願望清單" : item.status !== "願望清單") &&
+                item.category === currentCategory
+            );
+
+            if (!arr.length) {
+                box.classList.add("hidden");
+                totals.innerHTML = "";
+                return;
+            }
+
+            const sum = { HKD: 0, USD: 0, JPY: 0 };
+            arr.forEach(item => {
+                const code = ((item.purchaseCurrency || "HKD") + "").toUpperCase();
+                const num = Number(item.price || 0);
+                if (!Number.isFinite(num)) return;
+                if (!(code in sum)) sum[code] = 0;
+                sum[code] += num;
+            });
+
+            const activeCodes = ["HKD","USD","JPY"].filter(code => Math.abs(sum[code] || 0) > 0.00001);
+
+            title.textContent = currentCategory;
+            count.textContent = arr.length + (arr.length === 1 ? " item" : " items");
+            totals.innerHTML = activeCodes.map(code => `
+                <div class="rounded-xl border border-primary/10 bg-white/70 px-3 py-2">
+                    <div class="text-[10px] uppercase tracking-[0.18em] text-slate-400">${code}</div>
+                    <div class="mt-1 text-sm text-slate-800">${money(sum[code], code)}</div>
+                </div>
+            `).join("");
+
+            box.classList.remove("hidden");
+        }
+
         function listItemCard(item, index) {
             const label = labelConfig(item, index);
 
@@ -2290,6 +2349,7 @@ function renderOverviewCards() {
             renderExhibitionRail();
             renderCategoryChips();
             renderList();
+            renderCategoryFilterSummary();
             renderPresetPickers();
             renderLogoManagers();
             renderStats();
@@ -2348,6 +2408,18 @@ function renderOverviewCards() {
             showPage("pageAdd");
             setActiveNav("profile");
         };
+
+        document.addEventListener("click", function(e) {
+            if (e.target.closest("#categoryFilterSummaryClearBtn")) {
+                currentCategory = "";
+                renderCategoryChips();
+                renderList();
+                renderExhibitionRail();
+                renderCategoryFilterSummary();
+                return;
+            }
+        });
+
 
         document.getElementById("navStats").onclick = function() {
             showPage("pageStats");
@@ -2468,6 +2540,7 @@ function syncMuseumModeLabel(){
       setItems(next) {
         try { items = next; } catch (e) {}
         window.items = next;
+        try { if (typeof renderCategoryPage === "function") renderCategoryPage(); } catch (e) {}
       }
     };
     </script>
@@ -2614,6 +2687,7 @@ function syncMuseumModeLabel(){
         const snap = await getDocs(collection(db, "users", uid, "items"));
         window.__kuraState.setItems(snap.docs.map(d => ({ id: d.id, ...d.data() })));
         if (typeof window.render === "function") window.render();
+        if (typeof window.renderCategoryPage === "function") window.renderCategoryPage();
         if (typeof window.renderProfilePage === "function") window.renderProfilePage();
       }
 
@@ -2665,6 +2739,7 @@ function syncMuseumModeLabel(){
         } else {
           window.__kuraState.setItems([]);
           if (typeof window.render === "function") window.render();
+          if (typeof window.renderCategoryPage === "function") window.renderCategoryPage();
           if (typeof window.renderProfilePage === "function") window.renderProfilePage();
         }
         setTimeout(() => window.refreshAdminPanel?.(), 50);
@@ -4395,8 +4470,7 @@ function syncMuseumModeLabel(){
   }
   function categoryCount(name){
     try {
-      const source = Array.isArray(items) ? items : (Array.isArray(window.items) ? window.items : []);
-      return source.filter(item => normalize(item.category) === normalize(name)).length;
+      return (window.items || items || []).filter(item => normalize(item.category) === normalize(name)).length;
     } catch(e){ return 0; }
   }
   function createCategoryEditorModal(){
@@ -5851,219 +5925,6 @@ html[data-typography] :is(h1,h2,h3,h4,h5,h6,.page-title,.section-title,.header-t
   document.addEventListener('DOMContentLoaded', refreshCurrencyUI);
   window.addEventListener('load', refreshCurrencyUI);
   window.addEventListener('pageshow', refreshCurrencyUI);
-})();
-</script>
-
-
-<script>
-/* Category card count refresh v4 */
-(function(){
-  function refreshCategoryPage(){
-    try {
-      if (typeof renderCategoryPage === 'function') {
-        renderCategoryPage();
-      }
-    } catch(e){}
-  }
-  document.addEventListener('DOMContentLoaded', function(){
-    setTimeout(refreshCategoryPage, 0);
-    setTimeout(refreshCategoryPage, 150);
-    setTimeout(refreshCategoryPage, 400);
-  });
-  window.addEventListener('load', function(){
-    setTimeout(refreshCategoryPage, 0);
-    setTimeout(refreshCategoryPage, 150);
-  });
-  window.addEventListener('pageshow', function(){
-    setTimeout(refreshCategoryPage, 0);
-  });
-
-  try {
-    const originalRender = window.render;
-    if (typeof originalRender === 'function' && !originalRender.__kuraCategoryWrapped) {
-      window.render = function(...args){
-        const result = originalRender.apply(this, args);
-        try {
-          setTimeout(refreshCategoryPage, 0);
-          setTimeout(refreshCategoryPage, 120);
-        } catch(e){}
-        return result;
-      };
-      window.render.__kuraCategoryWrapped = true;
-    }
-  } catch(e){}
-})();
-</script>
-
-
-<script>
-/* Category filter summary v4 */
-(function(){
-  const KEY = 'kura_selected_category_card';
-
-  function saveCategory(name){
-    const v = String(name || '').trim();
-    try { sessionStorage.setItem(KEY, v); } catch(e){}
-    try { localStorage.setItem(KEY, v); } catch(e){}
-  }
-  function readCategory(){
-    try {
-      const s = sessionStorage.getItem(KEY);
-      if (s && s.trim()) return s.trim();
-    } catch(e){}
-    try {
-      const l = localStorage.getItem(KEY);
-      if (l && l.trim()) return l.trim();
-    } catch(e){}
-    return '';
-  }
-  function clearCategory(){
-    try { sessionStorage.removeItem(KEY); } catch(e){}
-    try { localStorage.removeItem(KEY); } catch(e){}
-  }
-  function norm(v){
-    try {
-      if (typeof normalize === 'function') return normalize(v);
-    } catch(e){}
-    return String(v || '').trim().toLowerCase();
-  }
-  function getItems(){
-    try { return Array.isArray(items) ? items : (Array.isArray(window.items) ? window.items : []); } catch(e){ return []; }
-  }
-  function getMoney(v, code){
-    try { if (typeof money === 'function') return money(v, code); } catch(e){}
-    const num = Number(v || 0);
-    if (code === 'JPY') return '¥ ' + num.toLocaleString('ja-JP', { minimumFractionDigits:0, maximumFractionDigits:0 });
-    if (code === 'USD') return 'US$ ' + num.toLocaleString('en-US', { minimumFractionDigits:2, maximumFractionDigits:2 });
-    return 'HK$ ' + num.toLocaleString('en-HK', { minimumFractionDigits:2, maximumFractionDigits:2 });
-  }
-  function getCategoryItems(name){
-    return getItems().filter(item => norm(item.category) === norm(name));
-  }
-  function getTotals(name){
-    const totals = { HKD:0, USD:0, JPY:0 };
-    getCategoryItems(name).forEach(item => {
-      const code = ((item.purchaseCurrency || 'HKD') + '').toUpperCase();
-      const num = Number(item.price || 0);
-      if (!Number.isFinite(num)) return;
-      if (!(code in totals)) totals[code] = 0;
-      totals[code] += num;
-    });
-    return totals;
-  }
-  function showSummary(){
-    const box = document.getElementById('categoryFilterSummary');
-    if (!box) return;
-
-    const pageCollection = document.getElementById('pageCollection');
-    if (pageCollection) {
-      const hidden = pageCollection.classList.contains('hidden') || !pageCollection.classList.contains('show');
-      if (hidden) {
-        box.classList.remove('is-visible');
-        box.classList.add('hidden');
-        return;
-      }
-    }
-
-    const category = readCategory();
-    if (!category) {
-      box.classList.remove('is-visible');
-      box.classList.add('hidden');
-      return;
-    }
-
-    const matched = getCategoryItems(category);
-    if (!matched.length) {
-      box.classList.remove('is-visible');
-      box.classList.add('hidden');
-      return;
-    }
-
-    const totals = getTotals(category);
-    const codes = ['HKD','USD','JPY'].filter(code => Math.abs(totals[code] || 0) > 0.00001);
-
-    document.getElementById('categoryFilterSummaryTitle').textContent = category;
-    document.getElementById('categoryFilterSummaryCount').textContent = matched.length + (matched.length === 1 ? ' item' : ' items');
-    document.getElementById('categoryFilterSummaryTotals').innerHTML = codes.map(code => `
-      <div class="rounded-xl border border-primary/10 bg-white/70 px-3 py-2">
-        <div class="text-[10px] uppercase tracking-[0.18em] text-slate-400">${code}</div>
-        <div class="mt-1 text-sm text-slate-800">${getMoney(totals[code], code)}</div>
-      </div>
-    `).join('');
-
-    box.classList.remove('hidden');
-    box.classList.add('is-visible');
-  }
-
-  document.addEventListener('click', function(e){
-    const clearBtn = e.target.closest('#categoryFilterSummaryClearBtn');
-    if (clearBtn) {
-      e.preventDefault();
-      clearCategory();
-      try {
-        if (typeof currentCategory !== 'undefined') currentCategory = '';
-      } catch(e){}
-      try {
-        if (typeof render === 'function') render();
-      } catch(e){}
-      setTimeout(showSummary, 0);
-      return;
-    }
-
-    const cardBtn = e.target.closest('[data-open-category]');
-    if (cardBtn) {
-      const titleEl = cardBtn.querySelector('h3');
-      const categoryName = titleEl ? (titleEl.textContent || '').trim() : '';
-      if (categoryName) saveCategory(categoryName);
-      setTimeout(showSummary, 0);
-      setTimeout(showSummary, 120);
-      return;
-    }
-
-    if (e.target.closest('#navCollection') || e.target.closest('#navWishlist') || e.target.closest('#navStats') || e.target.closest('#navProfile')) {
-      if (!e.target.closest('#navCollection')) clearCategory();
-      setTimeout(showSummary, 0);
-      return;
-    }
-
-    const chip = e.target.closest('#categoryChips button');
-    if (chip) {
-      const label = (chip.textContent || '').trim();
-      if (!label || /all|全部|すべて/i.test(label)) clearCategory();
-      setTimeout(showSummary, 0);
-      setTimeout(showSummary, 120);
-    }
-  }, true);
-
-  document.addEventListener('DOMContentLoaded', function(){
-    setTimeout(showSummary, 0);
-    setTimeout(showSummary, 120);
-    setTimeout(showSummary, 400);
-  });
-  window.addEventListener('load', function(){
-    setTimeout(showSummary, 0);
-    setTimeout(showSummary, 120);
-  });
-  window.addEventListener('pageshow', function(){
-    setTimeout(showSummary, 0);
-  });
-
-  try {
-    const originalRender = window.render;
-    if (typeof originalRender === 'function' && !originalRender.__kuraSummaryWrapped) {
-      window.render = function(...args){
-        const result = originalRender.apply(this, args);
-        try {
-          setTimeout(showSummary, 0);
-          setTimeout(showSummary, 120);
-        } catch(e){}
-        return result;
-      };
-      window.render.__kuraSummaryWrapped = true;
-    }
-  } catch(e){}
-
-  window.updateCategoryFilterSummary = showSummary;
 })();
 </script>
 
