@@ -735,6 +735,12 @@ details[open] input[type="text"]#seriesLogoUrl{
 #saveSeriesLibGlobalBtn.hidden{display:none !important;}
 </style>
 
+
+<style>
+/* Logo scope popup v4 */
+#logoScopeModal.show{ display:flex !important; }
+</style>
+
 </head>
 
 <!-- Kura Archive Stable Release Travel Final -->
@@ -978,9 +984,8 @@ details[open] input[type="text"]#seriesLogoUrl{
   <div class="mt-3">
     <input accept="image/*" class="kv-input w-full rounded-xl border border-primary/10 bg-background-light/80 px-4 py-3 text-sm file:mr-3 file:rounded-lg file:border-0 file:bg-primary file:px-3 file:py-2 file:text-sm file:font-semibold file:text-white" id="brandLogoFile" type="file"/>
   </div>
-  <div class="mt-3 grid grid-cols-1 gap-2 sm:grid-cols-2">
-    <button class="w-full rounded-xl bg-primary px-4 py-3 text-sm font-bold text-white" id="saveBrandLibBtn" type="button">加入 Logo (My)</button>
-    <button class="hidden w-full rounded-xl bg-black/5 px-4 py-3 text-sm font-bold text-slate-700" id="saveBrandLibGlobalBtn" type="button">加入 Logo (Global)</button>
+  <div class="mt-3">
+    <button class="w-full rounded-xl bg-primary px-4 py-3 text-sm font-bold text-white" id="openBrandScopeModalBtn" type="button">加入 Logo</button>
   </div>
 </div>
 </div>
@@ -1018,9 +1023,8 @@ details[open] input[type="text"]#seriesLogoUrl{
   <div class="mt-3">
     <input accept="image/*" class="kv-input w-full rounded-xl border border-primary/10 bg-background-light/80 px-4 py-3 text-sm file:mr-3 file:rounded-lg file:border-0 file:bg-primary file:px-3 file:py-2 file:text-sm file:font-semibold file:text-white" id="seriesLogoFile" type="file"/>
   </div>
-  <div class="mt-3 grid grid-cols-1 gap-2 sm:grid-cols-2">
-    <button class="w-full rounded-xl bg-primary px-4 py-3 text-sm font-bold text-white" id="saveSeriesLibBtn" type="button">加入 Logo (My)</button>
-    <button class="hidden w-full rounded-xl bg-black/5 px-4 py-3 text-sm font-bold text-slate-700" id="saveSeriesLibGlobalBtn" type="button">加入 Logo (Global)</button>
+  <div class="mt-3">
+    <button class="w-full rounded-xl bg-primary px-4 py-3 text-sm font-bold text-white" id="openSeriesScopeModalBtn" type="button">加入 Logo</button>
   </div>
 </div>
 </div>
@@ -7183,27 +7187,120 @@ html[data-typography] :is(h1,h2,h3,h4,h5,h6,.page-title,.section-title,.header-t
 </script>
 
 
+<div class="fixed inset-0 z-[95] hidden items-end justify-center bg-black/45 p-4 md:items-center" id="logoScopeModal">
+  <div class="w-full max-w-sm rounded-[28px] border border-primary/10 bg-[var(--bg)] shadow-2xl">
+    <div class="flex items-center justify-between border-b border-primary/10 px-5 py-4">
+      <div>
+        <div class="text-[10px] uppercase tracking-[0.18em] text-slate-400">Logo Scope</div>
+        <div class="mt-1 text-base text-slate-900" id="logoScopeModalTitle">加入 Logo</div>
+      </div>
+      <button class="rounded-xl border border-primary/10 bg-white/70 px-3 py-2 text-xs text-slate-600" id="closeLogoScopeModalBtn" type="button">Close</button>
+    </div>
+    <div class="px-5 py-4">
+      <div class="grid grid-cols-1 gap-2" id="logoScopeModalActions">
+        <button class="rounded-xl bg-primary px-4 py-3 text-sm font-bold text-white" id="logoScopeMyBtn" type="button">加入 Logo (My)</button>
+        <button class="hidden rounded-xl bg-black/5 px-4 py-3 text-sm font-bold text-slate-700" id="logoScopeGlobalBtn" type="button">加入 Logo (Global)</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+
 <script>
-/* Logo admin visibility v3 minimal safe */
+/* Logo scope popup v4 */
 (function(){
+  let currentLogoKind = null;
+
+  function openLogoScopeModal(kind){
+    currentLogoKind = kind;
+    const modal = document.getElementById('logoScopeModal');
+    const title = document.getElementById('logoScopeModalTitle');
+    const globalBtn = document.getElementById('logoScopeGlobalBtn');
+    if (!modal || !title || !globalBtn) return;
+    title.textContent = kind === 'brand' ? '加入 Brand Logo' : '加入 Series Logo';
+    globalBtn.classList.toggle('hidden', !window.__kuraAdminLogoFlag);
+    modal.classList.add('show');
+  }
+
+  function closeLogoScopeModal(){
+    const modal = document.getElementById('logoScopeModal');
+    if (modal) modal.classList.remove('show');
+    currentLogoKind = null;
+  }
+
   async function refreshLogoAdminVisibility(){
     let isAdmin = false;
     try { isAdmin = typeof currentUserIsAdmin === 'function' ? await currentUserIsAdmin() : false; }
     catch(e){ isAdmin = false; }
     window.__kuraAdminLogoFlag = isAdmin;
-    document.querySelectorAll('#saveBrandLibGlobalBtn, #saveSeriesLibGlobalBtn').forEach(btn => {
-      btn.classList.toggle('hidden', !isAdmin);
-    });
-    try { if (typeof renderLogoManagers === 'function') renderLogoManagers(); } catch(e){}
+  }
+
+  function bindLogoScopePopup(){
+    const brandOpen = document.getElementById('openBrandScopeModalBtn');
+    const seriesOpen = document.getElementById('openSeriesScopeModalBtn');
+    const closeBtn = document.getElementById('closeLogoScopeModalBtn');
+    const myBtn = document.getElementById('logoScopeMyBtn');
+    const globalBtn = document.getElementById('logoScopeGlobalBtn');
+    const modal = document.getElementById('logoScopeModal');
+
+    if (brandOpen && !brandOpen.dataset.scopePopupBound) {
+      brandOpen.dataset.scopePopupBound = '1';
+      brandOpen.addEventListener('click', function(e){
+        e.preventDefault();
+        openLogoScopeModal('brand');
+      });
+    }
+    if (seriesOpen && !seriesOpen.dataset.scopePopupBound) {
+      seriesOpen.dataset.scopePopupBound = '1';
+      seriesOpen.addEventListener('click', function(e){
+        e.preventDefault();
+        openLogoScopeModal('series');
+      });
+    }
+    if (closeBtn && !closeBtn.dataset.scopePopupBound) {
+      closeBtn.dataset.scopePopupBound = '1';
+      closeBtn.addEventListener('click', function(e){
+        e.preventDefault();
+        closeLogoScopeModal();
+      });
+    }
+    if (modal && !modal.dataset.scopePopupBound) {
+      modal.dataset.scopePopupBound = '1';
+      modal.addEventListener('click', function(e){
+        if (e.target === modal) closeLogoScopeModal();
+      });
+    }
+    if (myBtn && !myBtn.dataset.scopePopupBound) {
+      myBtn.dataset.scopePopupBound = '1';
+      myBtn.addEventListener('click', function(e){
+        e.preventDefault();
+        if (!currentLogoKind) return;
+        if (currentLogoKind === 'brand' && typeof addBrandLibrary === 'function') addBrandLibrary('my');
+        if (currentLogoKind === 'series' && typeof addSeriesLibrary === 'function') addSeriesLibrary('my');
+        closeLogoScopeModal();
+      });
+    }
+    if (globalBtn && !globalBtn.dataset.scopePopupBound) {
+      globalBtn.dataset.scopePopupBound = '1';
+      globalBtn.addEventListener('click', function(e){
+        e.preventDefault();
+        if (!currentLogoKind) return;
+        if (currentLogoKind === 'brand' && typeof addBrandLibrary === 'function') addBrandLibrary('global');
+        if (currentLogoKind === 'series' && typeof addSeriesLibrary === 'function') addSeriesLibrary('global');
+        closeLogoScopeModal();
+      });
+    }
   }
 
   document.addEventListener('DOMContentLoaded', function(){
     setTimeout(refreshLogoAdminVisibility, 0);
-    setTimeout(refreshLogoAdminVisibility, 200);
+    setTimeout(bindLogoScopePopup, 0);
+    setTimeout(bindLogoScopePopup, 150);
   });
   window.addEventListener('load', function(){
     setTimeout(refreshLogoAdminVisibility, 0);
-    setTimeout(refreshLogoAdminVisibility, 200);
+    setTimeout(bindLogoScopePopup, 0);
+    setTimeout(bindLogoScopePopup, 150);
   });
   window.addEventListener('pageshow', function(){
     setTimeout(refreshLogoAdminVisibility, 0);
