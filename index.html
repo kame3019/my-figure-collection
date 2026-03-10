@@ -607,6 +607,37 @@ html[data-typography="ja"] h6 {
 #categoryFilterSummary .text-sm,
 #categoryFilterSummary .text-base{font-weight:400!important}
 </style>
+
+<script>
+/* Early typography stabilization */
+(function(){
+  try {
+    document.documentElement.style.setProperty('--kura-font-weight-title', '400');
+    document.documentElement.style.setProperty('--kura-font-weight-body', '400');
+    document.documentElement.classList.add('kura-typo-stable');
+  } catch(e){}
+})();
+</script>
+<style>
+/* Final stable release: prevent first-refresh bold flash */
+html.kura-typo-stable body,
+html.kura-typo-stable button,
+html.kura-typo-stable input,
+html.kura-typo-stable select,
+html.kura-typo-stable textarea,
+html.kura-typo-stable h1,
+html.kura-typo-stable h2,
+html.kura-typo-stable h3,
+html.kura-typo-stable h4,
+html.kura-typo-stable h5,
+html.kura-typo-stable h6,
+html.kura-typo-stable .font-bold,
+html.kura-typo-stable .font-semibold,
+html.kura-typo-stable .font-medium {
+  font-weight: 400 !important;
+}
+</style>
+
 </head>
 <body class="bg-background-light font-display text-slate-900 washi-texture">
 <script>
@@ -6024,6 +6055,33 @@ html[data-typography] :is(h1,h2,h3,h4,h5,h6,.page-title,.section-title,.header-t
   }
 
   window.updateCategoryCardCounts = updateCategoryCardCounts;
+})();
+</script>
+
+
+<script>
+/* Final stable release typography safety */
+(function(){
+  function stabilizeTypography(){
+    try {
+      document.documentElement.classList.add('kura-typo-stable');
+      document.querySelectorAll('.font-bold, .font-semibold, .font-medium').forEach(function(el){
+        el.style.fontWeight = '400';
+      });
+    } catch(e){}
+  }
+  document.addEventListener('DOMContentLoaded', function(){
+    stabilizeTypography();
+    setTimeout(stabilizeTypography, 0);
+    setTimeout(stabilizeTypography, 120);
+  });
+  window.addEventListener('load', function(){
+    stabilizeTypography();
+    setTimeout(stabilizeTypography, 120);
+  });
+  window.addEventListener('pageshow', function(){
+    stabilizeTypography();
+  });
 })();
 </script>
 
