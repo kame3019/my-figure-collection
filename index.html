@@ -749,6 +749,7 @@ details[open] input[type="text"]#seriesLogoUrl{
 <!-- Login-session-only auth persistence -->
 <!-- Category refresh fix after login -->
 <!-- Login popup first-click fix + category known-fixed merge -->
+<!-- Fixed category initial ON sync patch -->
 <body class="bg-background-light font-display text-slate-900 washi-texture">
 <script>
 (function(){
@@ -4839,6 +4840,7 @@ function syncMuseumModeLabel(){
       const pubSnap = await api.getDoc(api.doc(api.db,'appConfig','public'));
       if(pubSnap.exists() && Array.isArray(pubSnap.data().fixedCategories) && pubSnap.data().fixedCategories.length){
         fixedCategories = pubSnap.data().fixedCategories.map((cat,i)=>ensureCategoryShape({...cat, sortOrder: cat.sortOrder ?? i},'fixed'));
+        enabledFixedCategoryIds = fixedCategories.filter(c => c.isActive !== false).map(c => c.id);
       }
       const user = api.auth?.currentUser;
       if(user){
