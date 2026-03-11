@@ -718,7 +718,6 @@ details[open] input[type="text"]#seriesLogoUrl{
 }
 </style>
 
-
 <style>
 /* Rebuilt fixes: TRAVEL filter + Global/My */
 #travelGroupFilterWrap.hidden{display:none!important}
@@ -728,20 +727,12 @@ details[open] input[type="text"]#seriesLogoUrl{
 }
 </style>
 
-
-<style>
-/* Admin Global popup fix from v3_rebuilt_v2 */
-#logoAddScopeModal.show{ display:flex !important; }
-</style>
-
-
 <style>
 /* Admin Global popup fix v2 */
 #logoScopeModal.show{ display:flex !important; }
 #brandLogoScopeWrap,
 #seriesLogoScopeWrap{ display:none !important; }
 </style>
-
 
 <style>
 /* Admin Global popup fix v4 */
@@ -753,9 +744,9 @@ details[open] input[type="text"]#seriesLogoUrl{
 
 </head>
 
-<!-- Kura Archive Stable Release Travel Final -->
+<!-- Kura Archive Super Stable Clean Release -->
 
-<!-- Detail exact-key fix v8 -->
+<!-- Session auth persistence enabled -->
 <body class="bg-background-light font-display text-slate-900 washi-texture">
 <script>
 (function(){
@@ -2921,7 +2912,9 @@ function syncMuseumModeLabel(){
         GoogleAuthProvider,
         signInWithPopup,
         onAuthStateChanged,
-        signOut
+        signOut,
+        setPersistence,
+        browserSessionPersistence
       } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-auth.js";
       import {
         getFirestore,
@@ -2946,6 +2939,11 @@ function syncMuseumModeLabel(){
 
       const app = initializeApp(firebaseConfig);
       const auth = getAuth(app);
+      try {
+        await setPersistence(auth, browserSessionPersistence);
+      } catch (err) {
+        console.warn("Auth persistence setup failed:", err);
+      }
       const db = getFirestore(app);
       const provider = new GoogleAuthProvider();
       const ai = getAI(app, { backend: new GoogleAIBackend() });
@@ -6855,7 +6853,6 @@ html[data-typography] :is(h1,h2,h3,h4,h5,h6,.page-title,.section-title,.header-t
 })();
 </script>
 
-
 <script>
 /* Rebuilt fixes: TRAVEL filter + Global/My */
 (function(){
@@ -7082,129 +7079,6 @@ html[data-typography] :is(h1,h2,h3,h4,h5,h6,.page-title,.section-title,.header-t
 })();
 </script>
 
-
-<div class="fixed inset-0 z-[96] hidden items-end justify-center bg-black/45 p-4 md:items-center" id="logoAddScopeModal">
-  <div class="w-full max-w-sm rounded-[28px] border border-primary/10 bg-[var(--bg)] shadow-2xl">
-    <div class="flex items-center justify-between border-b border-primary/10 px-5 py-4">
-      <div>
-        <div class="text-[10px] uppercase tracking-[0.18em] text-slate-400">Logo Scope</div>
-        <div class="mt-1 text-base text-slate-900" id="logoAddScopeModalTitle">加入 Logo</div>
-      </div>
-      <button class="rounded-xl border border-primary/10 bg-white/70 px-3 py-2 text-xs text-slate-600" id="closeLogoAddScopeModalBtn" type="button">Close</button>
-    </div>
-    <div class="px-5 py-4">
-      <div class="grid grid-cols-1 gap-2">
-        <button class="rounded-xl bg-primary px-4 py-3 text-sm font-bold text-white" id="logoAddMyBtn" type="button">加入 Logo (My)</button>
-        <button class="hidden rounded-xl bg-black/5 px-4 py-3 text-sm font-bold text-slate-700" id="logoAddGlobalBtn" type="button">加入 Logo (Global)</button>
-      </div>
-    </div>
-  </div>
-</div>
-
-
-<script>
-/* Admin Global popup fix from v3_rebuilt_v2 */
-(function(){
-  let currentLogoKind = null;
-
-  async function resolveAdminPopupFlag(retries = 8, delay = 250){
-    for (let i = 0; i < retries; i++) {
-      try {
-        const uid = window.kuraFirebase?.auth?.currentUser?.uid || "";
-        const ok = typeof currentUserIsAdmin === 'function' ? await currentUserIsAdmin() : false;
-        if (ok) {
-          window.__kuraAdminLogoPopupFlag = true;
-          return true;
-        }
-        if (uid) {
-          window.__kuraAdminLogoPopupFlag = false;
-          return false;
-        }
-      } catch(e){}
-      await new Promise(r => setTimeout(r, delay));
-    }
-    window.__kuraAdminLogoPopupFlag = false;
-    return false;
-  }
-
-  async function openLogoAddScopePopup(kind){
-    currentLogoKind = kind;
-    const modal = document.getElementById('logoAddScopeModal');
-    const title = document.getElementById('logoAddScopeModalTitle');
-    const globalBtn = document.getElementById('logoAddGlobalBtn');
-    if (!modal || !title || !globalBtn) return;
-    title.textContent = kind === 'brand' ? '加入 Brand Logo' : '加入 Series Logo';
-    const isAdmin = await resolveAdminPopupFlag();
-    globalBtn.classList.toggle('hidden', !isAdmin);
-    modal.classList.add('show');
-  }
-
-  function closeLogoAddScopeModal(){
-    const modal = document.getElementById('logoAddScopeModal');
-    if (modal) modal.classList.remove('show');
-    currentLogoKind = null;
-  }
-
-  function bindLogoAddScopePopup(){
-    const closeBtn = document.getElementById('closeLogoAddScopeModalBtn');
-    const myBtn = document.getElementById('logoAddMyBtn');
-    const globalBtn = document.getElementById('logoAddGlobalBtn');
-    const modal = document.getElementById('logoAddScopeModal');
-
-    if (closeBtn && !closeBtn.dataset.boundLogoAddScope) {
-      closeBtn.dataset.boundLogoAddScope = '1';
-      closeBtn.addEventListener('click', function(e){
-        e.preventDefault();
-        closeLogoAddScopeModal();
-      });
-    }
-    if (modal && !modal.dataset.boundLogoAddScope) {
-      modal.dataset.boundLogoAddScope = '1';
-      modal.addEventListener('click', function(e){
-        if (e.target === modal) closeLogoAddScopeModal();
-      });
-    }
-    if (myBtn && !myBtn.dataset.boundLogoAddScope) {
-      myBtn.dataset.boundLogoAddScope = '1';
-      myBtn.addEventListener('click', function(e){
-        e.preventDefault();
-        if (!currentLogoKind) return;
-        if (currentLogoKind === 'brand') addBrandLibrary('my');
-        if (currentLogoKind === 'series') addSeriesLibrary('my');
-        closeLogoAddScopeModal();
-      });
-    }
-    if (globalBtn && !globalBtn.dataset.boundLogoAddScope) {
-      globalBtn.dataset.boundLogoAddScope = '1';
-      globalBtn.addEventListener('click', function(e){
-        e.preventDefault();
-        if (!currentLogoKind) return;
-        if (currentLogoKind === 'brand') addBrandLibrary('global');
-        if (currentLogoKind === 'series') addSeriesLibrary('global');
-        closeLogoAddScopeModal();
-      });
-    }
-  }
-
-  document.addEventListener('DOMContentLoaded', function(){
-    setTimeout(bindLogoAddScopePopup, 0);
-    setTimeout(bindLogoAddScopePopup, 120);
-    setTimeout(resolveAdminPopupFlag, 300);
-  });
-  window.addEventListener('load', function(){
-    setTimeout(bindLogoAddScopePopup, 0);
-    setTimeout(bindLogoAddScopePopup, 120);
-    setTimeout(resolveAdminPopupFlag, 300);
-  });
-  window.addEventListener('pageshow', function(){
-    setTimeout(resolveAdminPopupFlag, 150);
-  });
-
-  window.openLogoAddScopePopup = openLogoAddScopePopup;
-})();
-</script>
-
-
 <div class="fixed inset-0 z-[95] hidden items-end justify-center bg-black/45 p-4 md:items-center" id="logoScopeModal">
   <div class="w-full max-w-sm rounded-[28px] border border-primary/10 bg-[var(--bg)] shadow-2xl">
     <div class="flex items-center justify-between border-b border-primary/10 px-5 py-4">
@@ -7222,12 +7096,6 @@ html[data-typography] :is(h1,h2,h3,h4,h5,h6,.page-title,.section-title,.header-t
     </div>
   </div>
 </div>
-
-
-
-
-
-
 
 <script>
 /* Admin Global popup fix v7 instant refresh */
