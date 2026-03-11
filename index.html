@@ -747,7 +747,7 @@ details[open] input[type="text"]#seriesLogoUrl{
 <!-- Kura Archive Super Stable Clean Release -->
 
 <!-- Session auth persistence enabled -->
-<!-- Logo manager safety patch only -->
+<!-- Logo manager safety patch only on session_auth base -->
 <body class="bg-background-light font-display text-slate-900 washi-texture">
 <script>
 (function(){
@@ -2390,12 +2390,12 @@ function renderOverviewCards() {
                 .replaceAll('"', "&quot;")
                 .replaceAll("'", "&#39;");
             const safeLogoUrl = (value = "") => {
-                const s = String(value || "").trim();
-                if (!s) return "";
-                if (s.startsWith("https://")) return s;
-                if (s.startsWith("data:image/")) return s;
-                if (s.startsWith("blob:")) return s;
-                return "";
+              const s = String(value || "").trim();
+              if (!s) return "";
+              if (s.startsWith("https://")) return s;
+              if (s.startsWith("data:image/")) return s;
+              if (s.startsWith("blob:")) return s;
+              return "";
             };
             const canDelete = (item) => {
               const scope = (item.scope || "global").toLowerCase();
