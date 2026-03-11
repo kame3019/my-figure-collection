@@ -742,6 +742,7 @@ details[open] input[type="text"]#seriesLogoUrl{
 }
 </style>
 
+<style>#profileGuestPanels{display:none;}</style>
 </head>
 
 <!-- Kura Archive Super Stable Clean Release -->
@@ -752,7 +753,7 @@ details[open] input[type="text"]#seriesLogoUrl{
 <!-- Fixed category initial ON sync patch -->
 <!-- Guest auth panel hide fix after login -->
 <!-- Guest panels profile-only visibility fix -->
-<!-- Formal App Check build -->
+<!-- Reviewed safe bundle v6 -->
 <body class="bg-background-light font-display text-slate-900 washi-texture">
 <script>
 (function(){
@@ -2933,7 +2934,6 @@ function syncMuseumModeLabel(){
         deleteDoc
       } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-firestore.js";
       import { getAI, getGenerativeModel, GoogleAIBackend, Schema } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-ai.js";
-      import { initializeAppCheck, ReCaptchaV3Provider } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-app-check.js";
 
       const firebaseConfig = {
         apiKey: "AIzaSyBcfXAKbsysChltrsepGlYSsBhp5NRpQrg",
@@ -2946,13 +2946,6 @@ function syncMuseumModeLabel(){
       };
 
       const app = initializeApp(firebaseConfig);
-
-      // Formal App Check build (reCAPTCHA v3, monitoring only; do not enforce yet)
-      const appCheck = initializeAppCheck(app, {
-        provider: new ReCaptchaV3Provider("6LepQIcsAAAAALFvBPtZDo0RVOoHKS2ceO42_mXe"),
-        isTokenAutoRefreshEnabled: true
-      });
-
       const auth = getAuth(app);
       const db = getFirestore(app);
       const provider = new GoogleAuthProvider();
@@ -2977,7 +2970,6 @@ function syncMuseumModeLabel(){
       });
 
       window.kuraAI = { ai, autoFillModel };
-      window.kuraAppCheck = { appCheck };
 
       window.kuraFirebase = {
         auth,
@@ -3071,6 +3063,8 @@ function syncMuseumModeLabel(){
       }
 
       async function handleGoogleLogin() {
+        if (window.__kuraGoogleLoginBusy) return;
+        window.__kuraGoogleLoginBusy = true;
         try {
           const result = await signInWithPopup(auth, provider);
           try {
@@ -3078,13 +3072,21 @@ function syncMuseumModeLabel(){
           } catch (persistErr) {
             console.warn("Auth session persistence setup failed:", persistErr);
           }
+          try {
+            fakeUser = null;
+            if (typeof saveFakeUser === "function") saveFakeUser();
+          } catch (e) {}
           await upsertUserProfile(result.user);
           if (typeof window.loadCategories === "function") await window.loadCategories();
           if (typeof window.renderCategoryPage === "function") window.renderCategoryPage();
+          if (typeof window.renderProfilePage === "function") window.renderProfilePage();
+          setTimeout(() => { try { window.loadCategories?.().then?.(() => window.renderCategoryPage?.()); } catch(e){} }, 260);
           alert("Google 登入成功");
         } catch (err) {
           console.error(err);
           alert(err.message || "Google 登入失敗");
+        } finally {
+          window.__kuraGoogleLoginBusy = false;
         }
       }
 
@@ -3348,6 +3350,7 @@ function syncMuseumModeLabel(){
             { ...savedItem },
             { merge: true }
           );
+          try { if (typeof save === "function") save(); } catch (e) {}
           if (typeof window.renderProfilePage === "function") window.renderProfilePage();
         };
 
@@ -7389,6 +7392,70 @@ html[data-typography] :is(h1,h2,h3,h4,h5,h6,.page-title,.section-title,.header-t
     setTimeout(bindPopup, 120);
     setTimeout(bindPopup, 400);
   });
+})();
+</script>
+
+
+<script>
+(function(){
+  const PAGE_KEY = 'kura_last_page_id';
+  const NAV_KEY = 'kura_last_nav_key';
+  const VIEW_KEY = 'kura_last_view_key';
+
+  const oldShowPage = window.showPage;
+  if (typeof oldShowPage === 'function') {
+    window.showPage = function(id){
+      try { sessionStorage.setItem(PAGE_KEY, id); } catch(e) {}
+      return oldShowPage.apply(this, arguments);
+    };
+  }
+
+  const oldSetActiveNav = window.setActiveNav;
+  if (typeof oldSetActiveNav === 'function') {
+    window.setActiveNav = function(key){
+      try {
+        sessionStorage.setItem(NAV_KEY, key);
+        if (typeof view !== 'undefined') sessionStorage.setItem(VIEW_KEY, view);
+      } catch(e) {}
+      return oldSetActiveNav.apply(this, arguments);
+    };
+  }
+
+  async function restoreLastPage(){
+    let page = null, nav = null, savedView = null;
+    try {
+      page = sessionStorage.getItem(PAGE_KEY);
+      nav = sessionStorage.getItem(NAV_KEY);
+      savedView = sessionStorage.getItem(VIEW_KEY);
+    } catch(e) {}
+
+    if (!page) return;
+
+    try {
+      if (savedView && typeof view !== 'undefined') view = savedView;
+    } catch(e) {}
+
+    try {
+      if (typeof window.showPage === 'function') window.showPage(page);
+      if (nav && typeof window.setActiveNav === 'function') window.setActiveNav(nav);
+
+      if (page === 'pageCollection' && typeof window.render === 'function') window.render();
+      if (page === 'pageCategory' && typeof window.loadCategories === 'function') {
+        await window.loadCategories();
+        window.renderCategoryPage?.();
+      }
+      if (page === 'pageProfile') {
+        window.renderProfilePage?.();
+        setTimeout(() => window.refreshAdminPanel?.(), 80);
+      }
+      if (page === 'pageStats') window.renderStats?.();
+    } catch(e) {
+      console.error('restoreLastPage failed', e);
+    }
+  }
+
+  window.__kuraRestoreLastPage = restoreLastPage;
+  window.addEventListener('load', () => { setTimeout(restoreLastPage, 120); });
 })();
 </script>
 
