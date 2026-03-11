@@ -746,9 +746,8 @@ details[open] input[type="text"]#seriesLogoUrl{
 
 <!-- Kura Archive Super Stable Clean Release -->
 
-<!-- Auth-ready + admin logos patch -->
-<!-- Real Google login hydration patch -->
-<!-- Mobile Google login uses redirect -->
+<!-- Login-session-only auth persistence -->
+<!-- Category refresh fix after login -->
 <body class="bg-background-light font-display text-slate-900 washi-texture">
 <script>
 (function(){
@@ -2913,8 +2912,6 @@ function syncMuseumModeLabel(){
         getAuth,
         GoogleAuthProvider,
         signInWithPopup,
-        signInWithRedirect,
-        getRedirectResult,
         onAuthStateChanged,
         signOut,
         setPersistence,
@@ -2926,7 +2923,6 @@ function syncMuseumModeLabel(){
         setDoc,
         getDoc,
         collection,
-        collectionGroup,
         getDocs,
         deleteDoc
       } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-firestore.js";
@@ -2976,7 +2972,6 @@ function syncMuseumModeLabel(){
         setDoc,
         getDoc,
         collection,
-        collectionGroup,
         getDocs,
         deleteDoc,
         signOut
@@ -3060,69 +3055,16 @@ function syncMuseumModeLabel(){
         if (typeof window.renderProfilePage === "function") window.renderProfilePage();
       }
 
-      function wasRecentlyHydrated(uid) {
-        return window.__kuraLastHydratedUid === uid && (Date.now() - (window.__kuraLastHydratedAt || 0) < 3000);
-      }
-
-      async function hydrateSignedInUser(user, showSuccess = false) {
-        if (!user?.uid) return;
-        window.__kuraLastHydratedUid = user.uid;
-        window.__kuraLastHydratedAt = Date.now();
-
-        try {
-          fakeUser = null;
-          if (typeof saveFakeUser === "function") saveFakeUser();
-        } catch (e) {}
-
-        await upsertUserProfile(user);
-        await maybeMigrateLocalItems(user.uid);
-        await loadItemsFromCloud(user.uid);
-        if (typeof window.loadCategories === "function") await window.loadCategories();
-        if (typeof window.loadMergedLibraries === "function") await window.loadMergedLibraries();
-        if (typeof window.renderProfilePage === "function") window.renderProfilePage();
-        if (typeof window.renderCategoryPage === "function") window.renderCategoryPage();
-        if (typeof window.refreshAdminPanel === "function") {
-          setTimeout(() => window.refreshAdminPanel(), 50);
-          setTimeout(() => window.refreshAdminPanel(), 220);
-        }
-
-        if (showSuccess) alert("Google 登入成功");
-      }
-
-      function shouldUseRedirectLogin() {
-        try {
-          const ua = navigator.userAgent || "";
-          const touch = navigator.maxTouchPoints || 0;
-          return /Android|iPhone|iPad|iPod|Mobile/i.test(ua) || touch > 1;
-        } catch (err) {
-          return false;
-        }
-      }
-
       async function handleGoogleLogin() {
         try {
           await setPersistence(auth, browserSessionPersistence);
-
-          if (shouldUseRedirectLogin()) {
-            await signInWithRedirect(auth, provider);
-            return;
-          }
-
           const result = await signInWithPopup(auth, provider);
-          await hydrateSignedInUser(result.user, true);
+          await upsertUserProfile(result.user);
+          if (typeof window.loadCategories === "function") await window.loadCategories();
+          if (typeof window.renderCategoryPage === "function") window.renderCategoryPage();
+          alert("Google 登入成功");
         } catch (err) {
           console.error(err);
-          if (err?.code === "auth/popup-blocked") {
-            try {
-              await setPersistence(auth, browserSessionPersistence);
-              await signInWithRedirect(auth, provider);
-              return;
-            } catch (redirectErr) {
-              console.error(redirectErr);
-              alert(redirectErr.message || "Google 登入失敗");
-              return;
-            }
-          }
           alert(err.message || "Google 登入失敗");
         }
       }
@@ -3155,12 +3097,11 @@ function syncMuseumModeLabel(){
         bindButtons();
         if (user) {
           try {
-            if (!wasRecentlyHydrated(user.uid)) {
-              await hydrateSignedInUser(user, false);
-            } else {
-              if (typeof window.renderProfilePage === "function") window.renderProfilePage();
-              if (typeof window.renderCategoryPage === "function") window.renderCategoryPage();
-            }
+            await upsertUserProfile(user);
+            await maybeMigrateLocalItems(user.uid);
+            await loadItemsFromCloud(user.uid);
+            if (typeof window.loadCategories === "function") await window.loadCategories();
+            if (typeof window.renderCategoryPage === "function") window.renderCategoryPage();
           } catch (err) {
             console.error(err);
           }
@@ -3168,12 +3109,11 @@ function syncMuseumModeLabel(){
           window.__kuraState.setItems([]);
           if (typeof window.render === "function") window.render();
           if (typeof window.loadCategories === "function") await window.loadCategories();
-          if (typeof window.loadMergedLibraries === "function") await window.loadMergedLibraries();
           if (typeof window.renderCategoryPage === "function") window.renderCategoryPage();
           if (typeof window.renderProfilePage === "function") window.renderProfilePage();
         }
         setTimeout(() => window.refreshAdminPanel?.(), 50);
-        setTimeout(() => window.refreshAdminPanel?.(), 220);
+        setTimeout(() => { try { window.loadCategories?.().then?.(()=>window.renderCategoryPage?.()); } catch(e){} }, 220);
       });
 
       if (document.readyState === "loading") {
@@ -3181,19 +3121,6 @@ function syncMuseumModeLabel(){
       } else {
         bindButtons();
       }
-
-      getRedirectResult(auth).then(async (result) => {
-        if (result?.user) {
-          try {
-            await hydrateSignedInUser(result.user, true);
-          } catch (err) {
-            console.error(err);
-          }
-        }
-      }).catch((err) => {
-        console.error("Redirect login failed:", err);
-      });
-
     </script>
 <script>
     (function () {
@@ -3549,51 +3476,25 @@ function syncMuseumModeLabel(){
     if (!api) return;
 
     try {
-      const admin = await isAdmin();
-
       const jobs = [
         api.getDocs(api.collection(api.db, "appConfig", "public", "brandLogos")),
         api.getDocs(api.collection(api.db, "appConfig", "public", "seriesLogos"))
       ];
 
-      if (admin) {
-        jobs.push(api.getDocs(api.collectionGroup(api.db, "brandLogos")));
-        jobs.push(api.getDocs(api.collectionGroup(api.db, "seriesLogos")));
-      } else if (uid) {
+      if (uid) {
         jobs.push(api.getDocs(api.collection(api.db, "users", uid, "brandLogos")));
         jobs.push(api.getDocs(api.collection(api.db, "users", uid, "seriesLogos")));
       }
 
       const res = await Promise.all(jobs);
 
-      const globalBrand = res[0].docs.map(d => normalizeLogo(d, "global", "brand"))
-        .filter(item => item._path?.startsWith("appConfig/public/brandLogos/"));
-      const globalSeries = res[1].docs.map(d => normalizeLogo(d, "global", "series"))
-        .filter(item => item._path?.startsWith("appConfig/public/seriesLogos/"));
+      const globalBrand = res[0].docs.map(d => normalizeLogo(d, "global", "brand"));
+      const globalSeries = res[1].docs.map(d => normalizeLogo(d, "global", "series"));
+      const myBrand = uid ? res[2].docs.map(d => normalizeLogo(d, "personal", "brand")) : [];
+      const mySeries = uid ? res[3].docs.map(d => normalizeLogo(d, "personal", "series")) : [];
 
-      let mergedBrand = [...globalBrand];
-      let mergedSeries = [...globalSeries];
-
-      if (admin) {
-        const allBrand = (res[2]?.docs || []).map(d => normalizeLogo(d, null, "brand"))
-          .filter(item => item._path?.startsWith("users/") || item._path?.startsWith("appConfig/public/brandLogos/"));
-        const allSeries = (res[3]?.docs || []).map(d => normalizeLogo(d, null, "series"))
-          .filter(item => item._path?.startsWith("users/") || item._path?.startsWith("appConfig/public/seriesLogos/"));
-
-        const personalBrand = allBrand.filter(item => (item.scope || "").toLowerCase() === "personal");
-        const personalSeries = allSeries.filter(item => (item.scope || "").toLowerCase() === "personal");
-
-        mergedBrand = [...globalBrand, ...personalBrand];
-        mergedSeries = [...globalSeries, ...personalSeries];
-      } else if (uid) {
-        const myBrand = (res[2]?.docs || []).map(d => normalizeLogo(d, "personal", "brand"));
-        const mySeries = (res[3]?.docs || []).map(d => normalizeLogo(d, "personal", "series"));
-        mergedBrand = [...globalBrand, ...myBrand];
-        mergedSeries = [...globalSeries, ...mySeries];
-      }
-
-      setBrandLibrary(mergedBrand.sort((a, b) => (a.name || "").localeCompare(b.name || "")));
-      setSeriesLibrary(mergedSeries.sort((a, b) => (a.name || "").localeCompare(b.name || "")));
+      setBrandLibrary([...globalBrand, ...myBrand].sort((a, b) => (a.name || "").localeCompare(b.name || "")));
+      setSeriesLibrary([...globalSeries, ...mySeries].sort((a, b) => (a.name || "").localeCompare(b.name || "")));
 
       if (typeof renderPresetPickers === "function") renderPresetPickers();
       renderLogoManagersPatched();
