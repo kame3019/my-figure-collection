@@ -748,6 +748,7 @@ details[open] input[type="text"]#seriesLogoUrl{
 
 <!-- Auth-ready + admin logos patch -->
 <!-- Real Google login hydration patch -->
+<!-- Mobile Google login uses redirect -->
 <body class="bg-background-light font-display text-slate-900 washi-texture">
 <script>
 (function(){
@@ -3088,9 +3089,25 @@ function syncMuseumModeLabel(){
         if (showSuccess) alert("Google 登入成功");
       }
 
+      function shouldUseRedirectLogin() {
+        try {
+          const ua = navigator.userAgent || "";
+          const touch = navigator.maxTouchPoints || 0;
+          return /Android|iPhone|iPad|iPod|Mobile/i.test(ua) || touch > 1;
+        } catch (err) {
+          return false;
+        }
+      }
+
       async function handleGoogleLogin() {
         try {
           await setPersistence(auth, browserSessionPersistence);
+
+          if (shouldUseRedirectLogin()) {
+            await signInWithRedirect(auth, provider);
+            return;
+          }
+
           const result = await signInWithPopup(auth, provider);
           await hydrateSignedInUser(result.user, true);
         } catch (err) {
