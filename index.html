@@ -748,6 +748,7 @@ details[open] input[type="text"]#seriesLogoUrl{
 
 <!-- Login-session-only auth persistence -->
 <!-- Category refresh fix after login -->
+<!-- Login popup first-click fix + category known-fixed merge -->
 <body class="bg-background-light font-display text-slate-900 washi-texture">
 <script>
 (function(){
@@ -3057,8 +3058,12 @@ function syncMuseumModeLabel(){
 
       async function handleGoogleLogin() {
         try {
-          await setPersistence(auth, browserSessionPersistence);
           const result = await signInWithPopup(auth, provider);
+          try {
+            await setPersistence(auth, browserSessionPersistence);
+          } catch (persistErr) {
+            console.warn("Auth session persistence setup failed:", persistErr);
+          }
           await upsertUserProfile(result.user);
           if (typeof window.loadCategories === "function") await window.loadCategories();
           if (typeof window.renderCategoryPage === "function") window.renderCategoryPage();
@@ -4840,9 +4845,27 @@ function syncMuseumModeLabel(){
         const setSnap = await api.getDoc(api.doc(api.db,'users',user.uid,'categorySettings','main'));
         if(setSnap.exists()){
           const data=setSnap.data()||{};
-          if(Array.isArray(data.enabledFixedCategoryIds)) enabledFixedCategoryIds = data.enabledFixedCategoryIds;
+          if(Array.isArray(data.enabledFixedCategoryIds)) enabledFixedCategoryIds = data.enabledFixedCategoryIds.slice();
           if(Array.isArray(data.customCategories)) customCategories = data.customCategories.map(cat=>ensureCategoryShape(cat,'custom'));
           if(Array.isArray(data.orderedCategoryKeys)) orderedCategoryKeys = data.orderedCategoryKeys;
+
+          const knownFixedIds = Array.isArray(data.knownFixedCategoryIds) ? data.knownFixedCategoryIds : [];
+          let patchedMissing = false;
+
+          fixedCategories.forEach(cat => {
+            const shouldDefaultOn = cat.isActive !== false;
+            const alreadyEnabled = enabledFixedCategoryIds.includes(cat.id);
+            const wasKnownBefore = knownFixedIds.includes(cat.id);
+
+            if (shouldDefaultOn && !alreadyEnabled && !wasKnownBefore) {
+              enabledFixedCategoryIds.push(cat.id);
+              patchedMissing = true;
+            }
+          });
+
+          if (patchedMissing && typeof saveUserCategorySettings === "function") {
+            try { await saveUserCategorySettings(); } catch(e) { console.warn("save patched category settings failed", e); }
+          }
         } else {
           enabledFixedCategoryIds = fixedCategories.filter(c=>c.isActive!==false).map(c=>c.id);
         }
@@ -4857,6 +4880,7 @@ function syncMuseumModeLabel(){
     refreshOrderedCategoryKeys();
     await api.setDoc(api.doc(api.db,'users',uid,'categorySettings','main'), {
       enabledFixedCategoryIds,
+      knownFixedCategoryIds: fixedCategories.map(cat => cat.id),
       customCategories: customCategories.map(cat=>ensureCategoryShape(cat,'custom')),
       orderedCategoryKeys,
       updatedAt: Date.now()
