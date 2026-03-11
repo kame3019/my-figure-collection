@@ -751,6 +751,7 @@ details[open] input[type="text"]#seriesLogoUrl{
 <!-- Login popup first-click fix + category known-fixed merge -->
 <!-- Fixed category initial ON sync patch -->
 <!-- Guest auth panel hide fix after login -->
+<!-- Guest panels profile-only visibility fix -->
 <body class="bg-background-light font-display text-slate-900 washi-texture">
 <script>
 (function(){
@@ -1637,6 +1638,7 @@ details[open] input[type="text"]#seriesLogoUrl{
         function showPage(id) {
             document.querySelectorAll(".page").forEach(page => page.classList.remove("show"));
             document.getElementById(id).classList.add("show");
+            try { window.syncGuestPanelsVisibility?.(); } catch (e) {}
         }
 
         function setActiveNav(key) {
@@ -5213,16 +5215,26 @@ function syncMuseumModeLabel(){
     if(e.target.closest('#toolStats')){ showPage('pageStats'); setActiveNav('profile'); renderStats(); return; }
     if(e.target.closest('#toolShare')){ alert('分享卡片功能會保留喺展品詳情頁內使用。'); return; }
   });
+  function syncGuestPanelsVisibility(){
+    const signed = !!window.kuraFirebase?.auth?.currentUser;
+    const guestPanels = $('profileGuestPanels');
+    const profilePage = $('pageProfile');
+    const onProfile = !!(profilePage && profilePage.classList.contains('show'));
+    if(guestPanels) guestPanels.style.display = (!signed && onProfile) ? '' : 'none';
+  }
+  window.syncGuestPanelsVisibility = syncGuestPanelsVisibility;
+
   const oldRenderProfilePage = window.renderProfilePage;
   window.renderProfilePage = function(){
     if(typeof oldRenderProfilePage==='function') oldRenderProfilePage.apply(this, arguments);
-    const signed = !!window.kuraFirebase?.auth?.currentUser;
-    const guestPanels=$('profileGuestPanels');
-    if(guestPanels) guestPanels.style.display = signed ? 'none' : '';
+    syncGuestPanelsVisibility();
   }
   const oldSetActiveNav = window.setActiveNav;
   if(typeof oldSetActiveNav==='function'){
-    window.setActiveNav = function(key){ oldSetActiveNav(key); };
+    window.setActiveNav = function(key){
+      oldSetActiveNav(key);
+      requestAnimationFrame(syncGuestPanelsVisibility);
+    };
   }
   function patchNav(){
     const navStats=$('navStats');
