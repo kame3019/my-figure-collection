@@ -746,7 +746,6 @@ details[open] input[type="text"]#seriesLogoUrl{
 
 <!-- Kura Archive Super Stable Clean Release -->
 
-<!-- Session auth persistence enabled -->
 <body class="bg-background-light font-display text-slate-900 washi-texture">
 <script>
 (function(){
@@ -2912,9 +2911,7 @@ function syncMuseumModeLabel(){
         GoogleAuthProvider,
         signInWithPopup,
         onAuthStateChanged,
-        signOut,
-        setPersistence,
-        browserSessionPersistence
+        signOut
       } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-auth.js";
       import {
         getFirestore,
@@ -2939,11 +2936,6 @@ function syncMuseumModeLabel(){
 
       const app = initializeApp(firebaseConfig);
       const auth = getAuth(app);
-      try {
-        await setPersistence(auth, browserSessionPersistence);
-      } catch (err) {
-        console.warn("Auth persistence setup failed:", err);
-      }
       const db = getFirestore(app);
       const provider = new GoogleAuthProvider();
       const ai = getAI(app, { backend: new GoogleAIBackend() });
