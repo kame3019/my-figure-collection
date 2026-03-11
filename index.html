@@ -747,6 +747,7 @@ details[open] input[type="text"]#seriesLogoUrl{
 <!-- Kura Archive Super Stable Clean Release -->
 
 <!-- Auth-ready + admin logos patch -->
+<!-- Real Google login hydration patch -->
 <body class="bg-background-light font-display text-slate-900 washi-texture">
 <script>
 (function(){
@@ -2912,6 +2913,7 @@ function syncMuseumModeLabel(){
         GoogleAuthProvider,
         signInWithPopup,
         signInWithRedirect,
+        getRedirectResult,
         onAuthStateChanged,
         signOut,
         setPersistence,
@@ -3057,12 +3059,40 @@ function syncMuseumModeLabel(){
         if (typeof window.renderProfilePage === "function") window.renderProfilePage();
       }
 
+      function wasRecentlyHydrated(uid) {
+        return window.__kuraLastHydratedUid === uid && (Date.now() - (window.__kuraLastHydratedAt || 0) < 3000);
+      }
+
+      async function hydrateSignedInUser(user, showSuccess = false) {
+        if (!user?.uid) return;
+        window.__kuraLastHydratedUid = user.uid;
+        window.__kuraLastHydratedAt = Date.now();
+
+        try {
+          fakeUser = null;
+          if (typeof saveFakeUser === "function") saveFakeUser();
+        } catch (e) {}
+
+        await upsertUserProfile(user);
+        await maybeMigrateLocalItems(user.uid);
+        await loadItemsFromCloud(user.uid);
+        if (typeof window.loadCategories === "function") await window.loadCategories();
+        if (typeof window.loadMergedLibraries === "function") await window.loadMergedLibraries();
+        if (typeof window.renderProfilePage === "function") window.renderProfilePage();
+        if (typeof window.renderCategoryPage === "function") window.renderCategoryPage();
+        if (typeof window.refreshAdminPanel === "function") {
+          setTimeout(() => window.refreshAdminPanel(), 50);
+          setTimeout(() => window.refreshAdminPanel(), 220);
+        }
+
+        if (showSuccess) alert("Google 登入成功");
+      }
+
       async function handleGoogleLogin() {
         try {
           await setPersistence(auth, browserSessionPersistence);
           const result = await signInWithPopup(auth, provider);
-          await upsertUserProfile(result.user);
-          alert("Google 登入成功");
+          await hydrateSignedInUser(result.user, true);
         } catch (err) {
           console.error(err);
           if (err?.code === "auth/popup-blocked") {
@@ -3108,13 +3138,12 @@ function syncMuseumModeLabel(){
         bindButtons();
         if (user) {
           try {
-            await upsertUserProfile(user);
-            await maybeMigrateLocalItems(user.uid);
-            await loadItemsFromCloud(user.uid);
-            if (typeof window.loadCategories === "function") await window.loadCategories();
-            if (typeof window.loadMergedLibraries === "function") await window.loadMergedLibraries();
-            if (typeof window.renderProfilePage === "function") window.renderProfilePage();
-            if (typeof window.renderCategoryPage === "function") window.renderCategoryPage();
+            if (!wasRecentlyHydrated(user.uid)) {
+              await hydrateSignedInUser(user, false);
+            } else {
+              if (typeof window.renderProfilePage === "function") window.renderProfilePage();
+              if (typeof window.renderCategoryPage === "function") window.renderCategoryPage();
+            }
           } catch (err) {
             console.error(err);
           }
@@ -3135,6 +3164,19 @@ function syncMuseumModeLabel(){
       } else {
         bindButtons();
       }
+
+      getRedirectResult(auth).then(async (result) => {
+        if (result?.user) {
+          try {
+            await hydrateSignedInUser(result.user, true);
+          } catch (err) {
+            console.error(err);
+          }
+        }
+      }).catch((err) => {
+        console.error("Redirect login failed:", err);
+      });
+
     </script>
 <script>
     (function () {
