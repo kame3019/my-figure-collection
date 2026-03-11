@@ -750,6 +750,7 @@ details[open] input[type="text"]#seriesLogoUrl{
 <!-- Category refresh fix after login -->
 <!-- Login popup first-click fix + category known-fixed merge -->
 <!-- Fixed category initial ON sync patch -->
+<!-- Guest auth panel hide fix after login -->
 <body class="bg-background-light font-display text-slate-900 washi-texture">
 <script>
 (function(){
@@ -3108,6 +3109,7 @@ function syncMuseumModeLabel(){
             await loadItemsFromCloud(user.uid);
             if (typeof window.loadCategories === "function") await window.loadCategories();
             if (typeof window.renderCategoryPage === "function") window.renderCategoryPage();
+            if (typeof window.renderProfilePage === "function") window.renderProfilePage();
           } catch (err) {
             console.error(err);
           }
