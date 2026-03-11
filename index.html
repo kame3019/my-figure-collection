@@ -746,7 +746,7 @@ details[open] input[type="text"]#seriesLogoUrl{
 
 <!-- Kura Archive Super Stable Clean Release -->
 
-<!-- Login-session-only auth persistence -->
+<!-- Auth-ready + admin logos patch -->
 <body class="bg-background-light font-display text-slate-900 washi-texture">
 <script>
 (function(){
@@ -2911,6 +2911,7 @@ function syncMuseumModeLabel(){
         getAuth,
         GoogleAuthProvider,
         signInWithPopup,
+        signInWithRedirect,
         onAuthStateChanged,
         signOut,
         setPersistence,
@@ -2922,6 +2923,7 @@ function syncMuseumModeLabel(){
         setDoc,
         getDoc,
         collection,
+        collectionGroup,
         getDocs,
         deleteDoc
       } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-firestore.js";
@@ -2971,6 +2973,7 @@ function syncMuseumModeLabel(){
         setDoc,
         getDoc,
         collection,
+        collectionGroup,
         getDocs,
         deleteDoc,
         signOut
@@ -3062,6 +3065,17 @@ function syncMuseumModeLabel(){
           alert("Google 登入成功");
         } catch (err) {
           console.error(err);
+          if (err?.code === "auth/popup-blocked") {
+            try {
+              await setPersistence(auth, browserSessionPersistence);
+              await signInWithRedirect(auth, provider);
+              return;
+            } catch (redirectErr) {
+              console.error(redirectErr);
+              alert(redirectErr.message || "Google 登入失敗");
+              return;
+            }
+          }
           alert(err.message || "Google 登入失敗");
         }
       }
@@ -3097,16 +3111,23 @@ function syncMuseumModeLabel(){
             await upsertUserProfile(user);
             await maybeMigrateLocalItems(user.uid);
             await loadItemsFromCloud(user.uid);
+            if (typeof window.loadCategories === "function") await window.loadCategories();
+            if (typeof window.loadMergedLibraries === "function") await window.loadMergedLibraries();
+            if (typeof window.renderProfilePage === "function") window.renderProfilePage();
+            if (typeof window.renderCategoryPage === "function") window.renderCategoryPage();
           } catch (err) {
             console.error(err);
           }
         } else {
           window.__kuraState.setItems([]);
           if (typeof window.render === "function") window.render();
+          if (typeof window.loadCategories === "function") await window.loadCategories();
+          if (typeof window.loadMergedLibraries === "function") await window.loadMergedLibraries();
           if (typeof window.renderCategoryPage === "function") window.renderCategoryPage();
           if (typeof window.renderProfilePage === "function") window.renderProfilePage();
         }
         setTimeout(() => window.refreshAdminPanel?.(), 50);
+        setTimeout(() => window.refreshAdminPanel?.(), 220);
       });
 
       if (document.readyState === "loading") {
@@ -3469,25 +3490,51 @@ function syncMuseumModeLabel(){
     if (!api) return;
 
     try {
+      const admin = await isAdmin();
+
       const jobs = [
         api.getDocs(api.collection(api.db, "appConfig", "public", "brandLogos")),
         api.getDocs(api.collection(api.db, "appConfig", "public", "seriesLogos"))
       ];
 
-      if (uid) {
+      if (admin) {
+        jobs.push(api.getDocs(api.collectionGroup(api.db, "brandLogos")));
+        jobs.push(api.getDocs(api.collectionGroup(api.db, "seriesLogos")));
+      } else if (uid) {
         jobs.push(api.getDocs(api.collection(api.db, "users", uid, "brandLogos")));
         jobs.push(api.getDocs(api.collection(api.db, "users", uid, "seriesLogos")));
       }
 
       const res = await Promise.all(jobs);
 
-      const globalBrand = res[0].docs.map(d => normalizeLogo(d, "global", "brand"));
-      const globalSeries = res[1].docs.map(d => normalizeLogo(d, "global", "series"));
-      const myBrand = uid ? res[2].docs.map(d => normalizeLogo(d, "personal", "brand")) : [];
-      const mySeries = uid ? res[3].docs.map(d => normalizeLogo(d, "personal", "series")) : [];
+      const globalBrand = res[0].docs.map(d => normalizeLogo(d, "global", "brand"))
+        .filter(item => item._path?.startsWith("appConfig/public/brandLogos/"));
+      const globalSeries = res[1].docs.map(d => normalizeLogo(d, "global", "series"))
+        .filter(item => item._path?.startsWith("appConfig/public/seriesLogos/"));
 
-      setBrandLibrary([...globalBrand, ...myBrand].sort((a, b) => (a.name || "").localeCompare(b.name || "")));
-      setSeriesLibrary([...globalSeries, ...mySeries].sort((a, b) => (a.name || "").localeCompare(b.name || "")));
+      let mergedBrand = [...globalBrand];
+      let mergedSeries = [...globalSeries];
+
+      if (admin) {
+        const allBrand = (res[2]?.docs || []).map(d => normalizeLogo(d, null, "brand"))
+          .filter(item => item._path?.startsWith("users/") || item._path?.startsWith("appConfig/public/brandLogos/"));
+        const allSeries = (res[3]?.docs || []).map(d => normalizeLogo(d, null, "series"))
+          .filter(item => item._path?.startsWith("users/") || item._path?.startsWith("appConfig/public/seriesLogos/"));
+
+        const personalBrand = allBrand.filter(item => (item.scope || "").toLowerCase() === "personal");
+        const personalSeries = allSeries.filter(item => (item.scope || "").toLowerCase() === "personal");
+
+        mergedBrand = [...globalBrand, ...personalBrand];
+        mergedSeries = [...globalSeries, ...personalSeries];
+      } else if (uid) {
+        const myBrand = (res[2]?.docs || []).map(d => normalizeLogo(d, "personal", "brand"));
+        const mySeries = (res[3]?.docs || []).map(d => normalizeLogo(d, "personal", "series"));
+        mergedBrand = [...globalBrand, ...myBrand];
+        mergedSeries = [...globalSeries, ...mySeries];
+      }
+
+      setBrandLibrary(mergedBrand.sort((a, b) => (a.name || "").localeCompare(b.name || "")));
+      setSeriesLibrary(mergedSeries.sort((a, b) => (a.name || "").localeCompare(b.name || "")));
 
       if (typeof renderPresetPickers === "function") renderPresetPickers();
       renderLogoManagersPatched();
