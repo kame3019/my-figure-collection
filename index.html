@@ -746,6 +746,7 @@ details[open] input[type="text"]#seriesLogoUrl{
 
 <!-- Kura Archive Super Stable Clean Release -->
 
+<!-- Login-session-only auth persistence -->
 <body class="bg-background-light font-display text-slate-900 washi-texture">
 <script>
 (function(){
@@ -2911,7 +2912,9 @@ function syncMuseumModeLabel(){
         GoogleAuthProvider,
         signInWithPopup,
         onAuthStateChanged,
-        signOut
+        signOut,
+        setPersistence,
+        browserSessionPersistence
       } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-auth.js";
       import {
         getFirestore,
@@ -3053,6 +3056,7 @@ function syncMuseumModeLabel(){
 
       async function handleGoogleLogin() {
         try {
+          await setPersistence(auth, browserSessionPersistence);
           const result = await signInWithPopup(auth, provider);
           await upsertUserProfile(result.user);
           alert("Google 登入成功");
