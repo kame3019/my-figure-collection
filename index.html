@@ -752,7 +752,7 @@ details[open] input[type="text"]#seriesLogoUrl{
 <!-- Fixed category initial ON sync patch -->
 <!-- Guest auth panel hide fix after login -->
 <!-- Guest panels profile-only visibility fix -->
-<!-- App Check test build -->
+<!-- Formal App Check build -->
 <body class="bg-background-light font-display text-slate-900 washi-texture">
 <script>
 (function(){
@@ -2946,10 +2946,13 @@ function syncMuseumModeLabel(){
       };
 
       const app = initializeApp(firebaseConfig);
+
+      // Formal App Check build (reCAPTCHA v3, monitoring only; do not enforce yet)
       const appCheck = initializeAppCheck(app, {
         provider: new ReCaptchaV3Provider("6LepQIcsAAAAALFvBPtZDo0RVOoHKS2ceO42_mXe"),
         isTokenAutoRefreshEnabled: true
       });
+
       const auth = getAuth(app);
       const db = getFirestore(app);
       const provider = new GoogleAuthProvider();
