@@ -752,6 +752,7 @@ details[open] input[type="text"]#seriesLogoUrl{
 <!-- Fixed category initial ON sync patch -->
 <!-- Guest auth panel hide fix after login -->
 <!-- Guest panels profile-only visibility fix -->
+<!-- App Check test build -->
 <body class="bg-background-light font-display text-slate-900 washi-texture">
 <script>
 (function(){
@@ -2932,6 +2933,7 @@ function syncMuseumModeLabel(){
         deleteDoc
       } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-firestore.js";
       import { getAI, getGenerativeModel, GoogleAIBackend, Schema } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-ai.js";
+      import { initializeAppCheck, ReCaptchaV3Provider } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-app-check.js";
 
       const firebaseConfig = {
         apiKey: "AIzaSyBcfXAKbsysChltrsepGlYSsBhp5NRpQrg",
@@ -2944,6 +2946,10 @@ function syncMuseumModeLabel(){
       };
 
       const app = initializeApp(firebaseConfig);
+      const appCheck = initializeAppCheck(app, {
+        provider: new ReCaptchaV3Provider("6LepQIcsAAAAALFvBPtZDo0RVOoHKS2ceO42_mXe"),
+        isTokenAutoRefreshEnabled: true
+      });
       const auth = getAuth(app);
       const db = getFirestore(app);
       const provider = new GoogleAuthProvider();
@@ -2968,6 +2974,7 @@ function syncMuseumModeLabel(){
       });
 
       window.kuraAI = { ai, autoFillModel };
+      window.kuraAppCheck = { appCheck };
 
       window.kuraFirebase = {
         auth,
