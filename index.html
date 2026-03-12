@@ -786,6 +786,7 @@ body.auth-signed-in #pageProfile.show #profileGuestPanelsWrap{display:none!impor
 <!-- AI Fill v2 test scaffold -->
 <!-- AI Fill v2 panel position fix -->
 <!-- AI Fill v2 init scope fix -->
+<!-- AI Fill v2 click rescue build -->
 <body class="bg-background-light font-display text-slate-900 washi-texture">
 <script>
 (function(){
@@ -8101,6 +8102,262 @@ html[data-typography] :is(h1,h2,h3,h4,h5,h6,.page-title,.section-title,.header-t
   window.addEventListener('load', function(){
     setTimeout(moveAiFillV2PanelIntoAddPage, 0);
     setTimeout(moveAiFillV2PanelIntoAddPage, 200);
+  });
+})();
+</script>
+
+
+<!-- AI Fill v2 click rescue -->
+
+<script>
+(async function(){
+  if (window.__kuraAiFillV2RescueLoaded) return;
+  window.__kuraAiFillV2RescueLoaded = true;
+
+  const aiModule = await import("https://www.gstatic.com/firebasejs/12.10.0/firebase-ai.js");
+  const getGenerativeModel = aiModule.getGenerativeModel;
+  const Schema = aiModule.Schema;
+
+  function escapeHtml(value = "") {
+    return String(value)
+      .replaceAll("&", "&amp;")
+      .replaceAll("<", "&lt;")
+      .replaceAll(">", "&gt;")
+      .replaceAll('"', "&quot;")
+      .replaceAll("'", "&#39;");
+  }
+
+  const schema = Schema.object({
+    properties: {
+      name: Schema.string(),
+      brand: Schema.string(),
+      series: Schema.string(),
+      category: Schema.string(),
+      status: Schema.string({
+        enum: ["未開封", "已開封", "展示中", "未取貨", "已售出", "願望清單"]
+      }),
+      note: Schema.string(),
+      travelHint: Schema.object({
+        properties: {
+          isTravelRelated: Schema.boolean(),
+          tripName: Schema.string(),
+          travelType: Schema.string({
+            enum: ["酒店", "購物", "餐飲", "交通", "雜行", ""]
+          }),
+          shop: Schema.string(),
+          cityArea: Schema.string()
+        },
+        optionalProperties: ["tripName", "travelType", "shop", "cityArea"]
+      }),
+      priceHint: Schema.object({
+        properties: {
+          currency: Schema.string(),
+          amountText: Schema.string()
+        },
+        optionalProperties: ["currency", "amountText"]
+      })
+    },
+    optionalProperties: ["brand", "series", "category", "status", "note", "travelHint", "priceHint"]
+  });
+
+  function ensureModel() {
+    if (!window.kuraAI?.ai) throw new Error("kuraAI service 未初始化");
+    if (!window.kuraAI.autoFillModelV2Rescue) {
+      window.kuraAI.autoFillModelV2Rescue = getGenerativeModel(window.kuraAI.ai, {
+        model: "gemini-2.5-flash",
+        generationConfig: {
+          responseMimeType: "application/json",
+          responseSchema: schema
+        }
+      });
+    }
+    return window.kuraAI.autoFillModelV2Rescue;
+  }
+
+  function promptText() {
+    return [
+      "你是模型收藏資料整理助手。",
+      "請根據用戶提供的單張產品圖片，回傳符合 schema 的 JSON。",
+      "只可根據圖片可見內容判斷，不確定請留空，不可亂估。",
+      "status 只能使用指定 enum。",
+      "若與旅行消費相關，可填 travelHint，否則留空。",
+      "必須輸出合法 JSON，不可輸出額外解說。"
+    ].join("\n");
+  }
+
+  async function fileToPart(file) {
+    const base64 = await new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onloadend = () => resolve(String(reader.result || "").split(",")[1] || "");
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    });
+    return {
+      inlineData: {
+        data: base64,
+        mimeType: file.type || "image/jpeg"
+      }
+    };
+  }
+
+  function pickFile() {
+    return document.getElementById("coverUpload")?.files?.[0]
+      || document.getElementById("imageUpload")?.files?.[0]
+      || document.getElementById("coverFile")?.files?.[0]
+      || document.getElementById("itemImageFile")?.files?.[0]
+      || document.getElementById("imageFile")?.files?.[0]
+      || document.getElementById("photoLibrary")?.files?.[0]
+      || document.getElementById("photo")?.files?.[0]
+      || null;
+  }
+
+  function showLoading(show) {
+    const el = document.getElementById("aiFillV2Loading");
+    if (el) el.classList.toggle("hidden", !show);
+  }
+
+  function row(label, value) {
+    const safe = value == null || String(value).trim() === ""
+      ? '<span class="text-slate-400">留空</span>'
+      : escapeHtml(String(value));
+    return `
+      <div class="rounded-xl border border-primary/10 bg-white/70 px-4 py-3">
+        <div class="text-xs uppercase tracking-[0.14em] text-slate-400">${escapeHtml(label)}</div>
+        <div class="mt-1 text-sm font-medium text-text-dark break-words">${safe}</div>
+      </div>
+    `;
+  }
+
+  function renderPreview(result) {
+    const wrap = document.getElementById("aiFillV2PreviewWrap");
+    const target = document.getElementById("aiFillV2Preview");
+    if (!wrap || !target) return;
+
+    const basic = [
+      row("Name", result?.name || ""),
+      row("Brand", result?.brand || ""),
+      row("Series", result?.series || ""),
+      row("Category", result?.category || ""),
+      row("Status", result?.status || ""),
+      row("Note", result?.note || "")
+    ].join("");
+
+    const travel = [
+      row("Travel Related", result?.travelHint?.isTravelRelated ? "Yes" : "No"),
+      row("Trip Name", result?.travelHint?.tripName || ""),
+      row("Travel Type", result?.travelHint?.travelType || ""),
+      row("City / Area", result?.travelHint?.cityArea || ""),
+      row("Shop", result?.travelHint?.shop || "")
+    ].join("");
+
+    const price = row("Price Hint", [result?.priceHint?.currency || "", result?.priceHint?.amountText || ""].filter(Boolean).join(" "));
+
+    target.innerHTML = `
+      <section class="space-y-3">
+        <div class="text-xs uppercase tracking-[0.16em] text-slate-400">Basic Info</div>
+        <div class="space-y-3">${basic}</div>
+      </section>
+      <section class="space-y-3">
+        <div class="text-xs uppercase tracking-[0.16em] text-slate-400">Travel Hints</div>
+        <div class="space-y-3">${travel}</div>
+      </section>
+      <section class="space-y-3">
+        <div class="text-xs uppercase tracking-[0.16em] text-slate-400">Other Hints</div>
+        <div class="space-y-3">${price}</div>
+      </section>
+    `;
+    wrap.classList.remove("hidden");
+  }
+
+  function setField(id, value) {
+    const el = document.getElementById(id);
+    if (!el || value == null || String(value).trim() === "") return;
+    el.value = String(value);
+    el.dispatchEvent(new Event("input", { bubbles: true }));
+    el.dispatchEvent(new Event("change", { bubbles: true }));
+  }
+
+  function applyResult(result, mode) {
+    const basicPairs = [
+      ["name", result?.name],
+      ["brand", result?.brand],
+      ["series", result?.series],
+      ["category", result?.category],
+      ["status", result?.status],
+      ["note", result?.note]
+    ];
+    for (const [id, value] of basicPairs) {
+      const el = document.getElementById(id);
+      if (!el) continue;
+      if (mode === "all" || String(el.value || "").trim() === "") setField(id, value);
+    }
+    if (result?.travelHint?.isTravelRelated) {
+      const travelPairs = [
+        ["tripName", result?.travelHint?.tripName],
+        ["travelType", result?.travelHint?.travelType],
+        ["travelArea", result?.travelHint?.cityArea],
+        ["travelShop", result?.travelHint?.shop]
+      ];
+      for (const [id, value] of travelPairs) {
+        const el = document.getElementById(id);
+        if (!el) continue;
+        if (mode === "all" || String(el.value || "").trim() === "") setField(id, value);
+      }
+    }
+  }
+
+  async function runV2() {
+    const file = pickFile();
+    if (!file) {
+      alert("請先上傳 / 拍攝圖片");
+      return;
+    }
+    try {
+      showLoading(true);
+      const model = ensureModel();
+      const result = await model.generateContent([promptText(), await fileToPart(file)]);
+      const parsed = JSON.parse(result.response.text());
+      window.__lastAiFillV2Result = parsed;
+      renderPreview(parsed);
+    } catch (err) {
+      console.error(err);
+      alert(err.message || "AI Fill v2 分析失敗");
+    } finally {
+      showLoading(false);
+    }
+  }
+
+  function clearPreview() {
+    window.__lastAiFillV2Result = null;
+    const wrap = document.getElementById("aiFillV2PreviewWrap");
+    const target = document.getElementById("aiFillV2Preview");
+    if (target) target.innerHTML = "";
+    if (wrap) wrap.classList.add("hidden");
+  }
+
+  function bindRescueButtons() {
+    const runBtn = document.getElementById("aiFillV2Btn");
+    const emptyBtn = document.getElementById("aiFillV2ApplyEmptyBtn");
+    const allBtn = document.getElementById("aiFillV2ApplyAllBtn");
+    const closeBtn = document.getElementById("aiFillV2CloseBtn");
+    const clearBtn = document.getElementById("aiFillV2ClearBtn");
+
+    if (runBtn) runBtn.onclick = runV2;
+    if (emptyBtn) emptyBtn.onclick = () => window.__lastAiFillV2Result && applyResult(window.__lastAiFillV2Result, "emptyOnly");
+    if (allBtn) allBtn.onclick = () => window.__lastAiFillV2Result && applyResult(window.__lastAiFillV2Result, "all");
+    if (closeBtn) closeBtn.onclick = clearPreview;
+    if (clearBtn) clearBtn.onclick = clearPreview;
+  }
+
+  document.addEventListener("DOMContentLoaded", () => {
+    setTimeout(bindRescueButtons, 0);
+    setTimeout(bindRescueButtons, 200);
+    setTimeout(bindRescueButtons, 600);
+  });
+  window.addEventListener("load", () => {
+    setTimeout(bindRescueButtons, 0);
+    setTimeout(bindRescueButtons, 200);
+    setTimeout(bindRescueButtons, 600);
   });
 })();
 </script>
