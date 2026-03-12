@@ -765,6 +765,68 @@ body.auth-signed-in #pageProfile.show #profileGuestPanelsWrap{display:none!impor
 }
 </style>
 
+
+<style>
+/* AI Fill v2.5 polished UI */
+#aiFillV2Panel.ai-v25{
+  border: 1px solid rgba(180,40,30,.10);
+  background: linear-gradient(180deg, rgba(255,255,255,.82), rgba(250,247,241,.72));
+  box-shadow: 0 12px 32px rgba(20,20,20,.06);
+}
+#aiFillV2Panel.ai-v25 .ai-v25-head{
+  display:flex; align-items:flex-start; justify-content:space-between; gap:1rem;
+}
+#aiFillV2Panel.ai-v25 .ai-v25-badge{
+  display:inline-flex; align-items:center; gap:.45rem;
+  border:1px solid rgba(180,40,30,.14);
+  background:rgba(255,255,255,.78);
+  color:#6b7280;
+  font-size:.72rem; font-weight:700; letter-spacing:.08em;
+  padding:.45rem .7rem; border-radius:999px;
+}
+#aiFillV2Panel.ai-v25 .ai-v25-actions{
+  display:flex; flex-wrap:wrap; gap:.75rem; margin-top:1rem;
+}
+#aiFillV2Panel.ai-v25 .ai-v25-note{
+  margin-top:.85rem; font-size:.88rem; color:#6b7280;
+}
+#aiFillV2Panel.ai-v25 .ai-v25-preview{
+  margin-top:1rem; border:1px solid rgba(180,40,30,.10);
+  background:rgba(250,247,241,.72); border-radius:1.25rem; padding:1rem;
+}
+#aiFillV2Panel.ai-v25 .ai-v25-section{
+  margin-top:1rem;
+}
+#aiFillV2Panel.ai-v25 .ai-v25-section:first-child{ margin-top:0; }
+#aiFillV2Panel.ai-v25 .ai-v25-section-title{
+  font-size:.74rem; text-transform:uppercase; letter-spacing:.16em; color:#94a3b8; margin-bottom:.7rem;
+}
+#aiFillV2Panel.ai-v25 .ai-v25-row{
+  display:flex; align-items:flex-start; justify-content:space-between; gap:.8rem;
+  border:1px solid rgba(180,40,30,.09); background:rgba(255,255,255,.78);
+  border-radius:1rem; padding:.9rem 1rem; margin-top:.65rem;
+}
+#aiFillV2Panel.ai-v25 .ai-v25-row:first-child{ margin-top:0; }
+#aiFillV2Panel.ai-v25 .ai-v25-row-label{
+  font-size:.72rem; text-transform:uppercase; letter-spacing:.14em; color:#94a3b8;
+}
+#aiFillV2Panel.ai-v25 .ai-v25-row-value{
+  margin-top:.3rem; font-size:.98rem; font-weight:600; color:#111827; word-break:break-word;
+}
+#aiFillV2Panel.ai-v25 .ai-v25-row-sub{
+  margin-top:.28rem; font-size:.78rem; color:#6b7280;
+}
+#aiFillV2Panel.ai-v25 .ai-v25-apply{
+  white-space:nowrap; border:1px solid rgba(180,40,30,.12); background:rgba(255,255,255,.88);
+  color:#111827; border-radius:.85rem; padding:.7rem .9rem; font-size:.78rem; font-weight:700;
+}
+#aiFillV2Panel.ai-v25 .ai-v25-apply:hover{ background:#fff; }
+#aiFillV2Panel.ai-v25 .ai-v25-bottom{
+  display:flex; flex-wrap:wrap; gap:.75rem; margin-top:1rem;
+}
+#aiFillV2QuickCapture{ display:none; }
+</style>
+
 </head>
 
 <!-- Kura Archive Super Stable Clean Release -->
@@ -790,6 +852,7 @@ body.auth-signed-in #pageProfile.show #profileGuestPanelsWrap{display:none!impor
 <!-- AI Fill v2.2 click fix + quota fix -->
 <!-- AI Fill v2.3 image compression + save delay -->
 <!-- AI Fill v2.4 ultimate click + login refresh -->
+<!-- AI Fill v2.5 final ui + auth category refresh -->
 <body class="bg-background-light font-display text-slate-900 washi-texture">
 <script>
 (function(){
@@ -8755,6 +8818,447 @@ html[data-typography] :is(h1,h2,h3,h4,h5,h6,.page-title,.section-title,.header-t
     setTimeout(bindAiFillV2Ultimate, 700);
     setTimeout(refreshAfterLoginStable, 250);
     setTimeout(refreshAfterLoginStable, 700);
+  });
+})();
+</script>
+
+
+<!-- AI Fill v2.5 final controller -->
+
+<script>
+(async function(){
+  if (window.__kuraAiV25Loaded) return;
+  window.__kuraAiV25Loaded = true;
+
+  function escapeHtml(value = "") {
+    return String(value)
+      .replaceAll("&", "&amp;")
+      .replaceAll("<", "&lt;")
+      .replaceAll(">", "&gt;")
+      .replaceAll('"', "&quot;")
+      .replaceAll("'", "&#39;");
+  }
+
+  function currentUid() {
+    return window.kuraFirebase?.auth?.currentUser?.uid || "";
+  }
+
+  async function refreshUserDataAfterAuth() {
+    const uid = currentUid();
+    try {
+      if (uid && typeof window.loadItemsFromCloud === "function") {
+        await window.loadItemsFromCloud(uid);
+      }
+      if (typeof window.loadCategories === "function") {
+        await window.loadCategories();
+      }
+      if (typeof window.render === "function") window.render();
+      if (typeof window.renderCategoryPage === "function") window.renderCategoryPage();
+      if (typeof window.renderProfilePage === "function") window.renderProfilePage();
+    } catch (e) {
+      console.error("refreshUserDataAfterAuth failed", e);
+    }
+  }
+
+  let lastObservedUid = currentUid();
+  setInterval(async () => {
+    const uid = currentUid();
+    if (uid !== lastObservedUid) {
+      lastObservedUid = uid;
+      await refreshUserDataAfterAuth();
+      setTimeout(refreshUserDataAfterAuth, 220);
+      setTimeout(refreshUserDataAfterAuth, 650);
+    }
+  }, 500);
+
+  document.addEventListener("click", (e) => {
+    const hit = e.target.closest("#navCategory");
+    if (hit) {
+      setTimeout(async () => {
+        try {
+          if (typeof window.loadCategories === "function") await window.loadCategories();
+          if (typeof window.renderCategoryPage === "function") window.renderCategoryPage();
+        } catch (err) { console.error(err); }
+      }, 60);
+      setTimeout(async () => {
+        try {
+          if (typeof window.loadCategories === "function") await window.loadCategories();
+          if (typeof window.renderCategoryPage === "function") window.renderCategoryPage();
+        } catch (err) { console.error(err); }
+      }, 240);
+    }
+  });
+
+  function enhancePanelMarkup() {
+    const panel = document.getElementById("aiFillV2Panel");
+    if (!panel || panel.dataset.aiV25Built === "1") return;
+    panel.dataset.aiV25Built = "1";
+    panel.classList.add("ai-v25");
+    panel.innerHTML = `
+      <div class="ai-v25-head">
+        <div>
+          <div class="ai-v25-badge">AI Fill v2.5 · Beta</div>
+          <h3 class="mt-3 text-lg font-semibold text-text-dark">AI 拍攝填寫 · 更快流程</h3>
+          <p class="mt-1 text-sm text-slate-500">可直接拍照後分析，先預覽，再逐項或整體套用。只處理 name / brand / series / note / travel hints。</p>
+        </div>
+      </div>
+
+      <div class="ai-v25-actions">
+        <button class="rounded-xl bg-black px-4 py-3 text-sm font-bold text-white" id="aiFillV2QuickBtn" type="button">直接拍照後分析</button>
+        <button class="rounded-xl bg-primary px-4 py-3 text-sm font-bold text-white" id="aiFillV2UseCurrentBtn" type="button">使用目前已上傳圖片</button>
+      </div>
+
+      <div class="ai-v25-note" id="aiFillV2StatusNote">如果未有圖片，按「直接拍照後分析」會先叫你拍 / 揀圖，再自動分析。</div>
+
+      <input id="aiFillV2QuickCapture" type="file" accept="image/*" capture="environment">
+
+      <div class="hidden" id="aiFillV2Loading">
+        <div class="mt-4 rounded-xl border border-primary/10 bg-background-light/70 px-4 py-3 text-sm text-slate-500">正在分析圖片，請稍候...</div>
+      </div>
+
+      <div class="hidden ai-v25-preview" id="aiFillV2PreviewWrap">
+        <div class="flex items-center justify-between gap-3">
+          <div>
+            <h4 class="text-base font-semibold text-text-dark">AI 分析結果</h4>
+            <p class="text-sm text-slate-500">你可以逐項套用，或者一鍵只填空白欄位。</p>
+          </div>
+          <button class="rounded-lg bg-black/5 px-3 py-2 text-xs font-semibold" id="aiFillV2CloseBtn" type="button">關閉</button>
+        </div>
+
+        <div class="mt-4" id="aiFillV2Preview"></div>
+
+        <div class="ai-v25-bottom">
+          <button class="rounded-xl bg-primary px-4 py-3 text-sm font-bold text-white" id="aiFillV2ApplyEmptyBtn" type="button">只填空白欄位</button>
+          <button class="rounded-xl bg-black px-4 py-3 text-sm font-bold text-white" id="aiFillV2ApplyAllBtn" type="button">套用全部</button>
+          <button class="rounded-xl bg-black/5 px-4 py-3 text-sm font-semibold text-slate-700" id="aiFillV2ClearBtn" type="button">清除結果</button>
+        </div>
+      </div>
+    `;
+  }
+
+  function pickExistingFile() {
+    return document.getElementById("coverUpload")?.files?.[0]
+      || document.getElementById("imageUpload")?.files?.[0]
+      || document.getElementById("coverFile")?.files?.[0]
+      || document.getElementById("itemImageFile")?.files?.[0]
+      || document.getElementById("imageFile")?.files?.[0]
+      || document.getElementById("photoLibrary")?.files?.[0]
+      || document.getElementById("photo")?.files?.[0]
+      || null;
+  }
+
+  function trySyncCapturedFileIntoExistingInput(file) {
+    const ids = ["coverUpload","imageUpload","coverFile","itemImageFile","imageFile","photoLibrary","photo"];
+    const target = ids.map(id => document.getElementById(id)).find(Boolean);
+    if (!target || !file) return false;
+    try {
+      const dt = new DataTransfer();
+      dt.items.add(file);
+      target.files = dt.files;
+      target.dispatchEvent(new Event("change", { bubbles: true }));
+      return true;
+    } catch (e) {
+      console.warn("sync captured file into existing input failed", e);
+      return false;
+    }
+  }
+
+  async function importAiModule() {
+    return await import("https://www.gstatic.com/firebasejs/12.10.0/firebase-ai.js");
+  }
+
+  async function ensureModel() {
+    const { getGenerativeModel, Schema } = await importAiModule();
+    if (!window.kuraAI?.ai) throw new Error("kuraAI service 未初始化");
+
+    if (!window.kuraAI.autoFillModelV25) {
+      const schema = Schema.object({
+        properties: {
+          name: Schema.string(),
+          brand: Schema.string(),
+          series: Schema.string(),
+          note: Schema.string(),
+          travelHint: Schema.object({
+            properties: {
+              isTravelRelated: Schema.boolean(),
+              tripName: Schema.string(),
+              travelType: Schema.string({
+                enum: ["酒店", "購物", "餐飲", "交通", "雜行", ""]
+              }),
+              shop: Schema.string(),
+              cityArea: Schema.string()
+            },
+            optionalProperties: ["tripName", "travelType", "shop", "cityArea"]
+          }),
+          priceHint: Schema.object({
+            properties: {
+              currency: Schema.string(),
+              amountText: Schema.string()
+            },
+            optionalProperties: ["currency", "amountText"]
+          })
+        },
+        optionalProperties: ["brand", "series", "note", "travelHint", "priceHint"]
+      });
+
+      window.kuraAI.autoFillModelV25 = getGenerativeModel(window.kuraAI.ai, {
+        model: "gemini-2.5-flash",
+        generationConfig: {
+          responseMimeType: "application/json",
+          responseSchema: schema
+        }
+      });
+    }
+    return window.kuraAI.autoFillModelV25;
+  }
+
+  function buildPrompt() {
+    return [
+      "你是模型收藏資料整理助手。",
+      "請根據單張產品圖片，回傳符合 schema 的 JSON。",
+      "只可根據圖片可見內容判斷，不確定請留空，不可亂估。",
+      "不需要判斷 category。",
+      "不需要判斷 status。",
+      "若與旅行消費相關，可填 travelHint，否則留空。",
+      "價格只作提示，不要亂估。",
+      "必須輸出合法 JSON，不可輸出額外解說。"
+    ].join("\\n");
+  }
+
+  async function fileToPart(file) {
+    const base64 = await new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onloadend = () => resolve(String(reader.result || "").split(",")[1] || "");
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    });
+    return {
+      inlineData: {
+        data: base64,
+        mimeType: file.type || "image/jpeg"
+      }
+    };
+  }
+
+  function showLoading(show) {
+    const el = document.getElementById("aiFillV2Loading");
+    if (el) el.classList.toggle("hidden", !show);
+    const note = document.getElementById("aiFillV2StatusNote");
+    if (note && show) note.textContent = "正在分析剛剛選擇的圖片...";
+  }
+
+  function setStatusNote(text) {
+    const note = document.getElementById("aiFillV2StatusNote");
+    if (note) note.textContent = text;
+  }
+
+  function setField(id, value) {
+    const el = document.getElementById(id);
+    if (!el || value == null || String(value).trim() === "") return;
+    el.value = String(value);
+    el.dispatchEvent(new Event("input", { bubbles: true }));
+    el.dispatchEvent(new Event("change", { bubbles: true }));
+  }
+
+  function applySingleField(key, value) {
+    const map = {
+      name: "name",
+      brand: "brand",
+      series: "series",
+      note: "note",
+      tripName: "tripName",
+      travelType: "travelType",
+      cityArea: "travelArea",
+      shop: "travelShop"
+    };
+    const id = map[key];
+    if (!id) return;
+    setField(id, value);
+  }
+
+  function applyResult(result, mode) {
+    const pairs = [
+      ["name", result?.name],
+      ["brand", result?.brand],
+      ["series", result?.series],
+      ["note", result?.note]
+    ];
+    for (const [key, value] of pairs) {
+      const id = {name:"name",brand:"brand",series:"series",note:"note"}[key];
+      const el = document.getElementById(id);
+      if (!el || value == null || String(value).trim() === "") continue;
+      if (mode === "all" || String(el.value || "").trim() === "") setField(id, value);
+    }
+    if (result?.travelHint?.isTravelRelated) {
+      const tpairs = [
+        ["tripName", result?.travelHint?.tripName],
+        ["travelType", result?.travelHint?.travelType],
+        ["cityArea", result?.travelHint?.cityArea],
+        ["shop", result?.travelHint?.shop]
+      ];
+      for (const [key, value] of tpairs) {
+        const id = {tripName:"tripName",travelType:"travelType",cityArea:"travelArea",shop:"travelShop"}[key];
+        const el = document.getElementById(id);
+        if (!el || value == null || String(value).trim() === "") continue;
+        if (mode === "all" || String(el.value || "").trim() === "") setField(id, value);
+      }
+    }
+  }
+
+  function row(label, key, value, sub = "") {
+    const safe = value == null || String(value).trim() === ""
+      ? '<span class="text-slate-400">留空</span>'
+      : escapeHtml(String(value));
+    const safeSub = sub ? `<div class="ai-v25-row-sub">${escapeHtml(sub)}</div>` : "";
+    const action = value == null || String(value).trim() === ""
+      ? ''
+      : `<button class="ai-v25-apply" type="button" data-ai-apply-key="${escapeHtml(key)}">套用此項</button>`;
+    return `
+      <div class="ai-v25-row">
+        <div class="min-w-0">
+          <div class="ai-v25-row-label">${escapeHtml(label)}</div>
+          <div class="ai-v25-row-value">${safe}</div>
+          ${safeSub}
+        </div>
+        ${action}
+      </div>
+    `;
+  }
+
+  function renderPreview(result) {
+    const wrap = document.getElementById("aiFillV2PreviewWrap");
+    const target = document.getElementById("aiFillV2Preview");
+    if (!wrap || !target) return;
+
+    const basic = [
+      row("Name", "name", result?.name || ""),
+      row("Brand", "brand", result?.brand || ""),
+      row("Series", "series", result?.series || ""),
+      row("Note", "note", result?.note || "", "AI 只作描述草稿")
+    ].join("");
+
+    const travel = [
+      row("Travel Related", "travelRelated", result?.travelHint?.isTravelRelated ? "Yes" : "No"),
+      row("Trip Name", "tripName", result?.travelHint?.tripName || ""),
+      row("Travel Type", "travelType", result?.travelHint?.travelType || ""),
+      row("City / Area", "cityArea", result?.travelHint?.cityArea || ""),
+      row("Shop", "shop", result?.travelHint?.shop || "")
+    ].join("");
+
+    const price = row("Price Hint", "priceHint", [result?.priceHint?.currency || "", result?.priceHint?.amountText || ""].filter(Boolean).join(" "), "只作參考，不會自動寫入");
+
+    target.innerHTML = `
+      <section class="ai-v25-section">
+        <div class="ai-v25-section-title">Basic Info</div>
+        ${basic}
+      </section>
+      <section class="ai-v25-section">
+        <div class="ai-v25-section-title">Travel Hints</div>
+        ${travel}
+      </section>
+      <section class="ai-v25-section">
+        <div class="ai-v25-section-title">Other Hints</div>
+        ${price}
+      </section>
+    `;
+    wrap.classList.remove("hidden");
+
+    target.querySelectorAll("[data-ai-apply-key]").forEach(btn => {
+      btn.onclick = () => {
+        const key = btn.getAttribute("data-ai-apply-key");
+        const r = window.__lastAiFillV25Result || {};
+        const valueMap = {
+          name: r?.name,
+          brand: r?.brand,
+          series: r?.series,
+          note: r?.note,
+          tripName: r?.travelHint?.tripName,
+          travelType: r?.travelHint?.travelType,
+          cityArea: r?.travelHint?.cityArea,
+          shop: r?.travelHint?.shop
+        };
+        applySingleField(key, valueMap[key]);
+      };
+    });
+  }
+
+  async function runWithFile(file) {
+    if (!file) {
+      setStatusNote("請先上傳 / 拍攝圖片。");
+      alert("請先上傳 / 拍攝圖片");
+      return;
+    }
+
+    try {
+      showLoading(true);
+      const model = await ensureModel();
+      const result = await model.generateContent([buildPrompt(), await fileToPart(file)]);
+      const parsed = JSON.parse(result.response.text());
+      window.__lastAiFillV25Result = parsed;
+      renderPreview(parsed);
+      setStatusNote("分析完成，你可以逐項套用，或者一鍵套用。");
+    } catch (err) {
+      console.error(err);
+      setStatusNote(err.message || "AI 分析失敗");
+      alert(err.message || "AI Fill v2 分析失敗");
+    } finally {
+      showLoading(false);
+    }
+  }
+
+  function clearPreview() {
+    window.__lastAiFillV25Result = null;
+    const wrap = document.getElementById("aiFillV2PreviewWrap");
+    const target = document.getElementById("aiFillV2Preview");
+    if (target) target.innerHTML = "";
+    if (wrap) wrap.classList.add("hidden");
+    setStatusNote("已清除分析結果。");
+  }
+
+  async function bindAiV25Actions() {
+    enhancePanelMarkup();
+
+    const quickBtn = document.getElementById("aiFillV2QuickBtn");
+    const currentBtn = document.getElementById("aiFillV2UseCurrentBtn");
+    const captureInput = document.getElementById("aiFillV2QuickCapture");
+    const applyEmptyBtn = document.getElementById("aiFillV2ApplyEmptyBtn");
+    const applyAllBtn = document.getElementById("aiFillV2ApplyAllBtn");
+    const closeBtn = document.getElementById("aiFillV2CloseBtn");
+    const clearBtn = document.getElementById("aiFillV2ClearBtn");
+
+    if (quickBtn) quickBtn.onclick = () => captureInput?.click();
+    if (currentBtn) currentBtn.onclick = () => {
+      const file = pickExistingFile();
+      if (file) {
+        runWithFile(file);
+      } else {
+        captureInput?.click();
+      }
+    };
+    if (captureInput && !captureInput.dataset.boundAiV25) {
+      captureInput.dataset.boundAiV25 = "1";
+      captureInput.onchange = async () => {
+        const file = captureInput.files?.[0];
+        if (!file) return;
+        trySyncCapturedFileIntoExistingInput(file);
+        await runWithFile(file);
+      };
+    }
+    if (applyEmptyBtn) applyEmptyBtn.onclick = () => window.__lastAiFillV25Result && applyResult(window.__lastAiFillV25Result, "emptyOnly");
+    if (applyAllBtn) applyAllBtn.onclick = () => window.__lastAiFillV25Result && applyResult(window.__lastAiFillV25Result, "all");
+    if (closeBtn) closeBtn.onclick = clearPreview;
+    if (clearBtn) clearBtn.onclick = clearPreview;
+  }
+
+  document.addEventListener("DOMContentLoaded", () => {
+    setTimeout(bindAiV25Actions, 0);
+    setTimeout(bindAiV25Actions, 220);
+    setTimeout(bindAiV25Actions, 700);
+  });
+  window.addEventListener("load", () => {
+    setTimeout(bindAiV25Actions, 0);
+    setTimeout(bindAiV25Actions, 220);
+    setTimeout(bindAiV25Actions, 700);
   });
 })();
 </script>
