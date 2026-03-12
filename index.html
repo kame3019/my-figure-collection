@@ -755,6 +755,16 @@ body.auth-signed-in #pageProfile.show #profileGuestPanelsWrap{display:none!impor
 }
 </style>
 
+
+<style>
+/* Google-only auth UI safe patch */
+#loginEmail,
+#loginPassword,
+#fakeLoginBtn{
+  display:none !important;
+}
+</style>
+
 </head>
 
 <!-- Kura Archive Super Stable Clean Release -->
@@ -769,7 +779,7 @@ body.auth-signed-in #pageProfile.show #profileGuestPanelsWrap{display:none!impor
 <!-- Profile guest panel restore fix on v6 bundle -->
 <!-- Guest panels moved under Management Tools -->
 <!-- Guest under management login fix v6f -->
-<!-- Google-only auth UI v7 -->
+<!-- Google-only auth safe patch v6g -->
 <body class="bg-background-light font-display text-slate-900 washi-texture">
 <script>
 (function(){
@@ -1196,21 +1206,9 @@ body.auth-signed-in #pageProfile.show #profileGuestPanelsWrap{display:none!impor
 
 <div class="rounded-2xl bg-white/70 border border-primary/10 shadow-sm p-5" id="profileGuestPanelsWrap">
 <div class="space-y-4" id="profileGuestPanels">
-  <div class="rounded-2xl border border-primary/10 bg-background-light/60 p-6">
-    <div class="flex items-start justify-between gap-3">
-      <div>
-        <h3 class="text-2xl font-serif text-text-dark">Sign In</h3>
-        <p class="mt-1 text-xs uppercase tracking-[0.16em] text-slate-500">Google Account</p>
-      </div>
-      <span class="inline-flex h-10 w-10 items-center justify-center rounded-xl border border-primary/10 bg-white/70 text-primary">
-        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M10 17l5-5-5-5"/><path d="M15 12H3"/><path d="M21 3v18"/></svg>
-      </span>
-    </div>
-    <p class="mt-4 text-sm text-slate-500">請使用 Google 帳戶登入。Email 註冊 / 登入示範 UI 已移除，以免混淆。</p>
-    <div class="mt-5">
-      <button class="w-full rounded-xl bg-black px-4 py-3 text-sm font-bold text-white" id="googleLoginBtnProfileOnly" type="button">Google 登入</button>
-    </div>
-  </div>
+<div class="rounded-2xl bg-white/70 border border-primary/10 shadow-sm p-5">
+<div class="flex items-center justify-between mb-4"><div><h3 class="text-lg font-bold">Sign In</h3><p class="text-xs text-slate-500 uppercase tracking-widest mt-1">UI Preview</p></div><span class="material-symbols-outlined text-primary text-3xl">login</span></div>
+<div class="space-y-3"><input class="kv-input rounded-xl border border-primary/10 bg-background-light/80 px-4 py-3 text-sm placeholder:text-slate-400 focus:border-primary focus:ring-primary" id="loginEmail" placeholder="Email address" type="email"/><input class="kv-input rounded-xl border border-primary/10 bg-background-light/80 px-4 py-3 text-sm placeholder:text-slate-400 focus:border-primary focus:ring-primary" id="loginPassword" placeholder="Password" type="password"/><button class="w-full rounded-xl bg-primary px-4 py-3 text-sm font-bold text-white" id="fakeLoginBtn" type="button">登入（示範 UI）</button></div>
 </div>
 </div>
 
@@ -2895,9 +2893,36 @@ function syncMuseumModeLabel(){
             document.getElementById("backupStatus").textContent = "已清空資料";
         };
 
+        document.getElementById("fakeLoginBtn").onclick = function() {
+            const email = document.getElementById("loginEmail").value.trim();
+            const password = document.getElementById("loginPassword").value.trim();
+            if (!email || !password) {
+                alert("請先輸入 email 同 password");
+                return;
+            }
+            fakeUser = { name: email.split("@")[0] || "Collector", email: email };
+            saveFakeUser();
+            document.body.classList.add("auth-signed-in");
+            renderProfilePage();
+            try { window.syncGuestPanelsVisibility?.(); } catch (e) {}
+            alert("已進入示範登入狀態（UI only）");
+        };
 
-
-
+        document.getElementById("fakeRegisterBtn").onclick = function() {
+            const name = document.getElementById("registerName").value.trim();
+            const email = document.getElementById("registerEmail").value.trim();
+            const password = document.getElementById("registerPassword").value.trim();
+            if (!name || !email || !password) {
+                alert("請填好註冊資料");
+                return;
+            }
+            fakeUser = { name, email };
+            saveFakeUser();
+            document.body.classList.add("auth-signed-in");
+            renderProfilePage();
+            try { window.syncGuestPanelsVisibility?.(); } catch (e) {}
+            alert("已建立示範帳戶（UI only）");
+        };
 
         document.addEventListener("keydown", function(e) {
             if (e.key === "Escape") closeMonthlyDetail();
@@ -7498,37 +7523,55 @@ html[data-typography] :is(h1,h2,h3,h4,h5,h6,.page-title,.section-title,.header-t
 
 <script>
 (function(){
-  function bindGoogleOnlyProfileBtn(){
-    const btn = document.getElementById('googleLoginBtnProfileOnly');
-    if (btn && !btn.dataset.boundGoogleOnly) {
-      btn.dataset.boundGoogleOnly = '1';
-      btn.addEventListener('click', function(e){
-        e.preventDefault();
-        if (typeof handleGoogleLogin === 'function') handleGoogleLogin();
-      });
+  function applyGoogleOnlyAuthUI(){
+    // Hide the standalone Create Account card entirely
+    const registerBtn = document.getElementById('fakeRegisterBtn');
+    const registerCard = registerBtn ? registerBtn.closest('.rounded-2xl') : null;
+    if (registerCard) registerCard.style.display = 'none';
+
+    // Update sign-in header copy for Google-only mode
+    const loginBtn = document.getElementById('fakeLoginBtn');
+    const signCard = loginBtn ? loginBtn.closest('.rounded-2xl') : null;
+    if (signCard) {
+      const subtitle = signCard.querySelector('p.text-xs');
+      if (subtitle) subtitle.textContent = 'Google Account';
+      const info = signCard.querySelector('.space-y-3');
+      if (info && !document.getElementById('googleOnlyHint')) {
+        const hint = document.createElement('p');
+        hint.id = 'googleOnlyHint';
+        hint.className = 'text-sm text-slate-500';
+        hint.textContent = '請使用 Google 帳戶登入。Email 註冊 / 登入示範 UI 已移除。';
+        info.insertBefore(hint, info.firstChild);
+      }
+    }
+
+    // Ensure the real Google button exists and stays visible
+    if (typeof ensureGoogleButtons === 'function') {
+      try { ensureGoogleButtons(); } catch (e) {}
+    }
+    const googleBtn = document.getElementById('googleLoginBtn');
+    if (googleBtn) {
+      googleBtn.style.display = '';
+      googleBtn.classList.add('mt-0');
     }
   }
 
-  function syncAfterRender(){
-    try { window.syncGuestPanelsVisibility?.(); } catch(e){}
-    bindGoogleOnlyProfileBtn();
-  }
-
   document.addEventListener('DOMContentLoaded', function(){
-    setTimeout(syncAfterRender, 0);
-    setTimeout(syncAfterRender, 120);
+    setTimeout(applyGoogleOnlyAuthUI, 0);
+    setTimeout(applyGoogleOnlyAuthUI, 120);
   });
   window.addEventListener('load', function(){
-    setTimeout(syncAfterRender, 0);
-    setTimeout(syncAfterRender, 120);
+    setTimeout(applyGoogleOnlyAuthUI, 0);
+    setTimeout(applyGoogleOnlyAuthUI, 120);
   });
 
-  const oldRenderProfilePageV7 = window.renderProfilePage;
-  if (typeof oldRenderProfilePageV7 === 'function' && !window.__kuraPatchedProfileRenderV7) {
-    window.__kuraPatchedProfileRenderV7 = true;
+  const oldRenderProfilePageV6g = window.renderProfilePage;
+  if (typeof oldRenderProfilePageV6g === 'function' && !window.__kuraPatchedProfileRenderV6g) {
+    window.__kuraPatchedProfileRenderV6g = true;
     window.renderProfilePage = function(){
-      oldRenderProfilePageV7.apply(this, arguments);
-      syncAfterRender();
+      oldRenderProfilePageV6g.apply(this, arguments);
+      applyGoogleOnlyAuthUI();
+      try { window.syncGuestPanelsVisibility?.(); } catch(e){}
     };
   }
 })();
