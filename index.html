@@ -768,6 +768,7 @@ body.auth-signed-in #pageProfile.show #profileGuestPanelsWrap{display:none!impor
 <!-- Reviewed safe bundle v6 -->
 <!-- Profile guest panel restore fix on v6 bundle -->
 <!-- Guest panels moved under Management Tools -->
+<!-- Guest under management login fix v6f -->
 <body class="bg-background-light font-display text-slate-900 washi-texture">
 <script>
 (function(){
@@ -1196,7 +1197,7 @@ body.auth-signed-in #pageProfile.show #profileGuestPanelsWrap{display:none!impor
 <div class="space-y-4" id="profileGuestPanels">
 <div class="rounded-2xl bg-white/70 border border-primary/10 shadow-sm p-5">
 <div class="flex items-center justify-between mb-4"><div><h3 class="text-lg font-bold">Sign In</h3><p class="text-xs text-slate-500 uppercase tracking-widest mt-1">UI Preview</p></div><span class="material-symbols-outlined text-primary text-3xl">login</span></div>
-<div class="space-y-3"><input class="kv-input rounded-xl border border-primary/10 bg-background-light/80 px-4 py-3 text-sm placeholder:text-slate-400 focus:border-primary focus:ring-primary" id="loginEmail" placeholder="Email address" type="email"/><input class="kv-input rounded-xl border border-primary/10 bg-background-light/80 px-4 py-3 text-sm placeholder:text-slate-400 focus:border-primary focus:ring-primary" id="loginPassword" placeholder="Password" type="password"/><button class="w-full rounded-xl bg-primary px-4 py-3 text-sm font-bold text-white" id="fakeLoginBtn">登入（示範 UI）</button></div>
+<div class="space-y-3"><input class="kv-input rounded-xl border border-primary/10 bg-background-light/80 px-4 py-3 text-sm placeholder:text-slate-400 focus:border-primary focus:ring-primary" id="loginEmail" placeholder="Email address" type="email"/><input class="kv-input rounded-xl border border-primary/10 bg-background-light/80 px-4 py-3 text-sm placeholder:text-slate-400 focus:border-primary focus:ring-primary" id="loginPassword" placeholder="Password" type="password"/><button class="w-full rounded-xl bg-primary px-4 py-3 text-sm font-bold text-white" id="fakeLoginBtn" type="button">登入（示範 UI）</button></div>
 </div>
 </div>
 
@@ -1244,7 +1245,7 @@ body.auth-signed-in #pageProfile.show #profileGuestPanelsWrap{display:none!impor
 
 <div class="rounded-2xl bg-white/70 border border-primary/10 shadow-sm p-5">
 <div class="flex items-center justify-between mb-4"><div><h3 class="text-lg font-bold">Create Account</h3><p class="text-xs text-slate-500 uppercase tracking-widest mt-1">UI Preview</p></div><span class="material-symbols-outlined text-accent-gold text-3xl">person_add</span></div>
-<div class="space-y-3"><input class="kv-input rounded-xl border border-primary/10 bg-background-light/80 px-4 py-3 text-sm placeholder:text-slate-400 focus:border-primary focus:ring-primary" id="registerName" placeholder="Display name"/><input class="kv-input rounded-xl border border-primary/10 bg-background-light/80 px-4 py-3 text-sm placeholder:text-slate-400 focus:border-primary focus:ring-primary" id="registerEmail" placeholder="Email address" type="email"/><input class="kv-input rounded-xl border border-primary/10 bg-background-light/80 px-4 py-3 text-sm placeholder:text-slate-400 focus:border-primary focus:ring-primary" id="registerPassword" placeholder="Password" type="password"/><button class="w-full rounded-xl bg-accent-gold px-4 py-3 text-sm font-bold text-white" id="fakeRegisterBtn">註冊（示範 UI）</button></div>
+<div class="space-y-3"><input class="kv-input rounded-xl border border-primary/10 bg-background-light/80 px-4 py-3 text-sm placeholder:text-slate-400 focus:border-primary focus:ring-primary" id="registerName" placeholder="Display name"/><input class="kv-input rounded-xl border border-primary/10 bg-background-light/80 px-4 py-3 text-sm placeholder:text-slate-400 focus:border-primary focus:ring-primary" id="registerEmail" placeholder="Email address" type="email"/><input class="kv-input rounded-xl border border-primary/10 bg-background-light/80 px-4 py-3 text-sm placeholder:text-slate-400 focus:border-primary focus:ring-primary" id="registerPassword" placeholder="Password" type="password"/><button class="w-full rounded-xl bg-primary px-4 py-3 text-sm font-bold text-white" id="fakeRegisterBtn" type="button">註冊（示範 UI）</button></div>
 </div>
 </div>
 </section>
@@ -2890,7 +2891,9 @@ function syncMuseumModeLabel(){
             }
             fakeUser = { name: email.split("@")[0] || "Collector", email: email };
             saveFakeUser();
+            document.body.classList.add("auth-signed-in");
             renderProfilePage();
+            try { window.syncGuestPanelsVisibility?.(); } catch (e) {}
             alert("已進入示範登入狀態（UI only）");
         };
 
@@ -2904,7 +2907,9 @@ function syncMuseumModeLabel(){
             }
             fakeUser = { name, email };
             saveFakeUser();
+            document.body.classList.add("auth-signed-in");
             renderProfilePage();
+            try { window.syncGuestPanelsVisibility?.(); } catch (e) {}
             alert("已建立示範帳戶（UI only）");
         };
 
@@ -3096,10 +3101,13 @@ function syncMuseumModeLabel(){
             if (typeof saveFakeUser === "function") saveFakeUser();
           } catch (e) {}
           await upsertUserProfile(result.user);
+          document.body.classList.add("auth-signed-in");
           if (typeof window.loadCategories === "function") await window.loadCategories();
           if (typeof window.renderCategoryPage === "function") window.renderCategoryPage();
           if (typeof window.renderProfilePage === "function") window.renderProfilePage();
+          try { window.syncGuestPanelsVisibility?.(); } catch (e) {}
           setTimeout(() => { try { window.loadCategories?.().then?.(() => window.renderCategoryPage?.()); } catch(e){} }, 260);
+          setTimeout(() => { try { window.syncGuestPanelsVisibility?.(); } catch(e){} }, 120);
           alert("Google 登入成功");
         } catch (err) {
           console.error(err);
@@ -5250,7 +5258,7 @@ function syncMuseumModeLabel(){
     if(e.target.closest('#toolShare')){ alert('分享卡片功能會保留喺展品詳情頁內使用。'); return; }
   });
   function syncGuestPanelsVisibility(){
-    const signed = !!window.kuraFirebase?.auth?.currentUser;
+    const signed = !!window.kuraFirebase?.auth?.currentUser || !!window.fakeUser || !!fakeUser;
     const guestPanels = $('profileGuestPanelsWrap');
     const profilePage = $('pageProfile');
     const onProfile = !!(profilePage && profilePage.classList.contains('show'));
@@ -7478,6 +7486,26 @@ html[data-typography] :is(h1,h2,h3,h4,h5,h6,.page-title,.section-title,.header-t
 
   window.__kuraRestoreLastPage = restoreLastPage;
   window.addEventListener('load', () => { setTimeout(restoreLastPage, 120); setTimeout(() => window.syncGuestPanelsVisibility?.(), 180); });
+})();
+</script>
+
+
+<script>
+(function(){
+  function bindMovedGuestButtons(){
+    const loginBtn = document.getElementById('fakeLoginBtn');
+    const registerBtn = document.getElementById('fakeRegisterBtn');
+    if (loginBtn) loginBtn.type = 'button';
+    if (registerBtn) registerBtn.type = 'button';
+  }
+  document.addEventListener('DOMContentLoaded', function(){
+    setTimeout(bindMovedGuestButtons, 0);
+    setTimeout(() => window.syncGuestPanelsVisibility?.(), 80);
+  });
+  window.addEventListener('load', function(){
+    setTimeout(bindMovedGuestButtons, 0);
+    setTimeout(() => window.syncGuestPanelsVisibility?.(), 120);
+  });
 })();
 </script>
 
