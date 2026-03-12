@@ -783,6 +783,7 @@ body.auth-signed-in #pageProfile.show #profileGuestPanelsWrap{display:none!impor
 <!-- Trap filter alignment fix + blank label option -->
 <!-- Trip filter source fix + real blank label behavior -->
 <!-- Logo refresh stability bundle v6i -->
+<!-- AI Fill v2 test scaffold -->
 <body class="bg-background-light font-display text-slate-900 washi-texture">
 <script>
 (function(){
@@ -7661,6 +7662,410 @@ html[data-typography] :is(h1,h2,h3,h4,h5,h6,.page-title,.section-title,.header-t
       setTimeout(refreshAdminLogoPanelsSoon, 80);
     };
   }
+})();
+</script>
+
+
+<div class="rounded-2xl bg-white/70 border border-primary/10 shadow-sm p-5 mt-4" id="aiFillV2Panel">
+  <div class="flex items-center justify-between gap-3">
+    <div>
+      <h3 class="text-lg font-semibold text-text-dark">AI Fill v2 (Beta)</h3>
+      <p class="text-sm text-slate-500">新一代拍攝填寫測試版。先分析，再預覽，再由你決定套用。</p>
+    </div>
+    <button class="rounded-xl bg-black px-4 py-3 text-sm font-bold text-white" id="aiFillV2Btn" type="button">
+      AI Fill v2
+    </button>
+  </div>
+
+  <div class="mt-4 hidden" id="aiFillV2Loading">
+    <div class="rounded-xl border border-primary/10 bg-background-light/70 px-4 py-3 text-sm text-slate-500">
+      正在分析圖片，請稍候...
+    </div>
+  </div>
+
+  <div class="mt-4 hidden" id="aiFillV2PreviewWrap">
+    <div class="rounded-2xl border border-primary/10 bg-background-light/60 p-4">
+      <div class="flex items-center justify-between gap-3">
+        <div>
+          <h4 class="text-base font-semibold text-text-dark">AI 分析結果</h4>
+          <p class="text-sm text-slate-500">請先檢查，再決定套用方式。</p>
+        </div>
+        <button class="rounded-lg bg-black/5 px-3 py-2 text-xs font-semibold" id="aiFillV2CloseBtn" type="button">
+          關閉
+        </button>
+      </div>
+
+      <div class="mt-4 space-y-4" id="aiFillV2Preview"></div>
+
+      <div class="mt-5 flex flex-wrap gap-3">
+        <button class="rounded-xl bg-primary px-4 py-3 text-sm font-bold text-white" id="aiFillV2ApplyEmptyBtn" type="button">
+          只填空白欄位
+        </button>
+
+        <button class="rounded-xl bg-black px-4 py-3 text-sm font-bold text-white" id="aiFillV2ApplyAllBtn" type="button">
+          套用全部
+        </button>
+
+        <button class="rounded-xl bg-black/5 px-4 py-3 text-sm font-semibold text-slate-700" id="aiFillV2ClearBtn" type="button">
+          清除結果
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<script>
+(function(){
+  function escapeHtml(value = "") {
+    return String(value)
+      .replaceAll("&", "&amp;")
+      .replaceAll("<", "&lt;")
+      .replaceAll(">", "&gt;")
+      .replaceAll('"', "&quot;")
+      .replaceAll("'", "&#39;");
+  }
+
+  const autoFillV2Schema = Schema.object({
+    properties: {
+      name: Schema.string(),
+      brand: Schema.string(),
+      series: Schema.string(),
+      category: Schema.string(),
+      status: Schema.string({
+        enum: ["未開封", "已開封", "展示中", "未取貨", "已售出", "願望清單"]
+      }),
+      note: Schema.string(),
+      travelHint: Schema.object({
+        properties: {
+          isTravelRelated: Schema.boolean(),
+          tripName: Schema.string(),
+          travelType: Schema.string({
+            enum: ["酒店", "購物", "餐飲", "交通", "雜行", ""]
+          }),
+          shop: Schema.string(),
+          cityArea: Schema.string()
+        },
+        optionalProperties: ["tripName", "travelType", "shop", "cityArea"]
+      }),
+      priceHint: Schema.object({
+        properties: {
+          currency: Schema.string(),
+          amountText: Schema.string()
+        },
+        optionalProperties: ["currency", "amountText"]
+      }),
+      confidence: Schema.object({
+        properties: {
+          name: Schema.number(),
+          brand: Schema.number(),
+          series: Schema.number(),
+          category: Schema.number(),
+          status: Schema.number()
+        },
+        optionalProperties: ["name", "brand", "series", "category", "status"]
+      })
+    },
+    optionalProperties: [
+      "brand", "series", "category", "status",
+      "note", "travelHint", "priceHint", "confidence"
+    ]
+  });
+
+  try {
+    if (window.kuraAI?.ai && typeof getGenerativeModel === "function") {
+      window.kuraAI.autoFillModelV2 = getGenerativeModel(window.kuraAI.ai, {
+        model: "gemini-2.5-flash",
+        generationConfig: {
+          responseMimeType: "application/json",
+          responseSchema: autoFillV2Schema
+        }
+      });
+    }
+  } catch (err) {
+    console.error("AI Fill v2 model init failed", err);
+  }
+
+  function buildAiFillV2Prompt() {
+    return [
+      "你是模型收藏資料整理助手。",
+      "請根據用戶提供的單張產品圖片，回傳符合 schema 的 JSON。",
+      "規則：",
+      "1. 只可根據圖片可見內容判斷。",
+      "2. 不確定的欄位請留空，不可亂估。",
+      "3. status 只能使用指定 enum。",
+      "4. 如果圖片與旅行消費相關，可填寫 travelHint；否則 travelHint 盡量留空。",
+      "5. note 用 1 至 2 句，簡單說明判斷依據。",
+      "6. confidence 請用 0 到 1 之間數值。",
+      "7. 必須輸出合法 JSON，不可輸出額外解說。"
+    ].join("\n");
+  }
+
+  async function fileToGenerativePartV2(file) {
+    const base64EncodedData = await new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onloadend = () => resolve(String(reader.result || "").split(",")[1] || "");
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    });
+
+    return {
+      inlineData: {
+        data: base64EncodedData,
+        mimeType: file.type || "image/jpeg"
+      }
+    };
+  }
+
+  async function runAIAutoFillV2(file) {
+    if (!file) throw new Error("未選擇圖片");
+    if (!window.kuraAI?.autoFillModelV2) throw new Error("AI Fill v2 未初始化成功");
+
+    const imagePart = await fileToGenerativePartV2(file);
+    const prompt = buildAiFillV2Prompt();
+    const result = await window.kuraAI.autoFillModelV2.generateContent([prompt, imagePart]);
+    const response = result.response;
+    const content = response.text();
+    return JSON.parse(content);
+  }
+
+  function buildAiFillV2Preview(result) {
+    return {
+      basic: {
+        name: result?.name || "",
+        brand: result?.brand || "",
+        series: result?.series || "",
+        category: result?.category || "",
+        status: result?.status || "",
+        note: result?.note || ""
+      },
+      travel: {
+        isTravelRelated: !!result?.travelHint?.isTravelRelated,
+        tripName: result?.travelHint?.tripName || "",
+        travelType: result?.travelHint?.travelType || "",
+        cityArea: result?.travelHint?.cityArea || "",
+        shop: result?.travelHint?.shop || ""
+      },
+      price: {
+        currency: result?.priceHint?.currency || "",
+        amountText: result?.priceHint?.amountText || ""
+      },
+      confidence: result?.confidence || {}
+    };
+  }
+
+  function renderAiFillV2Row(label, value, confidence = null) {
+    const safeValue = value == null || String(value).trim() === ""
+      ? '<span class="text-slate-400">留空</span>'
+      : escapeHtml(String(value));
+
+    const confidenceHtml = confidence == null
+      ? ''
+      : `<span class="rounded-full bg-black/5 px-2 py-1 text-[11px] font-semibold text-slate-500">${Number(confidence).toFixed(2)}</span>`;
+
+    return `
+      <div class="rounded-xl border border-primary/10 bg-white/70 px-4 py-3">
+        <div class="flex items-start justify-between gap-3">
+          <div class="min-w-0">
+            <div class="text-xs uppercase tracking-[0.14em] text-slate-400">${escapeHtml(label)}</div>
+            <div class="mt-1 text-sm font-medium text-text-dark break-words">${safeValue}</div>
+          </div>
+          ${confidenceHtml}
+        </div>
+      </div>
+    `;
+  }
+
+  function renderAiFillV2Section(title, rowsHtml) {
+    return `
+      <section class="space-y-3">
+        <div class="text-xs uppercase tracking-[0.16em] text-slate-400">${escapeHtml(title)}</div>
+        <div class="space-y-3">${rowsHtml}</div>
+      </section>
+    `;
+  }
+
+  function renderAiFillV2Preview(preview) {
+    const wrap = document.getElementById("aiFillV2PreviewWrap");
+    const target = document.getElementById("aiFillV2Preview");
+    if (!wrap || !target) return;
+
+    const basicRows = [
+      renderAiFillV2Row("Name", preview.basic.name, preview.confidence?.name),
+      renderAiFillV2Row("Brand", preview.basic.brand, preview.confidence?.brand),
+      renderAiFillV2Row("Series", preview.basic.series, preview.confidence?.series),
+      renderAiFillV2Row("Category", preview.basic.category, preview.confidence?.category),
+      renderAiFillV2Row("Status", preview.basic.status, preview.confidence?.status),
+      renderAiFillV2Row("Note", preview.basic.note, null)
+    ].join("");
+
+    const travelRows = [
+      renderAiFillV2Row("Travel Related", preview.travel.isTravelRelated ? "Yes" : "No"),
+      renderAiFillV2Row("Trip Name", preview.travel.tripName),
+      renderAiFillV2Row("Travel Type", preview.travel.travelType),
+      renderAiFillV2Row("City / Area", preview.travel.cityArea),
+      renderAiFillV2Row("Shop", preview.travel.shop)
+    ].join("");
+
+    const priceText = [preview.price.currency, preview.price.amountText].filter(Boolean).join(" ");
+    const otherRows = [
+      renderAiFillV2Row("Price Hint", priceText || "")
+    ].join("");
+
+    target.innerHTML = [
+      renderAiFillV2Section("Basic Info", basicRows),
+      renderAiFillV2Section("Travel Hints", travelRows),
+      renderAiFillV2Section("Other Hints", otherRows)
+    ].join("");
+
+    wrap.classList.remove("hidden");
+  }
+
+  function showAiFillV2Loading(show) {
+    const el = document.getElementById("aiFillV2Loading");
+    if (!el) return;
+    el.classList.toggle("hidden", !show);
+  }
+
+  function clearAiFillV2Preview() {
+    window.__lastAiFillV2Result = null;
+    const wrap = document.getElementById("aiFillV2PreviewWrap");
+    const target = document.getElementById("aiFillV2Preview");
+    if (target) target.innerHTML = "";
+    if (wrap) wrap.classList.add("hidden");
+  }
+
+  function getField(id) {
+    return document.getElementById(id);
+  }
+
+  function isBlankValue(value) {
+    return value == null || String(value).trim() === "";
+  }
+
+  function setFieldValue(id, value) {
+    const el = getField(id);
+    if (!el || value == null) return;
+    el.value = String(value);
+    el.dispatchEvent(new Event("input", { bubbles: true }));
+    el.dispatchEvent(new Event("change", { bubbles: true }));
+  }
+
+  function applyAiFillV2ToForm(result, mode = "emptyOnly") {
+    if (!result || typeof result !== "object") return;
+
+    const basicMap = [
+      ["name", result.name],
+      ["brand", result.brand],
+      ["series", result.series],
+      ["category", result.category],
+      ["status", result.status],
+      ["note", result.note]
+    ];
+
+    basicMap.forEach(([id, value]) => {
+      const el = getField(id);
+      if (!el || isBlankValue(value)) return;
+      if (mode === "all" || (mode === "emptyOnly" && isBlankValue(el.value))) {
+        setFieldValue(id, value);
+      }
+    });
+
+    const travel = result.travelHint || {};
+    if (!!travel.isTravelRelated) {
+      const travelMap = [
+        ["tripName", travel.tripName],
+        ["travelType", travel.travelType],
+        ["travelArea", travel.cityArea],
+        ["travelShop", travel.shop]
+      ];
+      travelMap.forEach(([id, value]) => {
+        const el = getField(id);
+        if (!el || isBlankValue(value)) return;
+        if (mode === "all" || (mode === "emptyOnly" && isBlankValue(el.value))) {
+          setFieldValue(id, value);
+        }
+      });
+    }
+  }
+
+  async function handleAiFillV2(file) {
+    try {
+      showAiFillV2Loading(true);
+      const result = await runAIAutoFillV2(file);
+      window.__lastAiFillV2Result = result;
+      renderAiFillV2Preview(buildAiFillV2Preview(result));
+    } catch (err) {
+      console.error(err);
+      alert(err.message || "AI Fill v2 分析失敗");
+    } finally {
+      showAiFillV2Loading(false);
+    }
+  }
+
+  function pickImageFileForV2() {
+    return document.getElementById("coverUpload")?.files?.[0]
+      || document.getElementById("imageUpload")?.files?.[0]
+      || document.getElementById("coverFile")?.files?.[0]
+      || document.getElementById("itemImageFile")?.files?.[0]
+      || document.getElementById("imageFile")?.files?.[0]
+      || null;
+  }
+
+  function bindAiFillV2Buttons() {
+    const runBtn = document.getElementById("aiFillV2Btn");
+    const applyEmptyBtn = document.getElementById("aiFillV2ApplyEmptyBtn");
+    const applyAllBtn = document.getElementById("aiFillV2ApplyAllBtn");
+    const closeBtn = document.getElementById("aiFillV2CloseBtn");
+    const clearBtn = document.getElementById("aiFillV2ClearBtn");
+
+    if (runBtn && !runBtn.dataset.bound) {
+      runBtn.dataset.bound = "1";
+      runBtn.addEventListener("click", async () => {
+        const file = pickImageFileForV2();
+        if (!file) {
+          alert("請先上傳 / 拍攝圖片");
+          return;
+        }
+        await handleAiFillV2(file);
+      });
+    }
+
+    if (applyEmptyBtn && !applyEmptyBtn.dataset.bound) {
+      applyEmptyBtn.dataset.bound = "1";
+      applyEmptyBtn.addEventListener("click", () => {
+        if (!window.__lastAiFillV2Result) return;
+        applyAiFillV2ToForm(window.__lastAiFillV2Result, "emptyOnly");
+      });
+    }
+
+    if (applyAllBtn && !applyAllBtn.dataset.bound) {
+      applyAllBtn.dataset.bound = "1";
+      applyAllBtn.addEventListener("click", () => {
+        if (!window.__lastAiFillV2Result) return;
+        applyAiFillV2ToForm(window.__lastAiFillV2Result, "all");
+      });
+    }
+
+    if (closeBtn && !closeBtn.dataset.bound) {
+      closeBtn.dataset.bound = "1";
+      closeBtn.addEventListener("click", clearAiFillV2Preview);
+    }
+
+    if (clearBtn && !clearBtn.dataset.bound) {
+      clearBtn.dataset.bound = "1";
+      clearBtn.addEventListener("click", clearAiFillV2Preview);
+    }
+  }
+
+  document.addEventListener("DOMContentLoaded", function(){
+    setTimeout(bindAiFillV2Buttons, 0);
+    setTimeout(bindAiFillV2Buttons, 300);
+  });
+  window.addEventListener("load", function(){
+    setTimeout(bindAiFillV2Buttons, 0);
+    setTimeout(bindAiFillV2Buttons, 300);
+  });
 })();
 </script>
 
