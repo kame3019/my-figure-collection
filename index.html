@@ -785,6 +785,7 @@ body.auth-signed-in #pageProfile.show #profileGuestPanelsWrap{display:none!impor
 <!-- Logo refresh stability bundle v6i -->
 <!-- AI Fill v2 test scaffold -->
 <!-- AI Fill v2 panel position fix -->
+<!-- AI Fill v2 init scope fix -->
 <body class="bg-background-light font-display text-slate-900 washi-texture">
 <script>
 (function(){
@@ -7717,7 +7718,9 @@ html[data-typography] :is(h1,h2,h3,h4,h5,h6,.page-title,.section-title,.header-t
 
 
 <script>
-(function(){
+(async function(){
+  const { getGenerativeModel, Schema } = await import("https://www.gstatic.com/firebasejs/12.10.0/firebase-ai.js");
+
   function escapeHtml(value = "") {
     return String(value)
       .replaceAll("&", "&amp;")
@@ -7774,7 +7777,7 @@ html[data-typography] :is(h1,h2,h3,h4,h5,h6,.page-title,.section-title,.header-t
   });
 
   try {
-    if (window.kuraAI?.ai && typeof getGenerativeModel === "function") {
+    if (window.kuraAI?.ai) {
       window.kuraAI.autoFillModelV2 = getGenerativeModel(window.kuraAI.ai, {
         model: "gemini-2.5-flash",
         generationConfig: {
@@ -7799,7 +7802,8 @@ html[data-typography] :is(h1,h2,h3,h4,h5,h6,.page-title,.section-title,.header-t
       "5. note 用 1 至 2 句，簡單說明判斷依據。",
       "6. confidence 請用 0 到 1 之間數值。",
       "7. 必須輸出合法 JSON，不可輸出額外解說。"
-    ].join("\n");
+    ].join("
+");
   }
 
   async function fileToGenerativePartV2(file) {
@@ -8010,6 +8014,8 @@ html[data-typography] :is(h1,h2,h3,h4,h5,h6,.page-title,.section-title,.header-t
       || document.getElementById("coverFile")?.files?.[0]
       || document.getElementById("itemImageFile")?.files?.[0]
       || document.getElementById("imageFile")?.files?.[0]
+      || document.getElementById("photoLibrary")?.files?.[0]
+      || document.getElementById("photo")?.files?.[0]
       || null;
   }
 
