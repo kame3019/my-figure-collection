@@ -926,6 +926,7 @@ body.auth-signed-in #pageProfile.show #profileGuestPanelsWrap{display:none!impor
 <!-- AI Fill v2.4 ultimate click + login refresh -->
 <!-- AI Fill v2.5 final ui + auth category refresh -->
 <!-- v26 scan correction + auth refresh -->
+<!-- v27 category uid + opencv ready fix -->
 <body class="bg-background-light font-display text-slate-900 washi-texture">
 <script>
 (function(){
@@ -3361,12 +3362,17 @@ function syncMuseumModeLabel(){
             if (typeof saveFakeUser === "function") saveFakeUser();
           } catch (e) {}
           await upsertUserProfile(result.user);
+          window.__kuraPendingAuthUid = result.user.uid;
           document.body.classList.add("auth-signed-in");
-          if (typeof window.loadCategories === "function") await window.loadCategories();
+          if (typeof window.loadItemsFromCloud === "function") await window.loadItemsFromCloud(result.user.uid);
+          if (typeof window.loadCategories === "function") await window.loadCategories(result.user.uid);
+          if (typeof window.render === "function") window.render();
           if (typeof window.renderCategoryPage === "function") window.renderCategoryPage();
           if (typeof window.renderProfilePage === "function") window.renderProfilePage();
           try { window.syncGuestPanelsVisibility?.(); } catch (e) {}
-          setTimeout(() => { try { window.loadCategories?.().then?.(() => window.renderCategoryPage?.()); } catch(e){} }, 260);
+          setTimeout(() => { try { window.loadItemsFromCloud?.(result.user.uid); } catch(e){} }, 120);
+          setTimeout(() => { try { window.loadCategories?.(result.user.uid).then?.(() => window.renderCategoryPage?.()); } catch(e){} }, 260);
+          setTimeout(() => { try { window.loadCategories?.(result.user.uid).then?.(() => window.renderCategoryPage?.()); } catch(e){} }, 680);
           setTimeout(() => { try { window.syncGuestPanelsVisibility?.(); } catch(e){} }, 120);
           alert("Google 登入成功");
         } catch (err) {
@@ -3405,11 +3411,13 @@ function syncMuseumModeLabel(){
         bindButtons();
         if (user) {
           try {
+            window.__kuraPendingAuthUid = user.uid;
             document.body.classList.add("auth-signed-in");
             await upsertUserProfile(user);
             await maybeMigrateLocalItems(user.uid);
             await loadItemsFromCloud(user.uid);
-            if (typeof window.loadCategories === "function") await window.loadCategories();
+            if (typeof window.loadCategories === "function") await window.loadCategories(user.uid);
+            if (typeof window.render === "function") window.render();
             if (typeof window.renderCategoryPage === "function") window.renderCategoryPage();
             if (typeof window.renderProfilePage === "function") window.renderProfilePage();
             try { await window.loadMergedLogoLibraries?.(); } catch(e) { console.error(e); }
@@ -3418,16 +3426,18 @@ function syncMuseumModeLabel(){
             console.error(err);
           }
         } else {
+          window.__kuraPendingAuthUid = "";
           document.body.classList.remove("auth-signed-in");
           window.__kuraState.setItems([]);
           if (typeof window.render === "function") window.render();
-          if (typeof window.loadCategories === "function") await window.loadCategories();
+          if (typeof window.loadCategories === "function") await window.loadCategories("");
           if (typeof window.renderCategoryPage === "function") window.renderCategoryPage();
           if (typeof window.renderProfilePage === "function") window.renderProfilePage();
           try { await window.loadMergedLogoLibraries?.(); } catch(e) { console.error(e); }
         }
         setTimeout(() => window.refreshAdminPanel?.(), 50);
-        setTimeout(() => { try { window.loadCategories?.().then?.(()=>window.renderCategoryPage?.()); } catch(e){} }, 220);
+        setTimeout(() => { try { window.loadCategories?.(window.__kuraPendingAuthUid || "").then?.(()=>window.renderCategoryPage?.()); } catch(e){} }, 220);
+        setTimeout(() => { try { window.loadCategories?.(window.__kuraPendingAuthUid || "").then?.(()=>window.renderCategoryPage?.()); } catch(e){} }, 650);
         setTimeout(() => { try { window.loadMergedLogoLibraries?.(); } catch(e){} }, 180);
         setTimeout(() => { try { window.loadAllUserLogosForAdmin?.(); } catch(e){} }, 260);
       });
@@ -5215,7 +5225,7 @@ function syncMuseumModeLabel(){
       return va - vb || (a.sortOrder??0)-(b.sortOrder??0) || (a.name||'').localeCompare(b.name||'');
     });
   }
-  async function loadCategories(){
+  async function loadCategories(forcedUid = ""){
     const api=fb();
     fixedCategories = DEFAULT_FIXED_CATEGORIES.map((x,i)=>({...x,isActive:true,sortOrder:i})).map(cat=>ensureCategoryShape(cat,'fixed'));
     enabledFixedCategoryIds = fixedCategories.map(c=>c.id);
@@ -5227,9 +5237,9 @@ function syncMuseumModeLabel(){
         fixedCategories = pubSnap.data().fixedCategories.map((cat,i)=>ensureCategoryShape({...cat, sortOrder: cat.sortOrder ?? i},'fixed'));
         enabledFixedCategoryIds = fixedCategories.filter(c => c.isActive !== false).map(c => c.id);
       }
-      const user = api.auth?.currentUser;
-      if(user){
-        const setSnap = await api.getDoc(api.doc(api.db,'users',user.uid,'categorySettings','main'));
+      const effectiveUid = forcedUid || api.auth?.currentUser?.uid || window.__kuraPendingAuthUid || "";
+      if(effectiveUid){
+        const setSnap = await api.getDoc(api.doc(api.db,'users',effectiveUid,'categorySettings','main'));
         if(setSnap.exists()){
           const data=setSnap.data()||{};
           if(Array.isArray(data.enabledFixedCategoryIds)) enabledFixedCategoryIds = data.enabledFixedCategoryIds.slice();
@@ -9362,7 +9372,7 @@ html[data-typography] :is(h1,h2,h3,h4,h5,h6,.page-title,.section-title,.header-t
 
   async function hardRefreshCategories() {
     try {
-      if (typeof window.loadCategories === "function") await window.loadCategories();
+      if (typeof window.loadCategories === "function") await window.loadCategories(currentUid());
       if (typeof window.renderCategoryPage === "function") window.renderCategoryPage();
     } catch (e) {
       console.error("hardRefreshCategories failed", e);
@@ -9576,15 +9586,61 @@ html[data-typography] :is(h1,h2,h3,h4,h5,h6,.page-title,.section-title,.header-t
   }
 
   async function ensureOpenCv() {
-    if (window.cv && window.cv.Mat) return window.cv;
+    if (window.cv) {
+      try {
+        const readyCv = typeof window.cv.then === "function" ? await window.cv : window.cv;
+        if (readyCv && readyCv.Mat) {
+          window.cv = readyCv;
+          return readyCv;
+        }
+      } catch (e) {}
+    }
+
     if (window.__opencvLoadingPromise) return await window.__opencvLoadingPromise;
 
     window.__opencvLoadingPromise = new Promise((resolve, reject) => {
+      function resolveIfReady() {
+        try {
+          if (!window.cv) return false;
+          if (typeof window.cv.then === "function") {
+            window.cv.then((readyCv) => {
+              window.cv = readyCv;
+              if (readyCv && readyCv.Mat) resolve(readyCv);
+            }).catch(reject);
+            return true;
+          }
+          if (window.cv && window.cv.Mat) {
+            resolve(window.cv);
+            return true;
+          }
+        } catch (e) {
+          reject(e);
+          return true;
+        }
+        return false;
+      }
+
+      if (resolveIfReady()) return;
+
+      window.Module = window.Module || {};
+      const prevInit = window.Module.onRuntimeInitialized;
+      window.Module.onRuntimeInitialized = function() {
+        try { if (typeof prevInit === "function") prevInit(); } catch(e) {}
+        try {
+          if (window.cv && window.cv.Mat) resolve(window.cv);
+          else if (typeof window.cv?.then === "function") {
+            window.cv.then((readyCv) => {
+              window.cv = readyCv;
+              resolve(readyCv);
+            }).catch(reject);
+          }
+        } catch (e) { reject(e); }
+      };
+
       const existing = document.querySelector('script[data-opencv="1"]');
       if (existing) {
         const wait = () => {
-          if (window.cv && window.cv.Mat) resolve(window.cv);
-          else setTimeout(wait, 120);
+          if (!resolveIfReady()) setTimeout(wait, 120);
         };
         wait();
         return;
@@ -9596,8 +9652,7 @@ html[data-typography] :is(h1,h2,h3,h4,h5,h6,.page-title,.section-title,.header-t
       script.src = "https://docs.opencv.org/4.x/opencv.js";
       script.onload = () => {
         const wait = () => {
-          if (window.cv && window.cv.Mat) resolve(window.cv);
-          else setTimeout(wait, 120);
+          if (!resolveIfReady()) setTimeout(wait, 120);
         };
         wait();
       };
@@ -9710,7 +9765,10 @@ html[data-typography] :is(h1,h2,h3,h4,h5,h6,.page-title,.section-title,.header-t
 
       src.delete(); gray.delete(); blur.delete(); edges.delete(); contours.delete(); hierarchy.delete();
 
-      if (!best) throw new Error("未能穩定辨識四邊，請手動微調。");
+      if (!best) {
+        setScanStatus("未能穩定辨識四邊，已保留手動拖角模式。");
+        return;
+      }
 
       const ordered = orderQuad(best).map(p => ({
         x: p.x / scale * scanState.displayScale,
@@ -9888,7 +9946,7 @@ html[data-typography] :is(h1,h2,h3,h4,h5,h6,.page-title,.section-title,.header-t
       }
     } catch (e) {
       console.error(e);
-      setScanStatus(e.message || "校正失敗");
+      setScanStatus(e.message || "圖片校正失敗，請稍後再試或只用手動 Cover。");
       alert(e.message || "圖片校正失敗");
     }
   }
