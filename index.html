@@ -784,6 +784,7 @@ body.auth-signed-in #pageProfile.show #profileGuestPanelsWrap{display:none!impor
 <!-- Trip filter source fix + real blank label behavior -->
 <!-- Logo refresh stability bundle v6i -->
 <!-- AI Fill v2 test scaffold -->
+<!-- AI Fill v2 panel position fix -->
 <body class="bg-background-light font-display text-slate-900 washi-texture">
 <script>
 (function(){
@@ -8065,6 +8066,35 @@ html[data-typography] :is(h1,h2,h3,h4,h5,h6,.page-title,.section-title,.header-t
   window.addEventListener("load", function(){
     setTimeout(bindAiFillV2Buttons, 0);
     setTimeout(bindAiFillV2Buttons, 300);
+  });
+})();
+</script>
+
+
+<script>
+(function(){
+  function moveAiFillV2PanelIntoAddPage(){
+    const panel = document.getElementById('aiFillV2Panel');
+    const aiFillBtn = document.getElementById('aiFillBtn');
+    if (!panel || !aiFillBtn) return;
+
+    const host = aiFillBtn.closest('.mt-3');
+    if (!host) return;
+
+    if (panel.dataset.movedIntoAddPage === '1') return;
+    panel.dataset.movedIntoAddPage = '1';
+
+    host.insertAdjacentElement('afterend', panel);
+  }
+
+  document.addEventListener('DOMContentLoaded', function(){
+    setTimeout(moveAiFillV2PanelIntoAddPage, 0);
+    setTimeout(moveAiFillV2PanelIntoAddPage, 200);
+  });
+
+  window.addEventListener('load', function(){
+    setTimeout(moveAiFillV2PanelIntoAddPage, 0);
+    setTimeout(moveAiFillV2PanelIntoAddPage, 200);
   });
 })();
 </script>
