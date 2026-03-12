@@ -781,6 +781,7 @@ body.auth-signed-in #pageProfile.show #profileGuestPanelsWrap{display:none!impor
 <!-- Guest under management login fix v6f -->
 <!-- Google-only auth safe patch v6g -->
 <!-- Trap filter alignment fix + blank label option -->
+<!-- Trip filter source fix + real blank label behavior -->
 <body class="bg-background-light font-display text-slate-900 washi-texture">
 <script>
 (function(){
@@ -1498,7 +1499,7 @@ body.auth-signed-in #pageProfile.show #profileGuestPanelsWrap{display:none!impor
                 note: raw.note || "",
                 image: raw.image || "",
                 cornerLabel: raw.cornerLabel || "",
-                cornerLabelColor: raw.cornerLabelColor || "auto"
+                cornerLabelColor: Object.prototype.hasOwnProperty.call(raw, "cornerLabelColor") ? raw.cornerLabelColor : "auto"
             };
         }
 
@@ -1698,13 +1699,17 @@ body.auth-signed-in #pageProfile.show #profileGuestPanelsWrap{display:none!impor
         }
 
         function labelConfig(item, index) {
+            if (item.cornerLabelColor === "") {
+                return { text: "", classes: "" };
+            }
+
             const text = item.cornerLabel && item.cornerLabel.trim()
                 ? item.cornerLabel.trim()
                 : (view === "wishlist"
                     ? (index === 0 ? "WANTED" : "DREAM PICK")
                     : (item.status === "展示中" ? "GREAT EXHIBITION" : "ARCHIVE"));
 
-            let color = item.cornerLabelColor || "auto";
+            let color = (Object.prototype.hasOwnProperty.call(item, "cornerLabelColor") ? item.cornerLabelColor : "auto") || "auto";
             if (color === "auto") {
                 color = index % 2 === 0 ? "red" : "black";
             }
@@ -1762,15 +1767,20 @@ body.auth-signed-in #pageProfile.show #profileGuestPanelsWrap{display:none!impor
             const query = document.getElementById("searchInput").value.trim().toLowerCase();
             const sort = document.getElementById("sortSelect").value;
             const statusFilter = document.getElementById("statusFilter").value;
+            const travelTripFilterEl = document.getElementById("travelGroupFilter");
+            const activeTrip = travelTripFilterEl ? (travelTripFilterEl.value || "__all__") : "__all__";
+            const isTravelCategory = ((currentCategory || "").toUpperCase() === "TRAVEL") || ((currentCategory || "") === "旅行");
 
             let arr = items.filter(item => {
                 const matchesView = view === "owned" ? item.status !== "願望清單" : item.status === "願望清單";
                 const text = [item.name, item.brand, item.series, item.category, item.note, item.itemCode, item.location, item.cornerLabel].join(" ").toLowerCase();
+                const tripPass = !isTravelCategory || activeTrip === "__all__" || (item.tripName || "") === activeTrip;
 
                 return matchesView &&
                     (!query || text.includes(query)) &&
                     (!currentCategory || item.category === currentCategory) &&
-                    (!statusFilter || item.status === statusFilter);
+                    (!statusFilter || item.status === statusFilter) &&
+                    tripPass;
             });
 
             arr.sort((a, b) => {
@@ -2331,7 +2341,7 @@ function renderOverviewCards() {
             });
 
             document.getElementById("status").value = "未開封";
-            document.getElementById("cornerLabelColor").value = "auto";
+            document.getElementById("cornerLabelColor").value = "";
             if (window.resetCoverPreview) window.resetCoverPreview();
             delete document.getElementById("saveBtn").dataset.editing;
         }
@@ -2359,7 +2369,7 @@ function renderOverviewCards() {
             document.getElementById("sourceLink").value = item.sourceLink || "";
             document.getElementById("note").value = item.note || "";
             document.getElementById("cornerLabel").value = item.cornerLabel || "";
-            document.getElementById("cornerLabelColor").value = item.cornerLabelColor || "auto";
+            document.getElementById("cornerLabelColor").value = Object.prototype.hasOwnProperty.call(item, "cornerLabelColor") ? item.cornerLabelColor : "auto";
             const coverUrlInput = document.getElementById("coverImageUrl");
             const coverApplied = document.getElementById("coverImageApplied");
             if (coverUrlInput) coverUrlInput.value = (item.image && /^https?:/i.test(item.image)) ? item.image : "";
@@ -7076,9 +7086,9 @@ html[data-typography] :is(h1,h2,h3,h4,h5,h6,.page-title,.section-title,.header-t
       try {
         if (typeof renderList === 'function') renderList();
       } catch(e){}
-      setTimeout(refreshTravelFilterUI, 0);
-      setTimeout(refreshTravelFilterUI, 120);
-      setTimeout(refreshTravelFilterUI, 320);
+      try {
+        if (typeof renderCategoryFilterSummary === 'function') renderCategoryFilterSummary();
+      } catch(e){}
     });
   }
 
@@ -7089,9 +7099,8 @@ html[data-typography] :is(h1,h2,h3,h4,h5,h6,.page-title,.section-title,.header-t
       window.renderList = function(...args){
         const result = fn.apply(this, args);
         try {
-          setTimeout(refreshTravelFilterUI, 0);
-          setTimeout(refreshTravelFilterUI, 120);
-          setTimeout(refreshTravelFilterUI, 320);
+          setTimeout(rebuildTripFilterOptions, 0);
+          setTimeout(() => { try { if (typeof renderCategoryFilterSummary === 'function') renderCategoryFilterSummary(); } catch(e){} }, 0);
         } catch(e){}
         return result;
       };
