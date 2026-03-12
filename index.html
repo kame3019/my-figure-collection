@@ -743,26 +743,15 @@ details[open] input[type="text"]#seriesLogoUrl{
 </style>
 
 <style>
-#profileGuestPanels{display:none;}
-#pageProfile.show #profileGuestPanels{display:block;}
-body.auth-signed-in #pageProfile.show #profileGuestPanels{display:none!important;}
+#profileGuestPanelsWrap{display:none;}
+#pageProfile.show #profileGuestPanelsWrap{display:block;}
+body.auth-signed-in #pageProfile.show #profileGuestPanelsWrap{display:none!important;}
 </style>
 
 <style>
-/* Profile page bottom safe area for guest auth cards */
-#pageProfile.show{
-  padding-bottom: max(11rem, calc(env(safe-area-inset-bottom) + 11rem)) !important;
-}
-#pageProfile.show #profileGuestPanels{
-  margin-bottom: max(2rem, calc(env(safe-area-inset-bottom) + 2rem));
-}
-@media (max-width: 640px){
-  #pageProfile.show{
-    padding-bottom: max(13rem, calc(env(safe-area-inset-bottom) + 13rem)) !important;
-  }
-  #pageProfile.show #profileGuestPanels{
-    margin-bottom: max(3rem, calc(env(safe-area-inset-bottom) + 3rem));
-  }
+/* Guest auth panels placed under Management Tools */
+#profileGuestPanelsWrap .space-y-4{
+  margin-top: 0.25rem;
 }
 </style>
 
@@ -778,7 +767,7 @@ body.auth-signed-in #pageProfile.show #profileGuestPanels{display:none!important
 <!-- Guest panels profile-only visibility fix -->
 <!-- Reviewed safe bundle v6 -->
 <!-- Profile guest panel restore fix on v6 bundle -->
-<!-- Profile page bottom safe area fix -->
+<!-- Guest panels moved under Management Tools -->
 <body class="bg-background-light font-display text-slate-900 washi-texture">
 <script>
 (function(){
@@ -1202,6 +1191,15 @@ body.auth-signed-in #pageProfile.show #profileGuestPanels{display:none!important
 <button class="flex flex-col items-center gap-2 text-center" id="toolCurrency"><div class="w-12 h-12 rounded-2xl bg-background-light border border-primary/10 flex items-center justify-center text-primary"><span class="material-symbols-outlined text-2xl">currency_exchange</span></div><span class="text-[10px] font-medium text-slate-600" data-i18n="toolCurrency">Default Currency</span></button>
 </div>
 </div>
+
+<div class="rounded-2xl bg-white/70 border border-primary/10 shadow-sm p-5" id="profileGuestPanelsWrap">
+<div class="space-y-4" id="profileGuestPanels">
+<div class="rounded-2xl bg-white/70 border border-primary/10 shadow-sm p-5">
+<div class="flex items-center justify-between mb-4"><div><h3 class="text-lg font-bold">Sign In</h3><p class="text-xs text-slate-500 uppercase tracking-widest mt-1">UI Preview</p></div><span class="material-symbols-outlined text-primary text-3xl">login</span></div>
+<div class="space-y-3"><input class="kv-input rounded-xl border border-primary/10 bg-background-light/80 px-4 py-3 text-sm placeholder:text-slate-400 focus:border-primary focus:ring-primary" id="loginEmail" placeholder="Email address" type="email"/><input class="kv-input rounded-xl border border-primary/10 bg-background-light/80 px-4 py-3 text-sm placeholder:text-slate-400 focus:border-primary focus:ring-primary" id="loginPassword" placeholder="Password" type="password"/><button class="w-full rounded-xl bg-primary px-4 py-3 text-sm font-bold text-white" id="fakeLoginBtn">登入（示範 UI）</button></div>
+</div>
+</div>
+
 <div class="rounded-2xl bg-white/70 border border-primary/10 shadow-sm p-5" id="profileThemePanel">
 <div class="flex items-center justify-between mb-4"><div><h3 class="text-lg font-bold" data-i18n="themePanelTitle">Theme</h3><p class="text-xs text-slate-500 uppercase tracking-widest mt-1" data-i18n="themePanelSubtitle">Theme切換</p></div><span class="material-symbols-outlined text-accent-gold text-3xl">palette</span></div>
 <div class="grid grid-cols-3 gap-3"><button class="theme-pill rounded-xl border border-primary/10 bg-white/60 px-3 py-4 text-sm font-bold" id="themePureBtn">和風純淨</button><button class="theme-pill rounded-xl border border-primary/10 bg-white/60 px-3 py-4 text-sm font-bold" id="themeBlackGoldBtn">黑金漆器</button><button class="theme-pill rounded-xl border border-primary/10 bg-white/60 px-3 py-4 text-sm font-bold" id="themeSpringGardenBtn">春意庭園</button></div>
@@ -1243,11 +1241,7 @@ body.auth-signed-in #pageProfile.show #profileGuestPanels{display:none!important
 <div class="mt-3 text-xs text-slate-500" id="currencyPanelHint" data-i18n="currencyPanelHint">顯示貨幣設定會用於後續價格顯示。</div>
 <div class="mt-2 text-[11px] text-slate-400">新增收藏可另外保存原始購入貨幣，Chronicle會按幣別分組顯示。</div>
 </div>
-<div class="space-y-4" id="profileGuestPanels">
-<div class="rounded-2xl bg-white/70 border border-primary/10 shadow-sm p-5">
-<div class="flex items-center justify-between mb-4"><div><h3 class="text-lg font-bold">Sign In</h3><p class="text-xs text-slate-500 uppercase tracking-widest mt-1">UI Preview</p></div><span class="material-symbols-outlined text-primary text-3xl">login</span></div>
-<div class="space-y-3"><input class="kv-input rounded-xl border border-primary/10 bg-background-light/80 px-4 py-3 text-sm placeholder:text-slate-400 focus:border-primary focus:ring-primary" id="loginEmail" placeholder="Email address" type="email"/><input class="kv-input rounded-xl border border-primary/10 bg-background-light/80 px-4 py-3 text-sm placeholder:text-slate-400 focus:border-primary focus:ring-primary" id="loginPassword" placeholder="Password" type="password"/><button class="w-full rounded-xl bg-primary px-4 py-3 text-sm font-bold text-white" id="fakeLoginBtn">登入（示範 UI）</button></div>
-</div>
+
 <div class="rounded-2xl bg-white/70 border border-primary/10 shadow-sm p-5">
 <div class="flex items-center justify-between mb-4"><div><h3 class="text-lg font-bold">Create Account</h3><p class="text-xs text-slate-500 uppercase tracking-widest mt-1">UI Preview</p></div><span class="material-symbols-outlined text-accent-gold text-3xl">person_add</span></div>
 <div class="space-y-3"><input class="kv-input rounded-xl border border-primary/10 bg-background-light/80 px-4 py-3 text-sm placeholder:text-slate-400 focus:border-primary focus:ring-primary" id="registerName" placeholder="Display name"/><input class="kv-input rounded-xl border border-primary/10 bg-background-light/80 px-4 py-3 text-sm placeholder:text-slate-400 focus:border-primary focus:ring-primary" id="registerEmail" placeholder="Email address" type="email"/><input class="kv-input rounded-xl border border-primary/10 bg-background-light/80 px-4 py-3 text-sm placeholder:text-slate-400 focus:border-primary focus:ring-primary" id="registerPassword" placeholder="Password" type="password"/><button class="w-full rounded-xl bg-accent-gold px-4 py-3 text-sm font-bold text-white" id="fakeRegisterBtn">註冊（示範 UI）</button></div>
@@ -5257,7 +5251,7 @@ function syncMuseumModeLabel(){
   });
   function syncGuestPanelsVisibility(){
     const signed = !!window.kuraFirebase?.auth?.currentUser;
-    const guestPanels = $('profileGuestPanels');
+    const guestPanels = $('profileGuestPanelsWrap');
     const profilePage = $('pageProfile');
     const onProfile = !!(profilePage && profilePage.classList.contains('show'));
     document.body.classList.toggle('auth-signed-in', signed);
