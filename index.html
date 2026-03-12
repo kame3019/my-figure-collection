@@ -788,6 +788,7 @@ body.auth-signed-in #pageProfile.show #profileGuestPanelsWrap{display:none!impor
 <!-- AI Fill v2 init scope fix -->
 <!-- AI Fill v2.1 rebuilt -->
 <!-- AI Fill v2.2 click fix + quota fix -->
+<!-- AI Fill v2.3 image compression + save delay -->
 <body class="bg-background-light font-display text-slate-900 washi-texture">
 <script>
 (function(){
@@ -1488,6 +1489,61 @@ body.auth-signed-in #pageProfile.show #profileGuestPanelsWrap{display:none!impor
             if (seriesLogoValue.startsWith("data:") || seriesLogoValue.length > 250000) {
                 copy.seriesLogo = "";
             }
+            return copy;
+        }
+
+        async function compressImageDataUrlForCloud(dataUrl, options = {}) {
+            const input = String(dataUrl || "");
+            if (!input.startsWith("data:image/")) return input;
+
+            const maxBytes = Number(options.maxBytes || 900000);
+            if (input.length <= maxBytes) return input;
+
+            const img = await new Promise((resolve, reject) => {
+                const image = new Image();
+                image.onload = () => resolve(image);
+                image.onerror = reject;
+                image.src = input;
+            });
+
+            const canvas = document.createElement("canvas");
+            const maxDim = Number(options.maxDim || 1600);
+            let { width, height } = img;
+
+            if (width > maxDim || height > maxDim) {
+                const scale = Math.min(maxDim / width, maxDim / height);
+                width = Math.max(1, Math.round(width * scale));
+                height = Math.max(1, Math.round(height * scale));
+            }
+
+            canvas.width = width;
+            canvas.height = height;
+            const ctx = canvas.getContext("2d");
+            ctx.drawImage(img, 0, 0, width, height);
+
+            const qualities = [0.9, 0.82, 0.74, 0.66, 0.58, 0.5, 0.42, 0.34];
+            let best = "";
+            for (const q of qualities) {
+                const out = canvas.toDataURL("image/jpeg", q);
+                best = out;
+                if (out.length <= maxBytes) return out;
+            }
+            return best || input;
+        }
+
+        async function prepareRecordForCloudSave(record) {
+            const copy = { ...(record || {}) };
+
+            if (String(copy.image || "").startsWith("data:image/")) {
+                copy.image = await compressImageDataUrlForCloud(copy.image, { maxBytes: 900000, maxDim: 1600 });
+            }
+            if (String(copy.brandLogo || "").startsWith("data:image/")) {
+                copy.brandLogo = await compressImageDataUrlForCloud(copy.brandLogo, { maxBytes: 450000, maxDim: 800 });
+            }
+            if (String(copy.seriesLogo || "").startsWith("data:image/")) {
+                copy.seriesLogo = await compressImageDataUrlForCloud(copy.seriesLogo, { maxBytes: 450000, maxDim: 800 });
+            }
+
             return copy;
         }
 
@@ -3458,9 +3514,12 @@ function syncMuseumModeLabel(){
 
               if (savedItem) {
                 savedItem.ownerUid = uid;
+                const preparedItem = await prepareRecordForCloudSave(savedItem);
+                Object.assign(savedItem, preparedItem);
+
                 await window.kuraFirebase.setDoc(
                   window.kuraFirebase.doc(window.kuraFirebase.db, "users", uid, "items", savedItem.id),
-                  { ...savedItem },
+                  { ...preparedItem },
                   { merge: true }
                 );
                 try { if (typeof save === "function") save(); } catch (e) {}
@@ -3470,9 +3529,12 @@ function syncMuseumModeLabel(){
 
             if (backupStatus) {
               backupStatus.textContent = window.__kuraLocalSaveCompacted
-                ? "已儲存收藏（本機快取已精簡），正在返回主頁..."
-                : "已儲存收藏，正在返回主頁...";
+                ? "已儲存收藏（本機快取已精簡），1 秒後返回主頁..."
+                : "已儲存收藏，1 秒後返回主頁...";
             }
+
+            await new Promise(resolve => setTimeout(resolve, 1000));
+
             try {
               if (typeof window.render === "function") window.render();
               if (typeof window.showPage === "function") window.showPage("pageCollection");
