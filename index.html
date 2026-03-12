@@ -780,6 +780,7 @@ body.auth-signed-in #pageProfile.show #profileGuestPanelsWrap{display:none!impor
 <!-- Guest panels moved under Management Tools -->
 <!-- Guest under management login fix v6f -->
 <!-- Google-only auth safe patch v6g -->
+<!-- Trap filter alignment fix + blank label option -->
 <body class="bg-background-light font-display text-slate-900 washi-texture">
 <script>
 (function(){
@@ -976,6 +977,7 @@ body.auth-signed-in #pageProfile.show #profileGuestPanelsWrap{display:none!impor
 </div>
 <div class="mt-3">
 <select class="kv-input w-full rounded-xl border border-primary/10 bg-background-light/80 px-4 py-3 text-sm focus:border-primary focus:ring-primary" id="cornerLabelColor">
+<option value=""></option>
 <option value="auto">標籤顏色：自動</option>
 <option value="red">紅</option>
 <option value="black">黑</option>
@@ -6977,19 +6979,27 @@ html[data-typography] :is(h1,h2,h3,h4,h5,h6,.page-title,.section-title,.header-t
 
   function getRenderedItemsData(){
     try {
-      const source = Array.isArray(window.items) ? window.items : (typeof items !== 'undefined' && Array.isArray(items) ? items : []);
-      const category = getSafeCurrentCategory();
-      const search = (typeof window.currentSearch !== 'undefined' ? window.currentSearch : (typeof currentSearch !== 'undefined' ? currentSearch : '')) || '';
-      const viewMode = (typeof window.view !== 'undefined' ? window.view : (typeof view !== 'undefined' ? view : 'owned')) || 'owned';
+      let base = [];
+      if (typeof filteredItems === 'function') {
+        base = filteredItems();
+      } else {
+        const source = Array.isArray(window.items) ? window.items : (typeof items !== 'undefined' && Array.isArray(items) ? items : []);
+        const category = getSafeCurrentCategory();
+        const viewMode = (typeof window.view !== 'undefined' ? window.view : (typeof view !== 'undefined' ? view : 'owned')) || 'owned';
+        base = source.filter(item => {
+          const viewPass = viewMode === 'wishlist' ? item.status === '願望清單' : item.status !== '願望清單';
+          const categoryPass = category ? item.category === category : true;
+          return viewPass && categoryPass;
+        });
+      }
+
       const tripSel = getTripFilterEl();
       const trip = tripSel ? (tripSel.value || '__all__') : '__all__';
-      return source.filter(item => {
-        const viewPass = viewMode === 'wishlist' ? item.status === '願望清單' : item.status !== '願望清單';
-        const categoryPass = category ? item.category === category : true;
-        const tripPass = isTravelCategoryActive() ? (trip === '__all__' ? true : ((item.tripName || '') === trip)) : true;
-        const hay = `${item.name || ""} ${item.brand || ""} ${item.series || ""} ${item.tripName || ""} ${item.travelType || ""}`.toLowerCase();
-        const searchPass = search ? hay.includes(String(search).toLowerCase()) : true;
-        return viewPass && categoryPass && tripPass && searchPass;
+
+      return base.filter(item => {
+        if (!isTravelCategoryActive()) return true;
+        if (trip === '__all__') return true;
+        return (item.tripName || '') === trip;
       });
     } catch(e){
       return [];
