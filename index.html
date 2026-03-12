@@ -782,6 +782,7 @@ body.auth-signed-in #pageProfile.show #profileGuestPanelsWrap{display:none!impor
 <!-- Google-only auth safe patch v6g -->
 <!-- Trap filter alignment fix + blank label option -->
 <!-- Trip filter source fix + real blank label behavior -->
+<!-- Logo refresh stability bundle v6i -->
 <body class="bg-background-light font-display text-slate-900 washi-texture">
 <script>
 (function(){
@@ -3175,6 +3176,8 @@ function syncMuseumModeLabel(){
             if (typeof window.loadCategories === "function") await window.loadCategories();
             if (typeof window.renderCategoryPage === "function") window.renderCategoryPage();
             if (typeof window.renderProfilePage === "function") window.renderProfilePage();
+            try { await window.loadMergedLogoLibraries?.(); } catch(e) { console.error(e); }
+            try { await window.loadAllUserLogosForAdmin?.(); } catch(e) { console.error(e); }
           } catch (err) {
             console.error(err);
           }
@@ -3185,9 +3188,12 @@ function syncMuseumModeLabel(){
           if (typeof window.loadCategories === "function") await window.loadCategories();
           if (typeof window.renderCategoryPage === "function") window.renderCategoryPage();
           if (typeof window.renderProfilePage === "function") window.renderProfilePage();
+          try { await window.loadMergedLogoLibraries?.(); } catch(e) { console.error(e); }
         }
         setTimeout(() => window.refreshAdminPanel?.(), 50);
         setTimeout(() => { try { window.loadCategories?.().then?.(()=>window.renderCategoryPage?.()); } catch(e){} }, 220);
+        setTimeout(() => { try { window.loadMergedLogoLibraries?.(); } catch(e){} }, 180);
+        setTimeout(() => { try { window.loadAllUserLogosForAdmin?.(); } catch(e){} }, 260);
       });
 
       if (document.readyState === "loading") {
@@ -3363,11 +3369,14 @@ function syncMuseumModeLabel(){
         if (!admin) {
           panel.classList.add("hidden");
           await loadGlobalDefaults();
+          try { await window.loadMergedLogoLibraries?.(); } catch(e) { console.error(e); }
           return;
         }
 
         panel.classList.remove("hidden");
         await loadGlobalDefaults();
+        try { await window.loadMergedLogoLibraries?.(); } catch(e) { console.error(e); }
+        try { await window.loadAllUserLogosForAdmin?.(); } catch(e) { console.error(e); }
 
         const saveBtn = document.getElementById("saveGlobalDefaultsBtn");
         if (saveBtn && !saveBtn.dataset.bound) {
@@ -3545,6 +3554,18 @@ function syncMuseumModeLabel(){
     };
   }
 
+  async function refreshLogoUiStable() {
+    try { await loadMergedLibraries(); } catch (e) { console.error(e); }
+    try { if (typeof loadAllUserLogosForAdmin === "function") await loadAllUserLogosForAdmin(); } catch (e) { console.error(e); }
+    try { if (typeof renderProfilePage === "function") renderProfilePage(); } catch (e) { console.error(e); }
+    try { if (typeof updateButtons === "function") await updateButtons(); } catch (e) { console.error(e); }
+
+    setTimeout(() => { try { loadMergedLibraries(); } catch(e){} }, 120);
+    setTimeout(() => { try { loadMergedLibraries(); } catch(e){} }, 420);
+    setTimeout(() => { try { if (typeof loadAllUserLogosForAdmin === "function") loadAllUserLogosForAdmin(); } catch(e){} }, 220);
+    setTimeout(() => { try { if (typeof loadAllUserLogosForAdmin === "function") loadAllUserLogosForAdmin(); } catch(e){} }, 620);
+  }
+
   async function loadMergedLibraries() {
     const api = fb();
     const uid = currentUid();
@@ -3686,7 +3707,14 @@ function syncMuseumModeLabel(){
       if ($("brandLogoUrl")) $("brandLogoUrl").value = "";
       if ($("brandLogoFile")) $("brandLogoFile").value = "";
 
-      await loadMergedLibraries();
+      // optimistic local insert for immediate UI response
+      const current = readBrandLibrary();
+      if (!current.some(x => x.id === id)) {
+        setBrandLibrary([{ id, name, logo, ownerUid: uid, scope, type: "brand", createdAt: Date.now(), updatedAt: Date.now(), _path: ref.path }, ...current]);
+      }
+      try { renderLogoManagersPatched(); } catch(e) {}
+      try { if (typeof renderPresetPickers === "function") renderPresetPickers(); } catch(e) {}
+      await refreshLogoUiStable();
       if ($("backupStatus")) $("backupStatus").textContent = "已加入 Brand Logo";
     } catch (err) {
       console.error(err);
@@ -3737,7 +3765,14 @@ function syncMuseumModeLabel(){
       if ($("seriesLogoUrl")) $("seriesLogoUrl").value = "";
       if ($("seriesLogoFile")) $("seriesLogoFile").value = "";
 
-      await loadMergedLibraries();
+      // optimistic local insert for immediate UI response
+      const current = readSeriesLibrary();
+      if (!current.some(x => x.id === id)) {
+        setSeriesLibrary([{ id, name, logo, ownerUid: uid, scope, type: "series", createdAt: Date.now(), updatedAt: Date.now(), _path: ref.path }, ...current]);
+      }
+      try { renderLogoManagersPatched(); } catch(e) {}
+      try { if (typeof renderPresetPickers === "function") renderPresetPickers(); } catch(e) {}
+      await refreshLogoUiStable();
       if ($("backupStatus")) $("backupStatus").textContent = "已加入 Series Logo";
     } catch (err) {
       console.error(err);
@@ -3816,8 +3851,7 @@ function syncMuseumModeLabel(){
         : api.doc(api.db, "users", item.ownerUid || uid, "brandLogos", item.id);
 
       await api.deleteDoc(ref);
-      await loadMergedLibraries();
-      if (typeof loadAllUserLogosForAdmin === "function") await loadAllUserLogosForAdmin();
+      await refreshLogoUiStable();
     } catch (err) {
       console.error(err);
       alert(err.message || "刪除 Brand Logo 失敗");
@@ -3852,8 +3886,7 @@ function syncMuseumModeLabel(){
         : api.doc(api.db, "users", item.ownerUid || uid, "seriesLogos", item.id);
 
       await api.deleteDoc(ref);
-      await loadMergedLibraries();
-      if (typeof loadAllUserLogosForAdmin === "function") await loadAllUserLogosForAdmin();
+      await refreshLogoUiStable();
     } catch (err) {
       console.error(err);
       alert(err.message || "刪除 Series Logo 失敗");
@@ -3879,22 +3912,29 @@ function syncMuseumModeLabel(){
 
   async function bootLogoPatch() {
     bindPatchedButtons();
-    await loadMergedLibraries();
+    await refreshLogoUiStable();
 
     let count = 0;
     const timer = setInterval(async () => {
       bindPatchedButtons();
       await updateButtons();
+      if (currentUid()) {
+        try { await refreshLogoUiStable(); } catch(e) {}
+      }
       count += 1;
-      if (count > 12) clearInterval(timer);
+      if (count > 6) clearInterval(timer);
     }, 1200);
 
     document.addEventListener("click", function (e) {
       if (e.target.closest("#navAddCenter") || e.target.closest("#navProfile")) {
         setTimeout(async () => {
           bindPatchedButtons();
-          await loadMergedLibraries();
-        }, 300);
+          await refreshLogoUiStable();
+        }, 180);
+        setTimeout(async () => {
+          bindPatchedButtons();
+          await refreshLogoUiStable();
+        }, 520);
       }
     });
   }
@@ -7591,6 +7631,34 @@ html[data-typography] :is(h1,h2,h3,h4,h5,h6,.page-title,.section-title,.header-t
       oldRenderProfilePageV6g.apply(this, arguments);
       applyGoogleOnlyAuthUI();
       try { window.syncGuestPanelsVisibility?.(); } catch(e){}
+    };
+  }
+})();
+</script>
+
+
+<script>
+(function(){
+  async function refreshAdminLogoPanelsSoon(){
+    try { await window.refreshAdminPanel?.(); } catch(e) {}
+    try { await window.loadAllUserLogosForAdmin?.(); } catch(e) {}
+  }
+
+  document.addEventListener('DOMContentLoaded', function(){
+    setTimeout(refreshAdminLogoPanelsSoon, 120);
+    setTimeout(refreshAdminLogoPanelsSoon, 480);
+  });
+  window.addEventListener('load', function(){
+    setTimeout(refreshAdminLogoPanelsSoon, 120);
+    setTimeout(refreshAdminLogoPanelsSoon, 480);
+  });
+
+  const oldRenderProfilePageV6i = window.renderProfilePage;
+  if (typeof oldRenderProfilePageV6i === 'function' && !window.__kuraProfileLogoRefreshV6i) {
+    window.__kuraProfileLogoRefreshV6i = true;
+    window.renderProfilePage = function(){
+      oldRenderProfilePageV6i.apply(this, arguments);
+      setTimeout(refreshAdminLogoPanelsSoon, 80);
     };
   }
 })();
