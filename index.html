@@ -742,7 +742,30 @@ details[open] input[type="text"]#seriesLogoUrl{
 }
 </style>
 
-<style>#profileGuestPanels{display:none;}</style>
+<style>
+#profileGuestPanels{display:none;}
+#pageProfile.show #profileGuestPanels{display:block;}
+body.auth-signed-in #pageProfile.show #profileGuestPanels{display:none!important;}
+</style>
+
+<style>
+/* Profile page bottom safe area for guest auth cards */
+#pageProfile.show{
+  padding-bottom: max(11rem, calc(env(safe-area-inset-bottom) + 11rem)) !important;
+}
+#pageProfile.show #profileGuestPanels{
+  margin-bottom: max(2rem, calc(env(safe-area-inset-bottom) + 2rem));
+}
+@media (max-width: 640px){
+  #pageProfile.show{
+    padding-bottom: max(13rem, calc(env(safe-area-inset-bottom) + 13rem)) !important;
+  }
+  #pageProfile.show #profileGuestPanels{
+    margin-bottom: max(3rem, calc(env(safe-area-inset-bottom) + 3rem));
+  }
+}
+</style>
+
 </head>
 
 <!-- Kura Archive Super Stable Clean Release -->
@@ -754,6 +777,8 @@ details[open] input[type="text"]#seriesLogoUrl{
 <!-- Guest auth panel hide fix after login -->
 <!-- Guest panels profile-only visibility fix -->
 <!-- Reviewed safe bundle v6 -->
+<!-- Profile guest panel restore fix on v6 bundle -->
+<!-- Profile page bottom safe area fix -->
 <body class="bg-background-light font-display text-slate-900 washi-texture">
 <script>
 (function(){
@@ -3118,6 +3143,7 @@ function syncMuseumModeLabel(){
         bindButtons();
         if (user) {
           try {
+            document.body.classList.add("auth-signed-in");
             await upsertUserProfile(user);
             await maybeMigrateLocalItems(user.uid);
             await loadItemsFromCloud(user.uid);
@@ -3128,6 +3154,7 @@ function syncMuseumModeLabel(){
             console.error(err);
           }
         } else {
+          document.body.classList.remove("auth-signed-in");
           window.__kuraState.setItems([]);
           if (typeof window.render === "function") window.render();
           if (typeof window.loadCategories === "function") await window.loadCategories();
@@ -5233,7 +5260,8 @@ function syncMuseumModeLabel(){
     const guestPanels = $('profileGuestPanels');
     const profilePage = $('pageProfile');
     const onProfile = !!(profilePage && profilePage.classList.contains('show'));
-    if(guestPanels) guestPanels.style.display = (!signed && onProfile) ? '' : 'none';
+    document.body.classList.toggle('auth-signed-in', signed);
+    if(guestPanels) guestPanels.style.display = (!signed && onProfile) ? 'block' : 'none';
   }
   window.syncGuestPanelsVisibility = syncGuestPanelsVisibility;
 
@@ -7455,7 +7483,7 @@ html[data-typography] :is(h1,h2,h3,h4,h5,h6,.page-title,.section-title,.header-t
   }
 
   window.__kuraRestoreLastPage = restoreLastPage;
-  window.addEventListener('load', () => { setTimeout(restoreLastPage, 120); });
+  window.addEventListener('load', () => { setTimeout(restoreLastPage, 120); setTimeout(() => window.syncGuestPanelsVisibility?.(), 180); });
 })();
 </script>
 
