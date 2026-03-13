@@ -928,6 +928,7 @@ body.auth-signed-in #pageProfile.show #profileGuestPanelsWrap{display:none!impor
 <!-- v26 scan correction + auth refresh -->
 <!-- v27 category uid + opencv ready fix -->
 <!-- v28 login reload + manual scan fallback -->
+<!-- v29 auth reload + scanstate global fix -->
 <body class="bg-background-light font-display text-slate-900 washi-texture">
 <script>
 (function(){
@@ -9518,7 +9519,7 @@ html[data-typography] :is(h1,h2,h3,h4,h5,h6,.page-title,.section-title,.header-t
     }
   }
 
-  const scanState = {
+  const scanState = window.scanState = {
     sourceFile: null,
     sourceDataUrl: "",
     image: null,
@@ -10112,14 +10113,15 @@ html[data-typography] :is(h1,h2,h3,h4,h5,h6,.page-title,.section-title,.header-t
   async function manualRotateCropFallback(analyzeAfter = false) {
     try {
       const imgCanvas = document.getElementById("aiScanImageCanvas");
-      if (!imgCanvas || !window.scanState || !scanState.sourceDataUrl) throw new Error("未有可校正圖片");
+      const state = window.scanState;
+      if (!imgCanvas || !state || !state.sourceDataUrl) throw new Error("未有可校正圖片");
 
       setScanStatusSafe("正在用手動模式校正圖片...");
-      const img = await loadImageFromDataUrlFallback(scanState.sourceDataUrl);
-      const ptsDisplay = orderQuadSimple(scanState.points || []);
+      const img = await loadImageFromDataUrlFallback(state.sourceDataUrl);
+      const ptsDisplay = orderQuadSimple(state.points || []);
       if (ptsDisplay.length !== 4) throw new Error("四角資料不足");
 
-      const scaleBack = 1 / (scanState.displayScale || 1);
+      const scaleBack = 1 / (state.displayScale || 1);
       const pts = ptsDisplay.map(p => ({ x: p.x * scaleBack, y: p.y * scaleBack }));
 
       const angle = Math.atan2(pts[1].y - pts[0].y, pts[1].x - pts[0].x);
@@ -10173,6 +10175,9 @@ html[data-typography] :is(h1,h2,h3,h4,h5,h6,.page-title,.section-title,.header-t
       syncFileToAnyInputFallback(file);
 
       setScanStatusSafe(analyzeAfter ? "已完成校正，正在交給 AI 分析..." : "已套用校正 Cover。");
+
+      await new Promise(resolve => setTimeout(resolve, 180));
+
       const modal = document.getElementById("aiScanCorrectModal");
       if (modal) modal.classList.add("hidden");
 
@@ -10203,6 +10208,68 @@ html[data-typography] :is(h1,h2,h3,h4,h5,h6,.page-title,.section-title,.header-t
       if (applyCoverBtn) applyCoverBtn.onclick = () => manualRotateCropFallback(false);
       if (applyAnalyzeBtn) applyAnalyzeBtn.onclick = () => manualRotateCropFallback(true);
     }, 500);
+  });
+})();
+</script>
+
+
+<!-- auth transition real reload patch -->
+
+<script>
+(function(){
+  if (window.__kuraAuthReloadRealLoaded) return;
+  window.__kuraAuthReloadRealLoaded = true;
+
+  const KEY_DONE = "kura_auth_reload_done_uid";
+  let lastUid = window.kuraFirebase?.auth?.currentUser?.uid || "";
+
+  function currentUid() {
+    return window.kuraFirebase?.auth?.currentUser?.uid || "";
+  }
+
+  function getDoneUid() {
+    try { return sessionStorage.getItem(KEY_DONE) || ""; } catch(e) { return ""; }
+  }
+
+  function setDoneUid(uid) {
+    try { sessionStorage.setItem(KEY_DONE, uid || ""); } catch(e) {}
+  }
+
+  function clearDoneUid() {
+    try { sessionStorage.removeItem(KEY_DONE); } catch(e) {}
+  }
+
+  // If user logs out, allow next login to reload again.
+  setInterval(() => {
+    const uid = currentUid();
+
+    if (!uid && lastUid) {
+      clearDoneUid();
+    }
+
+    if (!lastUid && uid) {
+      const doneUid = getDoneUid();
+      if (doneUid !== uid) {
+        setDoneUid(uid);
+        setTimeout(() => {
+          try { location.reload(); } catch(e) {}
+        }, 80);
+        return;
+      }
+    }
+
+    lastUid = uid;
+  }, 300);
+
+  document.addEventListener("DOMContentLoaded", () => {
+    const uid = currentUid();
+    if (uid && getDoneUid() === uid) {
+      // keep marker only for this session login cycle; clear later so next fresh login can reload again
+      setTimeout(() => {
+        const nowUid = currentUid();
+        if (nowUid === uid) clearDoneUid();
+      }, 1800);
+    }
   });
 })();
 </script>
